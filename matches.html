@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>PASTO GENIE - Historique des matchs</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@4.5.0/fonts/remixicon.css" rel="stylesheet"/>
+  <link rel="stylesheet" href="css/variables.css"/>
+  <link rel="stylesheet" href="css/base.css"/>
+  <link rel="stylesheet" href="css/glass.css"/>
+  <link rel="stylesheet" href="css/components.css"/>
+  <link rel="stylesheet" href="css/animations.css"/>
+  <link rel="stylesheet" href="css/pages/public.css"/>
+</head>
+<body class="public-page public-detail-page" data-public-page="matches">
+  <div class="bg-blobs"><div class="blob blob-1"></div><div class="blob blob-2"></div><div class="blob blob-3"></div><div class="blob blob-4"></div></div>
+  <nav class="navbar">
+    <a class="brand" href="index.html">
+      <img src="assets/images/logo.jpeg" alt="Logo" class="brand-logo"/>
+      <div><div class="brand-name">PASTO GENIE</div><div class="brand-sub">Historique public</div></div>
+    </a>
+    <div class="nav-actions"><a href="index.html" class="btn btn-outline btn-sm"><i class="ri-home-line"></i> Accueil</a></div>
+  </nav>
+  <main class="public-rankings detail-shell">
+    <div class="ranking-header">
+      <div>
+        <span class="section-kicker"><i class="ri-history-line"></i> Matchs</span>
+        <h1>Historique des matchs</h1>
+        <p>Du plus recent au plus ancien, avec filtres publics.</p>
+      </div>
+    </div>
+    <div class="filter-bar glass glass-sm">
+      <label><span>Tournoi</span><select id="filter-tournoi" class="form-select"><option value="">Tous</option></select></label>
+      <label><span>Date</span><input id="filter-date" type="date" class="form-input"/></label>
+      <label><span>Mois</span><input id="filter-month" type="month" class="form-input"/></label>
+      <label><span>Annee</span><input id="filter-year" type="number" min="2020" max="2100" class="form-input" placeholder="2026"/></label>
+      <button id="apply-match-filters" class="btn btn-gold"><i class="ri-filter-3-line"></i> Filtrer</button>
+    </div>
+    <div id="matches-history-list" class="calendar-list"><div class="neo-card placeholder-card">Chargement...</div></div>
+  </main>
+  <script type="module" src="js/public-pages.js"></script>
+</body>
+</html>

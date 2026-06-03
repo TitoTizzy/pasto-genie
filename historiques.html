@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>PASTO GENIE - Classements historiques</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@4.5.0/fonts/remixicon.css" rel="stylesheet"/>
+  <link rel="stylesheet" href="css/variables.css"/>
+  <link rel="stylesheet" href="css/base.css"/>
+  <link rel="stylesheet" href="css/glass.css"/>
+  <link rel="stylesheet" href="css/components.css"/>
+  <link rel="stylesheet" href="css/animations.css"/>
+  <link rel="stylesheet" href="css/pages/public.css"/>
+</head>
+<body class="public-page public-detail-page" data-public-page="historiques">
+  <div class="bg-blobs"><div class="blob blob-1"></div><div class="blob blob-2"></div><div class="blob blob-3"></div><div class="blob blob-4"></div></div>
+  <nav class="navbar">
+    <a class="brand" href="index.html">
+      <img src="assets/images/logo.jpeg" alt="Logo" class="brand-logo"/>
+      <div><div class="brand-name">PASTO GENIE</div><div class="brand-sub">Classements</div></div>
+    </a>
+    <div class="nav-actions"><a href="index.html" class="btn btn-outline btn-sm"><i class="ri-home-line"></i> Accueil</a></div>
+  </nav>
+  <main class="public-rankings detail-shell">
+    <div class="ranking-header">
+      <div>
+        <span class="section-kicker"><i class="ri-bar-chart-box-line"></i> Historiques</span>
+        <h1>Classements historiques</h1>
+        <p>All time, categorie, periode et tournoi.</p>
+      </div>
+    </div>
+    <div class="filter-bar glass glass-sm">
+      <label><span>Tournoi</span><select id="rank-tournoi" class="form-select"><option value="">Tous</option></select></label>
+      <label><span>Categorie</span><select id="rank-category" class="form-select"><option value="all">Toutes</option></select></label>
+      <label><span>Du</span><input id="rank-from" type="date" class="form-input"/></label>
+      <label><span>Au</span><input id="rank-to" type="date" class="form-input"/></label>
+      <button id="apply-rank-filters" class="btn btn-gold"><i class="ri-filter-3-line"></i> Filtrer</button>
+    </div>
+    <div class="public-ranking-grid">
+      <div class="glass glass-md neo-panel"><div class="card-label mb-4"><i class="ri-shield-star-line"></i> Equipes</div><div id="history-team-ranking" class="public-ranking-list"></div></div>
+      <div class="glass glass-md neo-panel"><div class="card-label mb-4"><i class="ri-user-star-line"></i> Joueurs</div><div id="history-player-ranking" class="public-ranking-list"></div></div>
+    </div>
+  </main>
+  <script type="module" src="js/public-pages.js"></script>
+</body>
+</html>

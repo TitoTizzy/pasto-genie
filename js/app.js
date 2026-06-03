@@ -7,6 +7,7 @@ import { formatTime, pulsify, renderCatTrack } from "./utils.js";
 const $ = id => document.getElementById(id);
 const CAT = Object.fromEntries(CATEGORIES.map(c => [c.id, c]));
 const MS_DAY = 24 * 60 * 60 * 1000;
+const requestedMatchId = new URLSearchParams(location.search).get("match");
 
 let channels = [];
 let chronoInterval = null;
@@ -14,6 +15,7 @@ let countdownInterval = null;
 let publicPlayersById = new Map();
 let activeTournament = null;
 let homeMatches = [];
+let featuredMatchId = null;
 let teamsById = new Map();
 let playersById = new Map();
 let allTeamStats = [];
@@ -65,6 +67,10 @@ function matchDate(m) {
   return m?.scheduledAt || m?.startedAt || m?.createdAt || new Date();
 }
 
+function sortByMatchDate(a, b) {
+  return matchDate(a).getTime() - matchDate(b).getTime();
+}
+
 function sameLocalDay(a, b) {
   return a.getFullYear() === b.getFullYear()
     && a.getMonth() === b.getMonth()
@@ -105,6 +111,16 @@ function statusLabel(status) {
     termine: "Termine",
   };
   return labels[status] || status || "A definir";
+}
+
+function findFeaturedMatch(matches) {
+  const ordered = [...matches].sort(sortByMatchDate);
+  const live = ordered.find(m => m.statut === "en_cours");
+  if (live) return live;
+  const now = Date.now();
+  const upcoming = ordered.find(m => m.statut !== "termine" && matchDate(m).getTime() >= now - 15 * 60000);
+  if (upcoming) return upcoming;
+  return [...ordered].reverse()[0] || null;
 }
 
 function teamName(match, side) {
@@ -151,6 +167,8 @@ async function loadPublicHome() {
     if (activeTournament) {
       const tournamentMatches = homeMatches.filter(m => m.tournoi_id === activeTournament.id);
       if (tournamentMatches.length) homeMatches = tournamentMatches;
+      const more = $("competition-more-link");
+      if (more) more.href = `competition.html?tournoi=${encodeURIComponent(activeTournament.id)}`;
     }
     renderTodayMatches();
     renderCalendar();
@@ -173,27 +191,24 @@ function renderEmptyBlock(id, message) {
 function renderTodayMatches() {
   const wrap = $("today-matches");
   if (!wrap) return;
-  const today = new Date();
-  let matches = homeMatches.filter(m => m.statut === "en_cours" || sameLocalDay(matchDate(m), today));
-  if (!matches.length) {
-    matches = homeMatches
-      .filter(m => m.statut !== "termine")
-      .sort((a, b) => matchDate(a) - matchDate(b))
-      .slice(0, 2);
-  }
+  const match = findFeaturedMatch(homeMatches);
   wrap.innerHTML = "";
-  if (!matches.length) {
+  if (!match) {
     renderEmptyBlock("today-matches", "Aucun match programme pour le moment.");
     return;
   }
-  matches.forEach(match => {
+  featuredMatchId = match.id;
     const date = matchDate(match);
     const card = document.createElement("article");
-    card.className = "today-match-card neo-card";
+    card.className = "today-match-card featured-match-card neo-card";
     card.innerHTML = `
       <div class="today-card-top">
         <span class="status-pill ${match.statut === "en_cours" ? "is-live" : ""}">${statusLabel(match.statut)}</span>
         <span class="today-date">${formatDateTime(date)}</span>
+      </div>
+      <div class="featured-copy">
+        <span>${activeTournament?.nom || match.tournamentName || "Competition active"}</span>
+        <strong>${match.statut === "en_cours" ? "Le match se joue maintenant" : "Le prochain grand rendez-vous"}</strong>
       </div>
       <div class="today-teams">
         <div class="mini-team" data-side="A"><div class="mini-crest"></div><strong></strong></div>
@@ -204,8 +219,8 @@ function renderTodayMatches() {
         <span>Compte a rebours</span>
         <strong data-countdown="${match.id}">${countdownText(date, match.statut)}</strong>
       </div>
-      <button class="btn btn-gold watch-match-btn" data-watch-match="${match.id}">
-        <i class="ri-live-line"></i> Regarder
+      <button class="btn btn-gold watch-match-btn featured-watch-btn" data-watch-match="${match.id}">
+        <i class="ri-live-line"></i> Suivre en direct
       </button>`;
     const teamA = teamRefFromMatch(match, "A");
     const teamB = teamRefFromMatch(match, "B");
@@ -216,7 +231,6 @@ function renderTodayMatches() {
     renderMiniCrest(a.querySelector(".mini-crest"), teamA, "A");
     renderMiniCrest(b.querySelector(".mini-crest"), teamB, "B");
     wrap.appendChild(card);
-  });
 }
 
 function renderMiniCrest(el, team, fallback) {
@@ -242,9 +256,14 @@ function renderCalendar() {
   const wrap = $("public-calendar-list");
   if (!wrap) return;
   wrap.innerHTML = "";
-  const rows = [...homeMatches].sort((a, b) => matchDate(a) - matchDate(b)).slice(0, 30);
+  const ordered = [...homeMatches].sort(sortByMatchDate);
+  const featuredIndex = Math.max(0, ordered.findIndex(m => m.id === featuredMatchId));
+  const rows = [
+    ...ordered.slice(Math.max(0, featuredIndex - 2), featuredIndex),
+    ...ordered.slice(featuredIndex + 1, featuredIndex + 3),
+  ];
   if (!rows.length) {
-    renderEmptyBlock("public-calendar-list", "Aucun match dans le calendrier.");
+    renderEmptyBlock("public-calendar-list", "Le calendrier detaille apparaitra des que plusieurs matchs seront crees.");
     return;
   }
   rows.forEach(match => {
@@ -262,7 +281,7 @@ function renderCalendar() {
       </div>
       <span class="status-pill ${match.statut === "en_cours" ? "is-live" : ""}">${statusLabel(match.statut)}</span>
       <button class="btn btn-outline btn-sm watch-match-btn" data-watch-match="${match.id}">
-        <i class="ri-eye-line"></i> Regarder
+        <i class="ri-eye-line"></i> Suivre
       </button>`;
     wrap.appendChild(row);
   });
@@ -340,12 +359,28 @@ function renderPoolStandings() {
     renderEmptyBlock("pool-standings", "Aucune equipe enregistree.");
     return;
   }
+  const intro = document.createElement("div");
+  intro.className = "competition-summary neo-card";
+  const rules = activeTournament?.regles || activeTournament?.rules || {};
+  intro.innerHTML = `
+    <div>
+      <span class="section-kicker"><i class="ri-settings-3-line"></i> Format</span>
+      <h3>${activeTournament?.format_type || activeTournament?.format || "Format a definir"}</h3>
+      <p>${activeTournament?.description || "Le superadmin pourra definir le nombre de poules, les phases et les points de classement."}</p>
+    </div>
+    <div class="competition-rule-grid">
+      <div><strong>${rules.points_victoire ?? 3}</strong><span>Victoire</span></div>
+      <div><strong>${rules.points_nul ?? 1}</strong><span>Nul</span></div>
+      <div><strong>${rules.points_defaite ?? 0}</strong><span>Defaite</span></div>
+      <div><strong>${rules.nombre_poules ?? grouped.size}</strong><span>Poules</span></div>
+    </div>`;
+  wrap.appendChild(intro);
   grouped.forEach((teams, poule) => {
     const card = document.createElement("div");
     card.className = "glass glass-md pool-card neo-panel";
     card.innerHTML = `<div class="pool-title">${poule}</div><div class="public-ranking-list"></div>`;
     const list = card.querySelector(".public-ranking-list");
-    teams.sort(sortTeams).forEach((team, index) => list.appendChild(createTeamRankingRow(team, index)));
+    teams.sort(sortTeams).slice(0, 4).forEach((team, index) => list.appendChild(createTeamRankingRow(team, index)));
     wrap.appendChild(card);
   });
 }
@@ -414,7 +449,10 @@ async function loadMatchList() {
       sel.appendChild(new Option(`${teamName(m, "equipeA")} vs ${teamName(m, "equipeB")} - ${statusLabel(m.statut)}`, m.id));
       if (m.statut === "en_cours" && !autoMatch) autoMatch = m.id;
     });
-    if (autoMatch) {
+    if (requestedMatchId) {
+      sel.value = requestedMatchId;
+      subscribeMatch(requestedMatchId, true);
+    } else if (autoMatch) {
       sel.value = autoMatch;
       subscribeMatch(autoMatch, false);
     } else {
@@ -508,10 +546,10 @@ async function loadPublicTeamRanking() {
   if (!wrap) return;
   wrap.innerHTML = '<p class="text-muted text-center">Chargement...</p>';
   try {
-    const rows = aggregateTeamStats(filterByDates(allTeamStats)).slice(0, 12);
+    const rows = aggregateTeamStats(filterByDates(allTeamStats)).slice(0, 3);
     wrap.innerHTML = "";
     if (!rows.length) {
-      wrap.innerHTML = '<p class="text-muted text-center">Aucun classement equipe pour le moment.</p>';
+      wrap.innerHTML = '<p class="text-muted text-center">Aucun podium equipe pour le moment.</p>';
       return;
     }
     rows.forEach((team, index) => wrap.appendChild(createTeamRankingRow(team, index)));
@@ -528,12 +566,12 @@ async function loadPublicPlayerRanking() {
   try {
     const category = $("alltime-category")?.value || "all";
     const rows = category === "all"
-      ? aggregatePlayerStats(filterByDates(allPlayerStats)).slice(0, 12)
-      : (await loadCategoryPlayerRanking(category)).slice(0, 12);
+      ? aggregatePlayerStats(filterByDates(allPlayerStats)).slice(0, 3)
+      : (await loadCategoryPlayerRanking(category)).slice(0, 3);
     wrap.innerHTML = "";
     publicPlayersById = new Map();
     if (!rows.length) {
-      wrap.innerHTML = '<p class="text-muted text-center">Aucun classement joueur pour le moment.</p>';
+      wrap.innerHTML = '<p class="text-muted text-center">Aucun podium joueur pour le moment.</p>';
       return;
     }
     rows.forEach((player, index) => {
@@ -894,9 +932,6 @@ function wireEvents() {
     loadPublicHome();
     loadMatchList();
   });
-  $("alltime-apply")?.addEventListener("click", loadPublicRankings);
-  const categorySelect = $("alltime-category");
-  CATEGORIES.forEach(cat => categorySelect?.appendChild(new Option(cat.label, cat.id)));
 }
 
 wireEvents();

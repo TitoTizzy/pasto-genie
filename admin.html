@@ -650,6 +650,45 @@
         <label class="form-label">Description</label>
         <textarea id="t-desc" class="form-textarea" rows="3" placeholder="Description optionnelle…"></textarea>
       </div>
+      <div class="grid-2">
+        <div class="form-group">
+          <label class="form-label">Format</label>
+          <select id="t-format" class="form-select">
+            <option value="Poules">Poules</option>
+            <option value="Ligue">Ligue</option>
+            <option value="Poules + elimination">Poules + elimination</option>
+            <option value="Elimination directe">Elimination directe</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Nombre d'equipes</label>
+          <input id="t-nb-equipes" type="number" min="2" class="form-input" placeholder="Ex. 12"/>
+        </div>
+      </div>
+      <div class="grid-2">
+        <div class="form-group">
+          <label class="form-label">Nombre de poules</label>
+          <input id="t-nb-poules" type="number" min="1" class="form-input" placeholder="Ex. 4"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Matchs de poule par equipe</label>
+          <input id="t-matchs-poule" type="number" min="0" class="form-input" placeholder="Ex. 3"/>
+        </div>
+      </div>
+      <div class="grid-3">
+        <div class="form-group">
+          <label class="form-label">Points victoire</label>
+          <input id="t-pts-victoire" type="number" class="form-input" value="3"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Points nul</label>
+          <input id="t-pts-nul" type="number" class="form-input" value="1"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Points defaite</label>
+          <input id="t-pts-defaite" type="number" class="form-input" value="0"/>
+        </div>
+      </div>
       <div id="t-alert" class="alert alert-red hidden">
         <i class="ri-error-warning-line"></i><span id="t-alert-msg"></span>
       </div>

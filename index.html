@@ -71,14 +71,14 @@
       <div class="section-heading">
         <div>
           <span class="section-kicker"><i class="ri-calendar-check-line"></i> Tournoi en cours</span>
-          <h1>Match du jour</h1>
+          <h1>Match a la une</h1>
         </div>
         <button id="refresh-public-home" class="btn btn-ghost btn-sm">
           <i class="ri-refresh-line"></i> Actualiser
         </button>
       </div>
       <div id="today-matches" class="today-match-grid">
-        <div class="neo-card placeholder-card">Chargement des matchs du jour...</div>
+        <div class="neo-card placeholder-card">Chargement du match a la une...</div>
       </div>
     </section>
   </main>
@@ -179,8 +179,11 @@
       <div>
         <span class="section-kicker"><i class="ri-calendar-event-line"></i> Programme</span>
         <h2>Calendrier des matchs</h2>
-        <p>Matchs planifies, en cours et termines du tournoi</p>
+        <p>Les 2 derniers matchs et les 2 prochains autour du match a la une</p>
       </div>
+      <a href="matches.html" class="btn btn-outline btn-sm">
+        <i class="ri-history-line"></i> Voir tous les matchs
+      </a>
     </div>
     <div id="public-calendar-list" class="calendar-list">
       <div class="neo-card placeholder-card">Chargement du calendrier...</div>
@@ -190,67 +193,39 @@
   <section id="pool-standings-section" class="public-rankings home-section">
     <div class="ranking-header">
       <div>
-        <span class="section-kicker"><i class="ri-team-line"></i> Poules</span>
-        <h2>Classements d'equipes</h2>
-        <p>Classements separes par poules</p>
+        <span class="section-kicker"><i class="ri-team-line"></i> Competition</span>
+        <h2>Poules et format</h2>
+        <p>Apercu rapide de la competition active</p>
       </div>
+      <a id="competition-more-link" href="competition.html" class="btn btn-outline btn-sm">
+        <i class="ri-arrow-right-line"></i> Voir plus
+      </a>
     </div>
     <div id="pool-standings" class="pool-standings-grid">
       <div class="neo-card placeholder-card">Chargement des poules...</div>
     </div>
   </section>
 
-  <section id="tournament-player-section" class="public-rankings home-section">
-    <div class="ranking-header">
-      <div>
-        <span class="section-kicker"><i class="ri-user-star-line"></i> Tournoi actif</span>
-        <h2>Classements individuels</h2>
-        <p>Performances figees apres validation finale des matchs</p>
-      </div>
-    </div>
-    <div class="glass glass-md neo-panel">
-      <div id="tournament-player-ranking" class="public-ranking-list">
-        <p class="text-muted text-center">Chargement...</p>
-      </div>
-    </div>
-  </section>
-
   <section id="dynamic-rankings-section" class="public-rankings home-section">
     <div class="ranking-header">
       <div>
-        <span class="section-kicker"><i class="ri-bar-chart-box-line"></i> Dynamique</span>
-        <h2>Classements all time</h2>
-        <p>Filtres par categorie et plage de date</p>
+        <span class="section-kicker"><i class="ri-vip-crown-line"></i> All time</span>
+        <h2>Podiums historiques</h2>
+        <p>Les meilleurs equipes et joueurs de toute l'histoire</p>
       </div>
-    </div>
-    <div class="filter-bar glass glass-sm">
-      <label>
-        <span>Categorie</span>
-        <select id="alltime-category" class="form-select">
-          <option value="all">Toutes</option>
-        </select>
-      </label>
-      <label>
-        <span>Du</span>
-        <input id="alltime-from" type="date" class="form-input"/>
-      </label>
-      <label>
-        <span>Au</span>
-        <input id="alltime-to" type="date" class="form-input"/>
-      </label>
-      <button id="alltime-apply" class="btn btn-gold">
-        <i class="ri-filter-3-line"></i> Filtrer
-      </button>
+      <a href="historiques.html" class="btn btn-outline btn-sm">
+        <i class="ri-bar-chart-box-line"></i> Voir plus
+      </a>
     </div>
     <div class="public-ranking-grid">
       <div class="glass glass-md neo-panel">
-        <div class="card-label mb-4"><i class="ri-shield-star-line"></i> Equipes all time</div>
+        <div class="card-label mb-4"><i class="ri-shield-star-line"></i> Podium equipes</div>
         <div id="public-team-ranking" class="public-ranking-list">
           <p class="text-muted text-center">Chargement...</p>
         </div>
       </div>
       <div class="glass glass-md neo-panel">
-        <div class="card-label mb-4"><i class="ri-user-star-line"></i> Joueurs all time</div>
+        <div class="card-label mb-4"><i class="ri-user-star-line"></i> Podium joueurs</div>
         <div id="public-player-ranking" class="public-ranking-list">
           <p class="text-muted text-center">Chargement...</p>
         </div>

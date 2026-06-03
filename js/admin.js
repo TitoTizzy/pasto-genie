@@ -219,6 +219,14 @@ async function creerTournoi() {
   const nom = $("t-nom").value.trim();
   const annee = parseInt($("t-annee").value, 10) || new Date().getFullYear();
   const description = $("t-desc").value.trim();
+  const rules = {
+    nombre_equipes: parseInt($("t-nb-equipes")?.value, 10) || null,
+    nombre_poules: parseInt($("t-nb-poules")?.value, 10) || null,
+    matchs_poule_par_equipe: parseInt($("t-matchs-poule")?.value, 10) || null,
+    points_victoire: parseInt($("t-pts-victoire")?.value, 10) || 3,
+    points_nul: parseInt($("t-pts-nul")?.value, 10) || 1,
+    points_defaite: parseInt($("t-pts-defaite")?.value, 10) || 0,
+  };
   if (!nom) {
     showAlert("t-alert-msg", "t-alert", "Nom requis.");
     return;
@@ -228,12 +236,21 @@ async function creerTournoi() {
   btn.disabled = true;
   btn.innerHTML = '<i class="ri-loader-4-line spin"></i> Creation...';
   try {
-    const { error } = await supabase.from(T.TOURNOIS).insert({ nom, annee, description, actif: true, created_at: nowISO() });
+    const { error } = await supabase.from(T.TOURNOIS).insert({
+      nom,
+      annee,
+      description,
+      format_type: $("t-format")?.value || "Poules",
+      regles: rules,
+      actif: true,
+      created_at: nowISO(),
+    });
     if (error) throw error;
     toast("Tournoi cree !", "success");
     closeOverlay("tournoi-overlay");
     $("t-nom").value = "";
     $("t-desc").value = "";
+    ["t-nb-equipes", "t-nb-poules", "t-matchs-poule"].forEach(id => { if ($(id)) $(id).value = ""; });
     loadTournoisSelects();
   } catch (err) {
     console.error(err);

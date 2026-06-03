@@ -96,6 +96,32 @@
   transition: transform 260ms ease, box-shadow 260ms ease;
 }
 
+.featured-match-card {
+  min-height: min(620px, calc(100dvh - 180px));
+  grid-template-rows: auto auto 1fr auto auto;
+}
+
+.featured-copy {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 0.2rem;
+  text-align: center;
+}
+
+.featured-copy span {
+  color: var(--text-muted);
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.featured-copy strong {
+  color: var(--text);
+  font-size: clamp(1.6rem, 4vw, 3.2rem);
+  line-height: 1.02;
+}
+
 .today-match-card:hover {
   transform: translateY(-6px) rotateX(2deg) rotateY(-2deg);
   box-shadow:
@@ -237,12 +263,33 @@
   box-shadow: 0 18px 45px rgba(245,158,11,0.24);
 }
 
+.featured-watch-btn {
+  min-height: 76px;
+  font-size: clamp(1.25rem, 2.5vw, 1.8rem);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
 .placeholder-card {
   padding: var(--space-6);
   border-radius: var(--r-lg);
   color: var(--text-muted);
   font-size: 1.15rem;
   font-weight: 800;
+}
+
+.detail-shell {
+  padding-top: var(--space-7);
+}
+
+.detail-shell h1 {
+  font-size: clamp(2.6rem, 6vw, 5rem);
+  line-height: 0.95;
+}
+
+.competition-detail-grid {
+  display: grid;
+  gap: var(--space-5);
 }
 
 .public-page .navbar {
@@ -624,6 +671,53 @@
   gap: var(--space-5);
 }
 
+.competition-summary {
+  grid-column: 1 / -1;
+  padding: var(--space-5);
+  border-radius: var(--r-xl);
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.8fr);
+  align-items: center;
+  gap: var(--space-5);
+}
+
+.competition-summary h3 {
+  font-size: clamp(1.9rem, 4vw, 3.2rem);
+  color: var(--text);
+}
+
+.competition-rule-grid {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-2);
+}
+
+.competition-rule-grid div {
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: var(--space-3);
+  background: rgba(255,255,255,0.62);
+  text-align: center;
+}
+
+.competition-rule-grid strong {
+  display: block;
+  color: var(--sky-deep);
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.competition-rule-grid span {
+  display: block;
+  margin-top: 0.35rem;
+  color: var(--text-muted);
+  font-size: 0.84rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
 .pool-card {
   padding: var(--space-5);
   border-radius: var(--r-xl);
@@ -900,6 +994,9 @@
   .today-match-card {
     min-height: 0;
   }
+  .featured-match-card {
+    min-height: 0;
+  }
   .today-teams {
     grid-template-columns: 1fr;
   }
@@ -922,6 +1019,12 @@
   }
   .pool-standings-grid {
     grid-template-columns: 1fr;
+  }
+  .competition-summary {
+    grid-template-columns: 1fr;
+  }
+  .competition-rule-grid {
+    grid-template-columns: repeat(2, 1fr);
   }
   .filter-bar {
     grid-template-columns: 1fr;
