@@ -250,13 +250,81 @@
 }
 
 @media (max-width: 800px) {
+  .jury-layout {
+    padding: var(--space-3);
+  }
   .jury-arena { grid-template-columns: 1fr 1fr; }
   .jury-center { display: none; }
   .replique-players-grid { grid-template-columns: repeat(2, 1fr); }
+  .control-bar {
+    padding: var(--space-3);
+    gap: var(--space-2);
+    align-items: stretch;
+  }
+  .control-bar > * {
+    max-width: 100%;
+  }
+  .clock-display,
+  .cat-info-chip,
+  .bareme-chip {
+    width: 100%;
+    justify-content: center;
+    text-align: center;
+  }
+  .bareme-chip {
+    border-radius: var(--r-md);
+    line-height: 1.25;
+  }
+  .player-card {
+    padding: var(--space-3);
+  }
+  .player-name {
+    white-space: normal;
+    line-height: 1.18;
+  }
+  .player-score-big {
+    font-size: 1.55rem;
+  }
 }
 
 @media (max-width: 500px) {
-  .jury-arena { grid-template-columns: 1fr; }
+  .jury-layout {
+    padding: var(--space-2);
+  }
+  .jury-arena {
+    grid-template-columns: 1fr;
+    gap: var(--space-3);
+  }
+  .jury-team-header {
+    position: sticky;
+    top: 116px;
+    z-index: 2;
+    margin-bottom: var(--space-2);
+  }
+  .player-card {
+    border-radius: var(--r-md);
+  }
+  .player-btn-row {
+    gap: var(--space-2);
+  }
+  .replique-modal {
+    max-width: 100%;
+  }
+  .replique-context {
+    padding: var(--space-3);
+  }
+  .replique-context .rc-team {
+    font-size: 1.25rem;
+  }
+  .replique-countdown {
+    font-size: 3.5rem;
+  }
+  .replique-players-grid {
+    grid-template-columns: 1fr;
+  }
+  .replique-player-btn {
+    min-height: 76px;
+  }
 }
 
 @media (min-width: 1440px) {

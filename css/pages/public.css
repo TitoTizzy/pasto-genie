@@ -511,19 +511,102 @@
 }
 
 @media (max-width: 1000px) {
-  .public-layout { grid-template-columns: 1fr; }
+  .public-layout {
+    grid-template-columns: 1fr;
+    padding: var(--space-4);
+  }
+  .public-rankings {
+    padding: 0 var(--space-4) var(--space-8);
+  }
   .public-ranking-grid { grid-template-columns: 1fr; }
   .cat-scores-grid { grid-template-columns: repeat(3, 1fr); }
 }
 
 @media (max-width: 600px) {
-  .score-row { gap: var(--space-3); }
-  .score-numbers { gap: var(--space-3); }
+  .public-layout {
+    padding: var(--space-3);
+    gap: var(--space-4);
+  }
+  .scoreboard-meta {
+    align-items: flex-start;
+    gap: var(--space-3);
+    flex-direction: column;
+  }
+  .score-row {
+    grid-template-columns: 1fr;
+    gap: var(--space-3);
+    padding: var(--space-2) 0;
+  }
+  .team-side {
+    display: grid;
+    grid-template-columns: 58px 1fr;
+    justify-items: start;
+    text-align: left;
+    width: 100%;
+    column-gap: var(--space-3);
+    row-gap: 0;
+  }
+  .team-crest {
+    width: 56px;
+    height: 56px;
+    grid-row: span 2;
+  }
+  .team-label {
+    font-size: 1.05rem;
+    align-self: end;
+    word-break: break-word;
+  }
+  .team-parish {
+    font-size: 0.92rem;
+    align-self: start;
+  }
+  .score-center {
+    order: -1;
+    width: 100%;
+  }
+  .score-numbers {
+    gap: var(--space-3);
+    justify-content: center;
+    width: 100%;
+  }
+  .cat-active-strip {
+    width: 100%;
+    padding: var(--space-2) var(--space-3);
+  }
   .players-grid { grid-template-columns: 1fr; }
   .cat-scores-grid { grid-template-columns: repeat(2, 1fr); }
   .public-ranking-row { grid-template-columns: 40px 48px minmax(0, 1fr) 56px; }
   .public-ranking-avatar { width: 48px; height: 48px; }
   .profile-stats { grid-template-columns: repeat(2, 1fr); }
+  .profile-card {
+    max-height: calc(100dvh - var(--space-6));
+    overflow-y: auto;
+  }
+  .profile-head {
+    align-items: flex-start;
+  }
+  .profile-photo {
+    width: 78px;
+    height: 78px;
+    font-size: 2rem;
+  }
+  .event-feed {
+    max-height: 260px;
+  }
+}
+
+@media (max-width: 420px) {
+  .public-ranking-row {
+    grid-template-columns: 36px 44px minmax(0, 1fr);
+  }
+  .public-ranking-score {
+    grid-column: 3;
+    text-align: left;
+    font-size: 1.25rem;
+  }
+  .public-ranking-meta {
+    font-size: 0.88rem;
+  }
 }
 
 @media (min-width: 1440px) {

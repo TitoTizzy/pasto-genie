@@ -511,3 +511,73 @@
   font-size: 0.8rem;
 }
 .player-mini-row .pmr-name { flex: 1; color: var(--text-dim); }
+
+@media (hover: none) {
+  .btn:hover,
+  .btn-jury-good:hover:not(:disabled),
+  .btn-jury-bad:hover:not(:disabled) {
+    transform: none;
+  }
+}
+
+@media (max-width: 700px) {
+  .btn {
+    min-height: 44px;
+    white-space: normal;
+    text-align: center;
+    line-height: 1.15;
+  }
+  .btn-icon {
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+  }
+  .btn-sm {
+    min-height: 40px;
+    padding: 0.5rem 0.78rem;
+  }
+  .form-group { margin-bottom: var(--space-4); }
+  .form-label {
+    font-size: 0.86rem;
+    letter-spacing: 0.05em;
+  }
+  .form-input,
+  .form-select,
+  .form-textarea {
+    min-height: 48px;
+    font-size: 1rem;
+    padding: 0.74rem 0.85rem;
+  }
+  .badge {
+    white-space: normal;
+    text-align: center;
+    line-height: 1.15;
+  }
+  .alert {
+    font-size: 0.98rem;
+    padding: var(--space-3);
+  }
+  #toast-container {
+    left: var(--space-3);
+    right: var(--space-3);
+    bottom: var(--space-3);
+  }
+  .toast {
+    width: 100%;
+    max-width: none;
+  }
+  .score-hero {
+    font-size: clamp(3.2rem, 18vw, 5.4rem);
+  }
+  .add-player-row {
+    grid-template-columns: 1fr;
+  }
+  .player-btn-row {
+    flex-direction: column;
+  }
+  .btn-jury-good,
+  .btn-jury-bad {
+    min-height: 48px;
+    font-size: 1rem;
+  }
+}

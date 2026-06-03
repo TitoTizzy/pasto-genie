@@ -523,6 +523,83 @@
 
 @media (max-width: 500px) {
   .dash-stats { grid-template-columns: 1fr; }
+  .page-header {
+    align-items: stretch;
+    gap: var(--space-3);
+  }
+  .page-header > div,
+  .page-header > button,
+  .page-header > .btn,
+  .page-header > div:last-child {
+    width: 100%;
+  }
+  .page-header > div:last-child {
+    display: grid !important;
+    grid-template-columns: 1fr;
+  }
+  .dash-stat {
+    padding: var(--space-4);
+  }
+  .item-card {
+    align-items: flex-start;
+    flex-wrap: wrap;
+    padding: var(--space-4);
+  }
+  .item-card-icon {
+    width: 46px;
+    height: 46px;
+  }
+  .item-card-title {
+    white-space: normal;
+    line-height: 1.18;
+  }
+  .item-card-actions {
+    width: 100%;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+  .entity-card,
+  .ranking-row {
+    padding: var(--space-3);
+    gap: var(--space-2);
+  }
+  .entity-avatar {
+    width: 50px;
+    height: 50px;
+  }
+  .entity-title,
+  .ranking-name {
+    font-size: 1rem;
+    line-height: 1.18;
+  }
+  .entity-meta,
+  .ranking-meta {
+    font-size: 0.88rem;
+  }
+  .ranking-row {
+    display: grid;
+    grid-template-columns: 42px minmax(0, 1fr) 54px;
+  }
+  .ranking-pos {
+    width: 38px;
+    height: 38px;
+  }
+  .ranking-points {
+    font-size: 1.24rem;
+  }
+  .upload-box {
+    min-height: 82px;
+  }
+  .upload-preview {
+    width: 58px;
+    height: 58px;
+  }
+  .users-table-wrap {
+    max-width: calc(100vw - var(--space-6));
+  }
+  .glass-table {
+    min-width: 620px;
+  }
 }
 
 @media (min-width: 1440px) {

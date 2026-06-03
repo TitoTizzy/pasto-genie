@@ -162,3 +162,39 @@
   .login-logo-wrap { width: 104px; height: 104px; }
   .login-title { font-size: 2.4rem; }
 }
+
+@media (max-width: 520px) {
+  .login-wrap {
+    align-items: flex-start;
+    padding: var(--space-4) var(--space-3);
+  }
+  .login-card {
+    max-width: none;
+    border-radius: var(--r-lg);
+  }
+  .login-top {
+    margin-bottom: var(--space-5);
+  }
+  .login-logo-wrap {
+    width: 74px;
+    height: 74px;
+    margin-bottom: var(--space-4);
+  }
+  .login-title {
+    font-size: 1.82rem;
+    letter-spacing: 0.04em;
+  }
+  .login-subtitle {
+    font-size: 0.82rem;
+    letter-spacing: 0.08em;
+  }
+  .login-roles .badge {
+    font-size: 0.78rem;
+  }
+}
+
+@media (max-height: 720px) and (max-width: 520px) {
+  .login-wrap {
+    min-height: auto;
+  }
+}

@@ -189,12 +189,24 @@ input, select, textarea { font-family: var(--font); }
 }
 
 @media (max-width: 900px) {
+  html { font-size: 17px; }
   .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
   .hide-mobile { display: none !important; }
 }
 @media (max-width: 600px) {
+  html { font-size: 16px; }
   .container { padding: 0 var(--space-4); }
   .hide-sm { display: none !important; }
+  body::after { background-size: 30px 30px; opacity: 0.65; }
+  .blob { filter: blur(46px); opacity: 0.42; }
+  .blob-1 { width: 300px; height: 300px; top: -90px; left: -110px; }
+  .blob-2 { width: 260px; height: 260px; top: -80px; right: -120px; }
+  .blob-3 { width: 360px; height: 260px; left: 8%; bottom: -120px; }
+  .blob-4 { display: none; }
+}
+
+@media (max-width: 380px) {
+  html { font-size: 15px; }
 }
 
 @media (min-width: 1440px) {
