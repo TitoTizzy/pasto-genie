@@ -1,0 +1,316 @@
+/* ================================================================
+   PASTO GÉNIE — Jury Interface
+   ================================================================ */
+
+/* ── Arena ───────────────────────────────────────────────────────── */
+.jury-layout { padding: var(--space-4) var(--space-5); }
+
+.jury-arena {
+  display: grid;
+  grid-template-columns: 1fr 180px 1fr;
+  gap: var(--space-4);
+  align-items: start;
+}
+
+/* ── Center panel ────────────────────────────────────────────────── */
+.jury-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+  position: sticky;
+  top: 110px;
+}
+
+.jury-vs-badge {
+  width: 48px; height: 48px;
+  border-radius: 50%;
+  background: var(--glass-gold);
+  border: 1.5px solid var(--border-gold);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.95rem;
+  font-weight: 900;
+  color: var(--gold);
+  letter-spacing: 0.06em;
+  flex-shrink: 0;
+}
+
+.jury-score-panel {
+  width: 100%;
+  text-align: center;
+  padding: var(--space-4) var(--space-3);
+}
+
+.jury-score-panel .team-short {
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: var(--space-1);
+}
+
+.jury-score-panel .score-big {
+  font-size: 3.2rem;
+  font-weight: 900;
+  color: var(--gold);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  text-shadow: var(--glow-gold);
+}
+
+.jury-sep { color: var(--text-muted); font-size: 0.8rem; font-weight: 300; margin: 2px 0; }
+
+/* ── Compact log ─────────────────────────────────────────────────── */
+.jury-log {
+  max-height: 220px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.jury-log-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 0.98rem;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--r-xs);
+  background: var(--glass-0);
+  border-left: 2px solid var(--border);
+  animation: eventSlide 0.25s ease both;
+}
+
+.jury-log-item.bonne    { border-left-color: var(--green); }
+.jury-log-item.mauvaise { border-left-color: var(--red); }
+.jury-log-item.replique { border-left-color: var(--gold); }
+
+.jli-text { flex: 1; color: var(--text-dim); }
+.jli-time { font-size: 0.82rem; color: var(--text-muted); white-space: nowrap; }
+
+/* ── Control bar extras ──────────────────────────────────────────── */
+.clock-display {
+  font-size: 1.42rem;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+  color: var(--gold);
+  background: var(--glass-1);
+  border: 1px solid var(--border-gold);
+  border-radius: var(--r-sm);
+  padding: 0.25rem 0.85rem;
+  letter-spacing: 0.05em;
+}
+
+.cat-info-chip {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 1.08rem;
+  font-weight: 700;
+  color: var(--gold);
+}
+
+.cat-info-chip .cat-num {
+  font-size: 0.86rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.bareme-chip {
+  font-size: 0.98rem;
+  color: var(--text-dim);
+  background: var(--glass-1);
+  border: 1px solid var(--border);
+  border-radius: var(--r-full);
+  padding: 0.2rem 0.75rem;
+}
+
+/* ── Réplique Modal ──────────────────────────────────────────────── */
+.replique-modal {
+  max-width: 600px;
+}
+
+.replique-context {
+  text-align: center;
+  padding: var(--space-4) var(--space-6);
+  border-radius: var(--r-md);
+  background: var(--glass-gold);
+  border: 1px solid var(--border-gold);
+  margin-bottom: var(--space-5);
+}
+
+.replique-context .rc-label {
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: var(--space-1);
+}
+
+.replique-context .rc-team {
+  font-size: 1.45rem;
+  font-weight: 900;
+  color: var(--gold);
+}
+
+.replique-countdown {
+  font-size: 4.6rem;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+  color: var(--gold);
+  text-align: center;
+  line-height: 1;
+  text-shadow: var(--glow-gold);
+  transition: color 0.3s ease, text-shadow 0.3s ease;
+  margin: var(--space-4) 0;
+}
+
+.replique-countdown.urgent {
+  color: var(--red);
+  text-shadow: var(--glow-red);
+  animation: countdownShake 0.4s ease infinite;
+}
+
+.replique-countdown .cd-label {
+  display: block;
+  font-size: 0.92rem;
+  color: var(--text-muted);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 500;
+  margin-top: var(--space-1);
+  text-shadow: none;
+  animation: none;
+}
+
+.replique-players-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.replique-player-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-4) var(--space-3);
+  background: var(--glass-1);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  cursor: pointer;
+  font-family: var(--font);
+  transition: all var(--ease);
+  text-align: center;
+}
+
+.replique-player-btn:hover:not(:disabled) {
+  background: var(--glass-gold);
+  border-color: var(--border-gold);
+  box-shadow: var(--glow-gold-2);
+  transform: translateY(-2px);
+}
+
+.replique-player-btn:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
+.replique-player-btn .rpb-name { font-size: 1.05rem; font-weight: 800; color: var(--text); }
+.replique-player-btn .rpb-pts  { font-size: 0.92rem; color: var(--text-muted); }
+
+.replique-result {
+  text-align: center;
+  padding: var(--space-4);
+  border-radius: var(--r-md);
+  margin-bottom: var(--space-4);
+  font-size: 1.25rem;
+  font-weight: 800;
+  animation: scaleIn 0.25s ease both;
+}
+
+.replique-result.bonne   { background: rgba(139,171,60,0.12); border: 1px solid var(--border-green); color: var(--green); }
+.replique-result.mauvaise { background: rgba(224,92,92,0.12);  border: 1px solid var(--border-red);   color: var(--red); }
+
+/* ── Start screen ────────────────────────────────────────────────── */
+.jury-start-screen {
+  min-height: 70vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: var(--space-5);
+  padding: var(--space-8);
+}
+
+.jury-start-icon {
+  font-size: 4rem;
+  color: var(--gold-dim);
+  animation: glowPulse 2.5s ease-in-out infinite;
+}
+
+@media (max-width: 800px) {
+  .jury-arena { grid-template-columns: 1fr 1fr; }
+  .jury-center { display: none; }
+  .replique-players-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 500px) {
+  .jury-arena { grid-template-columns: 1fr; }
+}
+
+@media (min-width: 1440px) {
+  .jury-arena { grid-template-columns: 1fr 230px 1fr; }
+  .jury-score-panel .score-big { font-size: 4rem; }
+  .clock-display { font-size: 1.7rem; }
+}
+
+/* Sky glass refit */
+.jury-vs-badge {
+  background: linear-gradient(135deg, var(--sky), var(--cyan));
+  border-color: rgba(255,255,255,0.76);
+  color: #fff;
+  box-shadow: var(--glow-blue);
+}
+.jury-score-panel .team-short,
+.jury-sep,
+.jli-time,
+.cat-info-chip .cat-num,
+.replique-context .rc-label,
+.replique-countdown .cd-label { color: var(--text-muted); }
+.jury-score-panel .score-big,
+.clock-display,
+.cat-info-chip,
+.replique-context .rc-team,
+.replique-countdown { color: var(--sky-deep); text-shadow: none; }
+.jury-score-panel,
+.clock-display,
+.bareme-chip,
+.jury-log-item,
+.replique-player-btn {
+  background: rgba(255,255,255,0.48);
+  border-color: var(--border);
+}
+.clock-display {
+  border-color: var(--border-blue);
+  box-shadow: var(--glow-blue);
+}
+.bareme-chip { color: var(--text-dim); }
+.jli-text { color: var(--text-dim); }
+.jury-log-item.bonne { border-left-color: var(--green); }
+.jury-log-item.mauvaise { border-left-color: var(--red); }
+.jury-log-item.replique { border-left-color: var(--orange); }
+.replique-context {
+  background: rgba(186,230,253,0.68);
+  border-color: var(--border-blue);
+}
+.replique-player-btn:hover:not(:disabled) {
+  background: rgba(186,230,253,0.78);
+  border-color: var(--border-blue);
+  box-shadow: var(--glow-blue);
+}
+.replique-player-btn .rpb-name { color: var(--text); }
+.replique-player-btn .rpb-pts { color: var(--text-muted); }
+.replique-result.bonne { background: rgba(209,250,229,0.82); border-color: var(--border-green); color: var(--text-green); }
+.replique-result.mauvaise { background: rgba(255,228,230,0.86); border-color: var(--border-red); color: var(--text-red); }
+.jury-start-icon { color: var(--sky-deep); }

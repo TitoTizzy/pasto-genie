@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Setup - PASTO GENIE</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;900&display=swap" rel="stylesheet"/>
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@4.5.0/fonts/remixicon.css" rel="stylesheet"/>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      font-family: Outfit, sans-serif;
+      background: #05081a;
+      color: #f0ece0;
+    }
+    .card {
+      width: 100%;
+      max-width: 760px;
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 18px;
+      padding: 32px;
+      background: rgba(255,255,255,.05);
+      box-shadow: 0 24px 80px rgba(0,0,0,.5);
+    }
+    h1 { color: #d4af37; font-size: 1.6rem; margin-bottom: 8px; }
+    p { color: rgba(240,236,224,.68); line-height: 1.6; margin-bottom: 18px; }
+    h2 { font-size: .82rem; letter-spacing: .08em; text-transform: uppercase; color: rgba(240,236,224,.5); margin: 24px 0 10px; }
+    pre {
+      white-space: pre-wrap;
+      overflow: auto;
+      background: rgba(0,0,0,.35);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 10px;
+      padding: 16px;
+      color: #f0ece0;
+      font-size: .78rem;
+      line-height: 1.55;
+    }
+    a {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 22px;
+      color: #05081a;
+      background: #d4af37;
+      border-radius: 10px;
+      padding: 12px 16px;
+      text-decoration: none;
+      font-weight: 800;
+    }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <h1><i class="ri-database-2-line"></i> Setup Supabase</h1>
+    <p>Cette page remplace l'ancien demarrage. Configurez les cles dans <strong>js/supabase-config.js</strong>, puis creez les tables et les politiques RLS dans Supabase.</p>
+
+    <h2>Configuration client</h2>
+    <pre>const supabaseUrl = "https://YOUR_PROJECT_REF.supabase.co";
+const supabaseAnonKey = "YOUR_SUPABASE_ANON_KEY";</pre>
+
+    <h2>Compte superadmin</h2>
+    <p>Creez un utilisateur dans Supabase Auth, puis ajoutez une ligne dans la table <strong>users</strong> avec le meme identifiant.</p>
+    <pre>insert into public.users (id, email, display_name, role)
+values ('AUTH_USER_ID', 'admin@example.com', 'Administrateur', 'superadmin');</pre>
+
+    <a href="login.html"><i class="ri-login-box-line"></i> Aller a la connexion</a>
+  </main>
+</body>
+</html>

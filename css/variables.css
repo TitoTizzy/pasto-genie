@@ -1,0 +1,106 @@
+/* ================================================================
+   PASTO GENIE - Design Tokens
+   Light Sky Glassmorphism
+   ================================================================ */
+:root {
+  --font: 'Outfit', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+  --fs-xs: 0.88rem;
+  --fs-sm: 1rem;
+  --fs-base: 1.12rem;
+  --fs-md: 1.24rem;
+  --fs-lg: 1.42rem;
+  --fs-xl: 1.75rem;
+
+  --bg-base: #eaf8ff;
+  --bg-surface: #f6fcff;
+  --bg-deep: #d7f0ff;
+
+  --sky: #38bdf8;
+  --sky-bright: #7dd3fc;
+  --sky-deep: #0284c7;
+  --cyan: #22d3ee;
+  --indigo: #4f46e5;
+  --violet: #8b5cf6;
+  --coral: #ff5c8a;
+  --orange: #fb923c;
+  --green: #10b981;
+  --lime: #84cc16;
+  --red: #ef4444;
+  --gold: #f59e0b;
+  --gold-bright: #fbbf24;
+  --blue-accent: var(--sky);
+
+  --glass-0: rgba(255, 255, 255, 0.30);
+  --glass-1: rgba(255, 255, 255, 0.46);
+  --glass-2: rgba(255, 255, 255, 0.62);
+  --glass-3: rgba(255, 255, 255, 0.78);
+  --glass-gold: rgba(255, 245, 190, 0.58);
+  --glass-green: rgba(209, 250, 229, 0.62);
+  --glass-red: rgba(255, 228, 230, 0.66);
+  --glass-blue: rgba(186, 230, 253, 0.68);
+  --blur-sm: blur(12px) saturate(160%);
+  --blur-md: blur(22px) saturate(180%);
+  --blur-lg: blur(34px) saturate(200%);
+
+  --border: rgba(2, 132, 199, 0.18);
+  --border-hover: rgba(2, 132, 199, 0.34);
+  --border-gold: rgba(245, 158, 11, 0.34);
+  --border-gold-2: rgba(245, 158, 11, 0.55);
+  --border-green: rgba(16, 185, 129, 0.32);
+  --border-red: rgba(239, 68, 68, 0.34);
+  --border-blue: rgba(56, 189, 248, 0.42);
+
+  --text: #0f2742;
+  --text-dim: rgba(15, 39, 66, 0.72);
+  --text-muted: rgba(15, 39, 66, 0.48);
+  --text-inverse: #ffffff;
+  --text-gold: #b45309;
+  --text-green: #047857;
+  --text-red: #dc2626;
+
+  --glow-blue: 0 18px 55px rgba(56, 189, 248, 0.28);
+  --glow-cyan: 0 18px 55px rgba(34, 211, 238, 0.24);
+  --glow-gold: 0 16px 42px rgba(245, 158, 11, 0.24);
+  --glow-gold-2: 0 20px 70px rgba(245, 158, 11, 0.16);
+  --glow-green: 0 18px 45px rgba(16, 185, 129, 0.24);
+  --glow-red: 0 18px 45px rgba(239, 68, 68, 0.22);
+
+  --shadow-sm: 0 8px 22px rgba(14, 116, 144, 0.10);
+  --shadow-md: 0 16px 42px rgba(14, 116, 144, 0.15);
+  --shadow-lg: 0 24px 70px rgba(14, 116, 144, 0.20);
+  --shadow-card:
+    0 18px 55px rgba(14, 116, 144, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.82),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.30);
+
+  --r-xs: 6px;
+  --r-sm: 10px;
+  --r-md: 16px;
+  --r-lg: 20px;
+  --r-xl: 28px;
+  --r-2xl: 36px;
+  --r-full: 9999px;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+
+  --ease: 0.22s cubic-bezier(.4,0,.2,1);
+  --ease-fast: 0.12s cubic-bezier(.4,0,.2,1);
+  --ease-slow: 0.4s cubic-bezier(.4,0,.2,1);
+
+  --z-base: 0;
+  --z-card: 10;
+  --z-sticky: 50;
+  --z-nav: 100;
+  --z-overlay: 500;
+  --z-modal: 600;
+  --z-toast: 900;
+}

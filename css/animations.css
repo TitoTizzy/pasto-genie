@@ -1,0 +1,134 @@
+/* ================================================================
+   PASTO GÉNIE — Animations & Keyframes
+   ================================================================ */
+
+/* ── Background blobs ────────────────────────────────────────────── */
+@keyframes blobDrift1 {
+  from { transform: translate(0, 0) scale(1); }
+  to   { transform: translate(60px, 80px) scale(1.15); }
+}
+@keyframes blobDrift2 {
+  from { transform: translate(0, 0) scale(1); }
+  to   { transform: translate(-80px, 60px) scale(0.9); }
+}
+@keyframes blobDrift3 {
+  from { transform: translate(0, 0) scale(1); }
+  to   { transform: translate(40px, -50px) scale(1.1); }
+}
+@keyframes blobDrift4 {
+  from { transform: translate(0, 0) scale(1); }
+  to   { transform: translate(-30px, 40px) scale(1.2); }
+}
+
+/* ── Generic ─────────────────────────────────────────────────────── */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeDown {
+  from { opacity: 0; transform: translateY(-16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.92); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(20px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* ── Score pulse ─────────────────────────────────────────────────── */
+@keyframes scorePop {
+  0%   { transform: scale(1); }
+  35%  { transform: scale(1.18); }
+  65%  { transform: scale(0.96); }
+  100% { transform: scale(1); }
+}
+
+/* ── Glow pulse ──────────────────────────────────────────────────── */
+@keyframes glowPulse {
+  0%, 100% { box-shadow: 0 0 20px rgba(212,175,55,0.2); }
+  50%       { box-shadow: 0 0 40px rgba(212,175,55,0.5), 0 0 80px rgba(212,175,55,0.15); }
+}
+@keyframes glowPulseGreen {
+  0%, 100% { box-shadow: 0 0 12px rgba(139,171,60,0.2); }
+  50%       { box-shadow: 0 0 30px rgba(139,171,60,0.5); }
+}
+
+/* ── Live badge ──────────────────────────────────────────────────── */
+@keyframes livePulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.4; transform: scale(0.75); }
+}
+@keyframes pulseBadge {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(224,92,92,0.4); }
+  50%       { box-shadow: 0 0 0 4px rgba(224,92,92,0); }
+}
+
+/* ── Toast ───────────────────────────────────────────────────────── */
+@keyframes toastIn {
+  from { opacity: 0; transform: translateX(30px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes toastOut {
+  from { opacity: 1; transform: translateX(0); }
+  to   { opacity: 0; transform: translateX(30px); }
+}
+
+/* ── Event feed item ─────────────────────────────────────────────── */
+@keyframes eventSlide {
+  from { opacity: 0; transform: translateY(-10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Floating points ─────────────────────────────────────────────── */
+@keyframes floatUp {
+  0%   { opacity: 1;   transform: translateY(0) scale(1); }
+  60%  { opacity: 0.9; transform: translateY(-50px) scale(1.1); }
+  100% { opacity: 0;   transform: translateY(-90px) scale(0.9); }
+}
+
+/* ── Replique countdown warning ──────────────────────────────────── */
+@keyframes countdownShake {
+  0%, 100% { transform: translateX(0); }
+  20%       { transform: translateX(-4px); }
+  40%       { transform: translateX(4px); }
+  60%       { transform: translateX(-3px); }
+  80%       { transform: translateX(3px); }
+}
+
+/* ── Shimmer (skeleton loading) ──────────────────────────────────── */
+@keyframes shimmer {
+  from { background-position: -200% 0; }
+  to   { background-position: 200% 0; }
+}
+.skeleton {
+  background: linear-gradient(90deg,
+    rgba(255,255,255,0.03) 25%,
+    rgba(255,255,255,0.08) 50%,
+    rgba(255,255,255,0.03) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.6s infinite;
+  border-radius: var(--r-xs);
+}
+
+/* ── Utility animation classes ────────────────────────────────────── */
+.animate-fadeIn    { animation: fadeIn    0.3s var(--ease-slow) both; }
+.animate-fadeUp    { animation: fadeUp    0.4s var(--ease-slow) both; }
+.animate-scaleIn   { animation: scaleIn   0.3s var(--ease-slow) both; }
+.animate-slideRight{ animation: slideInRight 0.35s var(--ease-slow) both; }
+
+.delay-1 { animation-delay: 0.05s; }
+.delay-2 { animation-delay: 0.10s; }
+.delay-3 { animation-delay: 0.15s; }
+.delay-4 { animation-delay: 0.20s; }
+.delay-5 { animation-delay: 0.25s; }

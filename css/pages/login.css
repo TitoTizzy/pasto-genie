@@ -1,0 +1,164 @@
+/* ================================================================
+   PASTO GÉNIE — Login Page
+   ================================================================ */
+.login-wrap {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-5);
+}
+
+.login-card {
+  width: 100%;
+  max-width: 420px;
+  animation: fadeUp 0.5s var(--ease-slow) both;
+}
+
+.login-top {
+  text-align: center;
+  margin-bottom: var(--space-8);
+}
+
+.login-logo-wrap {
+  width: 84px;
+  height: 84px;
+  border-radius: var(--r-xl);
+  border: 1.5px solid var(--border-gold);
+  background: var(--glass-gold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto var(--space-5);
+  overflow: hidden;
+  box-shadow: var(--glow-gold-2);
+  animation: glowPulse 3s ease-in-out infinite;
+}
+
+.login-logo-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: var(--r-lg);
+}
+
+.login-logo-fallback {
+  font-size: 2.2rem;
+}
+
+.login-title {
+  font-size: 2.05rem;
+  font-weight: 900;
+  color: var(--gold);
+  letter-spacing: 0.08em;
+  line-height: 1;
+}
+
+.login-subtitle {
+  font-size: 0.92rem;
+  color: var(--text-muted);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  margin-top: var(--space-2);
+}
+
+.input-icon-wrap {
+  position: relative;
+}
+
+.input-icon-wrap i {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  font-size: 1rem;
+  pointer-events: none;
+  transition: color var(--ease);
+}
+
+.input-icon-wrap .form-input {
+  padding-left: 2.75rem;
+}
+
+.input-icon-wrap .form-input:focus + i,
+.input-icon-wrap:focus-within i {
+  color: var(--gold-dim);
+}
+
+.pwd-toggle {
+  position: absolute;
+  right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 1rem;
+  padding: 0.2rem;
+  transition: color var(--ease);
+  display: flex;
+  align-items: center;
+}
+
+.pwd-toggle:hover { color: var(--text-dim); }
+
+.login-roles {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: var(--space-5);
+}
+
+.login-error {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  background: rgba(224,92,92,0.08);
+  border: 1px solid var(--border-red);
+  border-radius: var(--r-sm);
+  padding: var(--space-3) var(--space-4);
+  font-size: 1rem;
+  color: var(--red);
+  margin-bottom: var(--space-4);
+  animation: fadeDown 0.25s ease both;
+}
+
+/* Sky glass refit */
+.login-wrap {
+  background:
+    radial-gradient(circle at 50% 18%, rgba(255,255,255,0.66), transparent 24%),
+    radial-gradient(circle at 18% 88%, rgba(34,211,238,0.20), transparent 30%);
+}
+.login-card {
+  max-width: 440px;
+  border-radius: var(--r-xl);
+}
+.login-logo-wrap {
+  border: 1.5px solid rgba(255,255,255,0.78);
+  background: rgba(255,255,255,0.72);
+  box-shadow: 0 18px 45px rgba(56,189,248,0.25);
+}
+.login-title {
+  color: var(--sky-deep);
+  text-shadow: 0 14px 32px rgba(56,189,248,0.18);
+}
+.login-subtitle { color: var(--text-muted); }
+.input-icon-wrap i { color: var(--sky-deep); opacity: 0.72; }
+.input-icon-wrap .form-input:focus + i,
+.input-icon-wrap:focus-within i { color: var(--indigo); opacity: 1; }
+.pwd-toggle { color: var(--sky-deep); }
+.pwd-toggle:hover { color: var(--indigo); }
+.login-error {
+  background: rgba(255,228,230,0.82);
+  border: 1px solid var(--border-red);
+  color: var(--text-red);
+}
+
+@media (min-width: 1440px) {
+  .login-card { max-width: 520px; }
+  .login-logo-wrap { width: 104px; height: 104px; }
+  .login-title { font-size: 2.4rem; }
+}

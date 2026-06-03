@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Jury — PASTO GÉNIE</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@4.5.0/fonts/remixicon.css" rel="stylesheet"/>
+  <link rel="stylesheet" href="css/variables.css"/>
+  <link rel="stylesheet" href="css/base.css"/>
+  <link rel="stylesheet" href="css/glass.css"/>
+  <link rel="stylesheet" href="css/components.css"/>
+  <link rel="stylesheet" href="css/animations.css"/>
+  <link rel="stylesheet" href="css/pages/jury.css"/>
+</head>
+<body>
+
+  <div class="bg-blobs">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+  </div>
+
+  <!-- ══ NAVBAR ════════════════════════════════════════════════ -->
+  <nav class="navbar">
+    <div class="brand">
+      <img src="assets/images/logo.jpeg" alt="Logo" class="brand-logo"
+           onerror="this.style.display='none'"/>
+      <div>
+        <div class="brand-name">PASTO GÉNIE</div>
+        <div class="brand-sub">Interface Jury</div>
+      </div>
+    </div>
+    <div class="nav-actions">
+      <span id="jury-name-chip" class="badge badge-gold">
+        <i class="ri-scales-3-line"></i> Jury
+      </span>
+      <a href="index.html" class="btn btn-ghost btn-sm btn-icon" title="Vue publique">
+        <i class="ri-eye-line"></i>
+      </a>
+      <button id="btn-logout" class="btn btn-ghost btn-sm">
+        <i class="ri-logout-box-r-line"></i> Déconnexion
+      </button>
+    </div>
+  </nav>
+
+  <!-- ══ CONTROL BAR ═══════════════════════════════════════════ -->
+  <div class="control-bar" id="control-bar">
+    <div class="cat-info-chip">
+      <i id="jury-cat-icon" class="ri-question-line text-gold" style="font-size:1.1rem;"></i>
+      <span id="jury-cat-label" class="text-gold">—</span>
+      <span id="jury-cat-num" class="cat-num">0/6</span>
+    </div>
+
+    <span id="jury-clock" class="clock-display">00:00</span>
+    <span id="jury-bareme-chip" class="bareme-chip">Bonne : ? pts - Replique : ? pts - Penalite replique : ? pts</span>
+
+    <!-- Admin controls -->
+    <div id="admin-controls" class="hidden" style="display:flex;gap:var(--space-2);margin-left:auto;">
+      <button id="btn-prev-cat" class="btn btn-ghost btn-sm">
+        <i class="ri-arrow-left-s-line"></i> Préc.
+      </button>
+      <button id="btn-next-cat" class="btn btn-gold btn-sm">
+        Suiv. <i class="ri-arrow-right-s-line"></i>
+      </button>
+      <button id="btn-pause" class="btn btn-ghost btn-sm">
+        <i class="ri-pause-line"></i>
+      </button>
+      <button id="btn-end-match" class="btn btn-red btn-sm">
+        <i class="ri-stop-line"></i> Fin
+      </button>
+    </div>
+
+    <!-- Score live -->
+    <div class="flex items-center gap-3" style="margin-left:auto;" id="jury-score-display">
+      <div class="text-center">
+        <div class="jury-score-panel" style="padding:0;">
+          <div class="team-short" id="jury-score-name-a">Éq. A</div>
+          <div class="score-big" id="jury-score-a">0</div>
+        </div>
+      </div>
+      <div class="text-muted" style="font-size:1.2rem;">—</div>
+      <div class="text-center">
+        <div class="jury-score-panel" style="padding:0;">
+          <div class="team-short" id="jury-score-name-b">Éq. B</div>
+          <div class="score-big" id="jury-score-b">0</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ START SCREEN ══════════════════════════════════════════ -->
+  <div id="jury-start" class="jury-start-screen">
+    <div class="jury-start-icon"><i class="ri-scales-3-line"></i></div>
+    <h2 class="text-gold">Interface Jury</h2>
+    <p class="text-muted">Sélectionnez le match dont vous êtes responsable</p>
+    <div class="glass glass-md" style="min-width:320px;max-width:420px;width:100%;">
+      <div class="form-group">
+        <label class="form-label"><i class="ri-trophy-line"></i> Match assigné</label>
+        <select id="jury-match-select" class="form-select">
+          <option value="">— Choisir un match —</option>
+        </select>
+      </div>
+      <div id="jury-start-alert" class="login-error hidden">
+        <i class="ri-error-warning-line"></i><span id="jury-start-msg"></span>
+      </div>
+      <button id="btn-join" class="btn btn-gold btn-xl btn-block">
+        <i class="ri-play-circle-line"></i> Rejoindre ce match
+      </button>
+    </div>
+  </div>
+
+  <!-- ══ ARENA ═════════════════════════════════════════════════ -->
+  <div id="jury-arena-wrap" class="jury-layout hidden">
+
+    <!-- Arena grid -->
+    <div class="jury-arena" id="jury-arena">
+
+      <!-- ÉQUIPE A -->
+      <div id="panel-a">
+        <div class="jury-team-header jury-team-a" id="jury-header-a">ÉQUIPE A</div>
+        <!-- Player cards injected by JS -->
+      </div>
+
+      <!-- Center -->
+      <div class="jury-center">
+        <div class="jury-vs-badge">VS</div>
+        <div class="glass-gold" style="width:100%;border-radius:var(--r-md);">
+          <div class="jury-score-panel">
+            <div class="team-short" id="cp-name-a">A</div>
+            <div class="score-big" id="cp-score-a">0</div>
+            <div class="jury-sep">—</div>
+            <div class="score-big" id="cp-score-b">0</div>
+            <div class="team-short" id="cp-name-b">B</div>
+          </div>
+        </div>
+        <button id="btn-undo" class="btn btn-ghost btn-sm w-full">
+          <i class="ri-arrow-go-back-line"></i> Annuler dernier
+        </button>
+      </div>
+
+      <!-- ÉQUIPE B -->
+      <div id="panel-b">
+        <div class="jury-team-header jury-team-b" id="jury-header-b">ÉQUIPE B</div>
+        <!-- Player cards injected by JS -->
+      </div>
+    </div>
+
+    <!-- Log -->
+    <div class="glass glass-sm mt-4">
+      <div class="card-label mb-3">
+        <i class="ri-list-ordered-2"></i> Journal des actions
+      </div>
+      <div id="jury-log" class="jury-log">
+        <p class="text-muted text-xs" style="padding:var(--space-3);">Aucune action enregistrée.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ RÉPLIQUE MODAL ════════════════════════════════════════ -->
+  <div id="replique-overlay" class="overlay">
+    <div class="modal replique-modal">
+      <div class="modal-header">
+        <div>
+          <div class="modal-title">
+            <i class="ri-refresh-line"></i> RÉPLIQUE AUTORISÉE
+          </div>
+          <div class="text-sm text-muted mt-1">Mauvaise réponse — l'équipe adverse peut répliquer</div>
+        </div>
+      </div>
+
+      <div id="replique-result" class="replique-result hidden"></div>
+
+      <div class="replique-context">
+        <div class="rc-label">Équipe adverse</div>
+        <div class="rc-team" id="replique-team-name">—</div>
+      </div>
+
+      <div id="replique-countdown-wrap">
+        <div id="replique-countdown" class="replique-countdown">
+          30
+          <span class="cd-label">secondes pour répliquer</span>
+        </div>
+      </div>
+
+      <p id="replique-instruction" class="text-center text-sm text-dim mb-4">
+        Sélectionnez le joueur qui répond :
+      </p>
+
+      <div id="replique-players" class="replique-players-grid"></div>
+
+      <div id="replique-answer-btns" class="hidden" style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-3);margin-bottom:var(--space-4);">
+        <button id="r-btn-bonne" class="btn btn-green btn-lg">
+          <i class="ri-check-double-line"></i> Bonne réplique
+        </button>
+        <button id="r-btn-mauvaise" class="btn btn-red btn-lg">
+          <i class="ri-close-circle-line"></i> Mauvaise réplique
+        </button>
+      </div>
+
+      <button id="btn-no-replique" class="btn btn-ghost btn-block">
+        <i class="ri-skip-forward-line"></i> Personne ne répond — Passer
+      </button>
+    </div>
+  </div>
+
+  <div id="toast-container"></div>
+  <script type="module" src="js/jury.js"></script>
+</body>
+</html>

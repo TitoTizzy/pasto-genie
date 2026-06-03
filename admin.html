@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Administration — PASTO GÉNIE</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@4.5.0/fonts/remixicon.css" rel="stylesheet"/>
+  <link rel="stylesheet" href="css/variables.css"/>
+  <link rel="stylesheet" href="css/base.css"/>
+  <link rel="stylesheet" href="css/glass.css"/>
+  <link rel="stylesheet" href="css/components.css"/>
+  <link rel="stylesheet" href="css/animations.css"/>
+  <link rel="stylesheet" href="css/pages/admin.css"/>
+</head>
+<body>
+
+  <div class="bg-blobs">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+    <div class="blob blob-4"></div>
+  </div>
+
+  <!-- ══ NAVBAR ════════════════════════════════════════════════ -->
+  <nav class="navbar">
+    <div class="brand">
+      <img src="assets/images/logo.jpeg" alt="Logo" class="brand-logo"
+           onerror="this.style.display='none'"/>
+      <div>
+        <div class="brand-name">PASTO GÉNIE</div>
+        <div class="brand-sub">Administration</div>
+      </div>
+    </div>
+    <div class="nav-actions">
+      <span class="badge badge-gold"><i class="ri-shield-keyhole-line"></i> Superadmin</span>
+      <span id="admin-email" class="text-xs text-muted hide-mobile"></span>
+      <a href="index.html" target="_blank" class="btn btn-ghost btn-sm btn-icon" title="Vue publique">
+        <i class="ri-eye-line"></i>
+      </a>
+      <a href="jury.html" target="_blank" class="btn btn-ghost btn-sm btn-icon" title="Interface jury">
+        <i class="ri-scales-3-line"></i>
+      </a>
+      <button id="btn-logout" class="btn btn-ghost btn-sm">
+        <i class="ri-logout-box-r-line"></i>
+      </button>
+    </div>
+  </nav>
+
+  <!-- ══ LAYOUT ════════════════════════════════════════════════ -->
+  <div class="layout-sidebar admin-layout">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sidebar-section-label">Tournoi</div>
+      <button class="sidebar-link" data-section="s-dashboard">
+        <i class="ri-dashboard-3-line"></i> Dashboard
+      </button>
+      <button class="sidebar-link" data-section="s-tournois">
+        <i class="ri-trophy-line"></i> Tournois
+      </button>
+      <button class="sidebar-link" data-section="s-matches">
+        <i class="ri-football-line"></i> Matchs
+      </button>
+      <button class="sidebar-link" data-section="s-create-match">
+        <i class="ri-add-circle-line"></i> Créer un match
+      </button>
+
+      <div class="sidebar-section-label" style="margin-top:var(--space-4);">Paramètres</div>
+      <div class="sidebar-section-label" style="margin-top:var(--space-4);">Effectifs</div>
+      <button class="sidebar-link" data-section="s-equipes">
+        <i class="ri-shield-star-line"></i> Equipes
+      </button>
+      <button class="sidebar-link" data-section="s-joueurs">
+        <i class="ri-user-star-line"></i> Joueurs
+      </button>
+
+      <div class="sidebar-section-label" style="margin-top:var(--space-4);">Analyse</div>
+      <button class="sidebar-link" data-section="s-statistiques">
+        <i class="ri-bar-chart-grouped-line"></i> Statistiques
+      </button>
+
+      <button class="sidebar-link" data-section="s-bareme">
+        <i class="ri-scales-3-line"></i> Barème des points
+      </button>
+      <button class="sidebar-link" data-section="s-regles">
+        <i class="ri-file-list-3-line"></i> Règles du jeu
+      </button>
+
+      <div class="sidebar-section-label" style="margin-top:var(--space-4);">Accès</div>
+      <button class="sidebar-link" data-section="s-users">
+        <i class="ri-group-line"></i> Utilisateurs
+      </button>
+      <button class="sidebar-link" data-section="s-create-user">
+        <i class="ri-user-add-line"></i> Créer un compte
+      </button>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="page-content">
+
+      <!-- ── DASHBOARD ────────────────────────────────────────── -->
+      <section id="s-dashboard" class="section">
+        <div class="page-header">
+          <div>
+            <h2 class="section-title">Dashboard</h2>
+            <p class="section-subtitle">Vue d'ensemble du tournoi</p>
+          </div>
+        </div>
+
+        <div class="dash-stats" id="dash-stats">
+          <div class="glass dash-stat animate-fadeUp delay-1">
+            <div class="dash-stat-icon gold"><i class="ri-trophy-line"></i></div>
+            <div>
+              <div class="dash-stat-val" id="stat-tournois">—</div>
+              <div class="dash-stat-lbl">Tournois</div>
+            </div>
+          </div>
+          <div class="glass dash-stat animate-fadeUp delay-2">
+            <div class="dash-stat-icon green"><i class="ri-football-line"></i></div>
+            <div>
+              <div class="dash-stat-val" id="stat-matches">—</div>
+              <div class="dash-stat-lbl">Matchs</div>
+            </div>
+          </div>
+          <div class="glass dash-stat animate-fadeUp delay-3">
+            <div class="dash-stat-icon red"><i class="ri-live-line"></i></div>
+            <div>
+              <div class="dash-stat-val" id="stat-live">—</div>
+              <div class="dash-stat-lbl">En direct</div>
+            </div>
+          </div>
+          <div class="glass dash-stat animate-fadeUp delay-4">
+            <div class="dash-stat-icon blue"><i class="ri-group-line"></i></div>
+            <div>
+              <div class="dash-stat-val" id="stat-users">—</div>
+              <div class="dash-stat-lbl">Utilisateurs</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="glass glass-md animate-fadeUp delay-5">
+          <div class="card-label mb-4"><i class="ri-football-line"></i> Matchs récents</div>
+          <div id="dash-recent-matches" style="display:flex;flex-direction:column;gap:var(--space-3);">
+            <div class="skeleton" style="height:52px;border-radius:var(--r-sm);"></div>
+            <div class="skeleton" style="height:52px;border-radius:var(--r-sm);"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── TOURNOIS ──────────────────────────────────────────── -->
+      <section id="s-tournois" class="section">
+        <div class="page-header">
+          <div>
+            <h2 class="section-title">Tournois</h2>
+            <p class="section-subtitle">Gérez les éditions du tournoi</p>
+          </div>
+          <button id="btn-new-tournoi" class="btn btn-gold">
+            <i class="ri-add-line"></i> Nouveau tournoi
+          </button>
+        </div>
+        <div id="tournois-list" style="display:flex;flex-direction:column;gap:var(--space-3);"></div>
+      </section>
+
+      <!-- ── MATCHS ────────────────────────────────────────────── -->
+      <section id="s-matches" class="section">
+        <div class="page-header">
+          <div>
+            <h2 class="section-title">Matchs</h2>
+            <p class="section-subtitle">Tous les matchs du tournoi</p>
+          </div>
+          <button class="btn btn-gold" data-goto="s-create-match">
+            <i class="ri-add-line"></i> Nouveau match
+          </button>
+        </div>
+        <div id="matches-list" style="display:flex;flex-direction:column;gap:var(--space-3);"></div>
+      </section>
+
+      <!-- ── CRÉER MATCH ────────────────────────────────────────── -->
+      <section id="s-create-match" class="section">
+        <div class="page-header">
+          <div>
+            <button class="back-btn" data-goto="s-matches">
+              <i class="ri-arrow-left-line"></i> Retour aux matchs
+            </button>
+            <h2 class="section-title">Créer un match</h2>
+          </div>
+          <div style="display:flex;gap:var(--space-3);">
+            <button id="btn-save-match" class="btn btn-ghost">
+              <i class="ri-save-line"></i> Sauvegarder
+            </button>
+            <button id="btn-save-start-match" class="btn btn-gold" disabled>
+              <i class="ri-play-fill"></i> Créer & Démarrer
+            </button>
+          </div>
+        </div>
+        <div id="match-alert" class="alert alert-red hidden">
+          <i class="ri-error-warning-line"></i><span id="match-alert-msg"></span>
+        </div>
+
+        <div class="match-create-grid">
+          <!-- Équipe A -->
+          <div class="glass glass-md">
+            <div class="card-label mb-4" style="color:#6ab0f5;">
+              <i class="ri-team-line"></i> ÉQUIPE A
+            </div>
+            <div class="form-group">
+              <label class="form-label">Nom de l'équipe</label>
+              <select id="ea-equipe-id" class="form-select mb-3">
+                <option value="">Choisir une equipe enregistree</option>
+              </select>
+              <input id="ea-nom" type="text" class="form-input" placeholder="Ex. Sainte-Marie"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Paroisse / École</label>
+              <input id="ea-paroisse" type="text" class="form-input" placeholder="Paroisse ou établissement"/>
+            </div>
+            <div class="team-builder-wrap">
+              <div class="team-section-label">
+                <i class="ri-user-star-line" style="color:var(--gold);"></i> Titulaires (3)
+              </div>
+              <div id="ea-titulaires" class="players-list"></div>
+              <div class="add-player-row">
+                <select id="ea-t-existing" class="form-select player-pick">
+                  <option value="">Nouveau joueur</option>
+                </select>
+                <input id="ea-t-prenom" type="text" class="form-input" placeholder="Prénom"/>
+                <input id="ea-t-nom"    type="text" class="form-input" placeholder="Nom"/>
+                <button class="btn btn-gold btn-sm btn-icon" data-add="A-titulaire" title="Ajouter">
+                  <i class="ri-user-add-line"></i>
+                </button>
+              </div>
+              <div class="team-section-label" style="margin-top:var(--space-4);">
+                <i class="ri-user-line" style="color:var(--text-muted);"></i> Remplaçants (3)
+              </div>
+              <div id="ea-remplacants" class="players-list"></div>
+              <div class="add-player-row">
+                <select id="ea-r-existing" class="form-select player-pick">
+                  <option value="">Nouveau joueur</option>
+                </select>
+                <input id="ea-r-prenom" type="text" class="form-input" placeholder="Prénom"/>
+                <input id="ea-r-nom"    type="text" class="form-input" placeholder="Nom"/>
+                <button class="btn btn-outline btn-sm btn-icon" data-add="A-remplacant" title="Ajouter">
+                  <i class="ri-user-add-line"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Équipe B -->
+          <div class="glass glass-md">
+            <div class="card-label mb-4" style="color:var(--red);">
+              <i class="ri-team-line"></i> ÉQUIPE B
+            </div>
+            <div class="form-group">
+              <label class="form-label">Nom de l'équipe</label>
+              <select id="eb-equipe-id" class="form-select mb-3">
+                <option value="">Choisir une equipe enregistree</option>
+              </select>
+              <input id="eb-nom" type="text" class="form-input" placeholder="Ex. Saint-Joseph"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Paroisse / École</label>
+              <input id="eb-paroisse" type="text" class="form-input" placeholder="Paroisse ou établissement"/>
+            </div>
+            <div class="team-builder-wrap">
+              <div class="team-section-label">
+                <i class="ri-user-star-line" style="color:var(--gold);"></i> Titulaires (3)
+              </div>
+              <div id="eb-titulaires" class="players-list"></div>
+              <div class="add-player-row">
+                <select id="eb-t-existing" class="form-select player-pick">
+                  <option value="">Nouveau joueur</option>
+                </select>
+                <input id="eb-t-prenom" type="text" class="form-input" placeholder="Prénom"/>
+                <input id="eb-t-nom"    type="text" class="form-input" placeholder="Nom"/>
+                <button class="btn btn-gold btn-sm btn-icon" data-add="B-titulaire" title="Ajouter">
+                  <i class="ri-user-add-line"></i>
+                </button>
+              </div>
+              <div class="team-section-label" style="margin-top:var(--space-4);">
+                <i class="ri-user-line" style="color:var(--text-muted);"></i> Remplaçants (3)
+              </div>
+              <div id="eb-remplacants" class="players-list"></div>
+              <div class="add-player-row">
+                <select id="eb-r-existing" class="form-select player-pick">
+                  <option value="">Nouveau joueur</option>
+                </select>
+                <input id="eb-r-prenom" type="text" class="form-input" placeholder="Prénom"/>
+                <input id="eb-r-nom"    type="text" class="form-input" placeholder="Nom"/>
+                <button class="btn btn-outline btn-sm btn-icon" data-add="B-remplacant" title="Ajouter">
+                  <i class="ri-user-add-line"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Config match -->
+        <div class="glass glass-md mt-4">
+          <div class="card-label mb-5"><i class="ri-settings-4-line"></i> Configuration du match</div>
+          <div class="grid-2">
+            <div class="form-group">
+              <label class="form-label"><i class="ri-trophy-line"></i> Tournoi</label>
+              <select id="match-tournoi" class="form-select">
+                <option value="">— Choisir un tournoi —</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label"><i class="ri-scales-3-line"></i> Jury assigné</label>
+              <select id="match-jury" class="form-select">
+                <option value="">— Choisir un jury —</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label"><i class="ri-calendar-event-line"></i> Date et heure</label>
+              <input id="match-datetime" type="datetime-local" class="form-input"/>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">
+              <i class="ri-drag-move-2-line"></i> Ordre des catégories (glisser-déposer)
+            </label>
+            <div id="cat-drag-list" class="drag-list"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── BARÈME ─────────────────────────────────────────────── -->
+      <section id="s-equipes" class="section">
+        <div class="page-header">
+          <div>
+            <h2 class="section-title">Equipes</h2>
+            <p class="section-subtitle">Emblemes, couleurs et identite officielle des equipes</p>
+          </div>
+          <button id="btn-save-equipe" class="btn btn-gold">
+            <i class="ri-save-line"></i> Enregistrer l'equipe
+          </button>
+        </div>
+        <div class="entity-grid">
+          <div class="glass glass-md">
+            <div class="card-label mb-4"><i class="ri-shield-star-line"></i> Nouvelle equipe</div>
+            <div class="form-group">
+              <label class="form-label">Nom de l'equipe</label>
+              <input id="eq-nom" type="text" class="form-input" placeholder="Ex. Sainte-Marie"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Paroisse / Ecole</label>
+              <input id="eq-paroisse" type="text" class="form-input" placeholder="Ex. Paroisse Sainte-Marie"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Embleme de l'equipe</label>
+              <label class="upload-box" for="eq-embleme-file">
+                <input id="eq-embleme-file" type="file" accept="image/*"/>
+                <span id="eq-embleme-preview" class="upload-preview"><i class="ri-image-add-line"></i></span>
+                <span class="upload-text">Choisir une image</span>
+              </label>
+            </div>
+            <div class="grid-2">
+              <div class="form-group">
+                <label class="form-label">Couleur principale</label>
+                <input id="eq-couleur-1" type="color" class="form-input color-input" value="#38bdf8"/>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Couleur secondaire</label>
+                <input id="eq-couleur-2" type="color" class="form-input color-input" value="#f59e0b"/>
+              </div>
+            </div>
+            <div id="eq-alert" class="alert alert-red hidden">
+              <i class="ri-error-warning-line"></i><span id="eq-alert-msg"></span>
+            </div>
+          </div>
+          <div class="glass glass-md">
+            <div class="card-header">
+              <div class="card-label"><i class="ri-list-check"></i> Equipes enregistrees</div>
+            </div>
+            <div id="equipes-list" class="entity-list"></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="s-joueurs" class="section">
+        <div class="page-header">
+          <div>
+            <h2 class="section-title">Joueurs</h2>
+            <p class="section-subtitle">Profils joueurs, photos et rattachement aux equipes</p>
+          </div>
+          <button id="btn-save-joueur" class="btn btn-gold">
+            <i class="ri-user-add-line"></i> Enregistrer le joueur
+          </button>
+        </div>
+        <div class="entity-grid">
+          <div class="glass glass-md">
+            <div class="card-label mb-4"><i class="ri-user-star-line"></i> Nouveau joueur</div>
+            <div class="grid-2">
+              <div class="form-group">
+                <label class="form-label">Prenom</label>
+                <input id="j-prenom" type="text" class="form-input" placeholder="Prenom"/>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Nom</label>
+                <input id="j-nom" type="text" class="form-input" placeholder="Nom"/>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Equipe</label>
+              <select id="j-equipe" class="form-select">
+                <option value="">Choisir une equipe</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Photo du joueur</label>
+              <label class="upload-box" for="j-photo-file">
+                <input id="j-photo-file" type="file" accept="image/*"/>
+                <span id="j-photo-preview" class="upload-preview"><i class="ri-image-add-line"></i></span>
+                <span class="upload-text">Choisir une image</span>
+              </label>
+            </div>
+            <div class="grid-2">
+              <div class="form-group">
+                <label class="form-label">Date de naissance</label>
+                <input id="j-naissance" type="date" class="form-input"/>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Role / note</label>
+                <input id="j-role" type="text" class="form-input" placeholder="Capitaine, titulaire..."/>
+              </div>
+            </div>
+            <div id="j-alert" class="alert alert-red hidden">
+              <i class="ri-error-warning-line"></i><span id="j-alert-msg"></span>
+            </div>
+          </div>
+          <div class="glass glass-md">
+            <div class="card-header">
+              <div class="card-label"><i class="ri-group-line"></i> Joueurs enregistres</div>
+            </div>
+            <div id="joueurs-list" class="entity-list"></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="s-statistiques" class="section">
+        <div class="page-header">
+          <div>
+            <h2 class="section-title">Statistiques</h2>
+            <p class="section-subtitle">Classements dynamiques par tournoi, periode ou all time</p>
+          </div>
+          <button id="btn-refresh-stats" class="btn btn-ghost">
+            <i class="ri-refresh-line"></i> Actualiser
+          </button>
+        </div>
+        <div class="glass glass-md mb-4">
+          <div class="stats-filter-grid">
+            <div class="form-group">
+              <label class="form-label">Mode</label>
+              <select id="stats-mode" class="form-select">
+                <option value="all">All time</option>
+                <option value="tournoi">Tournoi</option>
+                <option value="dates">Plage de dates</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Tournoi</label>
+              <select id="stats-tournoi" class="form-select">
+                <option value="">Tous les tournois</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Du</label>
+              <input id="stats-from" type="date" class="form-input"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Au</label>
+              <input id="stats-to" type="date" class="form-input"/>
+            </div>
+          </div>
+        </div>
+        <div class="rankings-grid">
+          <div class="glass glass-md">
+            <div class="card-label mb-4"><i class="ri-shield-star-line"></i> Classement equipes</div>
+            <div id="ranking-equipes" class="ranking-list"></div>
+          </div>
+          <div class="glass glass-md">
+            <div class="card-label mb-4"><i class="ri-user-star-line"></i> Classement joueurs</div>
+            <div id="ranking-joueurs" class="ranking-list"></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="s-bareme" class="section">
+        <div class="page-header">
+          <div>
+            <h2 class="section-title">Barème des points</h2>
+            <p class="section-subtitle">Points par catégorie, source de vérité de l'anti-triche</p>
+          </div>
+          <button id="btn-save-bareme" class="btn btn-gold">
+            <i class="ri-save-line"></i> Enregistrer
+          </button>
+        </div>
+        <div class="glass glass-md bareme-card">
+          <div class="bareme-header">
+            <div class="bareme-col-lbl">Catégorie</div>
+            <div class="bareme-col-lbl">Bonne</div>
+            <div class="bareme-col-lbl">Mauvaise</div>
+            <div class="bareme-col-lbl">Réplique</div>
+            <div class="bareme-col-lbl">Pénalité réplique</div>
+          </div>
+          <div id="bareme-rows"></div>
+          <div id="bareme-alert" class="alert alert-red hidden mt-4">
+            <i class="ri-error-warning-line"></i><span id="bareme-alert-msg"></span>
+          </div>
+        </div>
+        <div class="alert alert-gold mt-4 bareme-note">
+          <i class="ri-information-line"></i>
+          <span>La modification du barème s'applique aux <strong>nouveaux événements uniquement</strong>. Les points déjà enregistrés ne sont pas recalculés rétroactivement.</span>
+        </div>
+      </section>
+
+      <!-- ── RÈGLES ─────────────────────────────────────────────── -->
+      <section id="s-regles" class="section">
+        <div class="page-header">
+          <div>
+            <h2 class="section-title">Règles du jeu</h2>
+            <p class="section-subtitle">Texte officiel visible par tous les participants</p>
+          </div>
+          <button id="btn-save-regles" class="btn btn-gold">
+            <i class="ri-save-line"></i> Enregistrer
+          </button>
+        </div>
+        <div class="glass glass-md" style="max-width:700px;">
+          <div class="form-group">
+            <label class="form-label"><i class="ri-file-text-line"></i> Règles officielles</label>
+            <textarea id="regles-texte" class="form-textarea" rows="14"
+                      placeholder="Décrivez ici les règles officielles du PASTO GÉNIE…"
+                      style="min-height:280px;"></textarea>
+          </div>
+          <div id="regles-alert" class="alert alert-red hidden">
+            <i class="ri-error-warning-line"></i><span id="regles-alert-msg"></span>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── UTILISATEURS ───────────────────────────────────────── -->
+      <section id="s-users" class="section">
+        <div class="page-header">
+          <div>
+            <h2 class="section-title">Utilisateurs</h2>
+            <p class="section-subtitle">Gérez les accès à la plateforme</p>
+          </div>
+          <button class="btn btn-gold" data-goto="s-create-user">
+            <i class="ri-user-add-line"></i> Nouveau compte
+          </button>
+        </div>
+        <div class="glass glass-md">
+          <div class="form-group" style="margin-bottom:var(--space-4);">
+            <div class="input-icon-wrap">
+              <input id="users-search" type="text" class="form-input"
+                     placeholder="Rechercher par e-mail ou nom…"/>
+              <i class="ri-search-line"></i>
+            </div>
+          </div>
+          <div class="users-table-wrap">
+            <table class="glass-table">
+              <thead>
+                <tr>
+                  <th>E-mail</th>
+                  <th>Nom</th>
+                  <th>Rôle</th>
+                  <th style="text-align:right;">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="users-tbody">
+                <tr><td colspan="4" class="text-muted text-center" style="padding:var(--space-6);">Chargement…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── CRÉER UTILISATEUR ──────────────────────────────────── -->
+      <section id="s-create-user" class="section">
+        <div class="page-header">
+          <div>
+            <button class="back-btn" data-goto="s-users">
+              <i class="ri-arrow-left-line"></i> Retour
+            </button>
+            <h2 class="section-title">Créer un compte</h2>
+          </div>
+        </div>
+        <div class="glass glass-md" style="max-width:460px;">
+          <div class="alert alert-blue mb-4">
+            <i class="ri-information-line"></i>
+            <span>Le compte est créé dans Supabase Auth via l'Edge Function admin. Communiquez le mot de passe temporaire à l'utilisateur.</span>
+          </div>
+          <div class="form-group">
+            <label class="form-label"><i class="ri-mail-line"></i> E-mail</label>
+            <input id="nu-email" type="email" class="form-input" placeholder="jury@exemple.com"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label"><i class="ri-user-line"></i> Nom affiché</label>
+            <input id="nu-displayname" type="text" class="form-input" placeholder="Jean Dupont"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label"><i class="ri-lock-line"></i> Mot de passe temporaire</label>
+            <input id="nu-password" type="text" class="form-input" placeholder="Min. 6 caractères"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label"><i class="ri-shield-line"></i> Rôle</label>
+            <select id="nu-role" class="form-select">
+              <option value="public">👁 Public</option>
+              <option value="membre">👤 Membre</option>
+              <option value="jury" selected>⚖️ Jury</option>
+              <option value="superadmin">🔑 Superadmin</option>
+            </select>
+          </div>
+          <div id="nu-alert" class="alert alert-red hidden">
+            <i class="ri-error-warning-line"></i><span id="nu-alert-msg"></span>
+          </div>
+          <button id="btn-creer-user" class="btn btn-gold btn-block btn-lg">
+            <i class="ri-user-add-line"></i> Créer le compte
+          </button>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Tournoi modal -->
+  <div id="tournoi-overlay" class="overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title"><i class="ri-trophy-line"></i> Nouveau tournoi</div>
+        <button class="modal-close" id="close-tournoi-modal"><i class="ri-close-line"></i></button>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Nom du tournoi</label>
+        <input id="t-nom" type="text" class="form-input" placeholder="Ex. PASTO GÉNIE 2025"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Année</label>
+        <input id="t-annee" type="number" class="form-input" value="2025"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Description</label>
+        <textarea id="t-desc" class="form-textarea" rows="3" placeholder="Description optionnelle…"></textarea>
+      </div>
+      <div id="t-alert" class="alert alert-red hidden">
+        <i class="ri-error-warning-line"></i><span id="t-alert-msg"></span>
+      </div>
+      <button id="btn-creer-tournoi" class="btn btn-gold btn-block btn-lg mt-2">
+        <i class="ri-add-circle-line"></i> Créer
+      </button>
+    </div>
+  </div>
+
+  <div id="toast-container"></div>
+  <script type="module" src="js/admin.js"></script>
+</body>
+</html>
