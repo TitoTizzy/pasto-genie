@@ -11,6 +11,16 @@
   align-items: start;
 }
 
+body:has(.public-layout) .navbar {
+  min-width: 0;
+}
+
+body:has(.public-layout) .brand > div:last-child,
+body:has(.public-layout) .nav-actions,
+body:has(.public-layout) .match-select-wrap {
+  min-width: 0;
+}
+
 /* ── Hero Scoreboard ─────────────────────────────────────────────── */
 .scoreboard-hero {
   position: relative;
@@ -522,6 +532,71 @@
   .cat-scores-grid { grid-template-columns: repeat(3, 1fr); }
 }
 
+@media (max-width: 760px) {
+  body:has(.public-layout) .navbar {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-3);
+  }
+  body:has(.public-layout) .brand {
+    min-width: 0;
+  }
+  body:has(.public-layout) .brand-logo,
+  body:has(.public-layout) .brand-logo-fallback {
+    width: 34px;
+    height: 34px;
+    border-radius: var(--r-sm);
+  }
+  body:has(.public-layout) .brand-name {
+    font-size: 1rem;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  body:has(.public-layout) .brand-sub {
+    display: none;
+  }
+  body:has(.public-layout) .nav-actions {
+    display: contents;
+  }
+  body:has(.public-layout) #live-badge {
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: end;
+    max-width: 120px;
+  }
+  body:has(.public-layout) .match-select-wrap {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    width: 100%;
+    display: grid;
+    grid-template-columns: 22px 1fr;
+    gap: var(--space-2);
+    align-items: center;
+    padding-top: var(--space-2);
+  }
+  body:has(.public-layout) .nav-select {
+    max-width: none;
+    width: 100%;
+    min-height: 44px;
+    font-size: 0.98rem;
+  }
+  body:has(.public-layout) .nav-actions > a {
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: end;
+    min-height: 38px;
+    padding: 0.42rem 0.68rem;
+    font-size: 0.88rem;
+  }
+  body:has(.public-layout) #live-badge:not(.hidden) + .match-select-wrap + a {
+    display: none;
+  }
+}
+
 @media (max-width: 600px) {
   .public-layout {
     padding: var(--space-3);
@@ -533,34 +608,39 @@
     flex-direction: column;
   }
   .score-row {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1fr;
     gap: var(--space-3);
     padding: var(--space-2) 0;
   }
   .team-side {
     display: grid;
-    grid-template-columns: 58px 1fr;
-    justify-items: start;
-    text-align: left;
+    grid-template-columns: 1fr;
+    justify-items: center;
+    text-align: center;
     width: 100%;
-    column-gap: var(--space-3);
-    row-gap: 0;
+    gap: var(--space-2);
+    padding: var(--space-3);
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    background: rgba(255,255,255,0.42);
   }
   .team-crest {
     width: 56px;
     height: 56px;
-    grid-row: span 2;
+    grid-row: auto;
   }
   .team-label {
-    font-size: 1.05rem;
-    align-self: end;
+    font-size: 0.98rem;
+    align-self: auto;
     word-break: break-word;
+    letter-spacing: 0.03em;
   }
   .team-parish {
-    font-size: 0.92rem;
-    align-self: start;
+    font-size: 0.84rem;
+    align-self: auto;
   }
   .score-center {
+    grid-column: 1 / -1;
     order: -1;
     width: 100%;
   }
@@ -572,6 +652,8 @@
   .cat-active-strip {
     width: 100%;
     padding: var(--space-2) var(--space-3);
+    border-radius: var(--r-md);
+    line-height: 1.2;
   }
   .players-grid { grid-template-columns: 1fr; }
   .cat-scores-grid { grid-template-columns: repeat(2, 1fr); }
@@ -596,6 +678,56 @@
 }
 
 @media (max-width: 420px) {
+  .public-layout,
+  .public-rankings {
+    padding-left: var(--space-2);
+    padding-right: var(--space-2);
+  }
+  .scoreboard-hero,
+  .right-col > .glass,
+  .public-ranking-grid > .glass {
+    border-radius: var(--r-lg);
+  }
+  .scoreboard-inner {
+    padding: 0;
+  }
+  .score-row {
+    gap: var(--space-2);
+  }
+  .team-side {
+    padding: var(--space-2);
+  }
+  .team-crest {
+    width: 48px;
+    height: 48px;
+    font-size: 1.2rem;
+  }
+  .team-label {
+    font-size: 0.9rem;
+  }
+  .cat-scores-grid {
+    gap: var(--space-2);
+  }
+  .cat-score-cell {
+    padding: var(--space-2);
+  }
+  .cat-score-name {
+    font-size: 0.72rem;
+    letter-spacing: 0.02em;
+    text-transform: none;
+  }
+  .player-row {
+    padding: var(--space-3) var(--space-2);
+  }
+  .player-row-name {
+    font-size: 0.98rem;
+  }
+  .ranking-header {
+    align-items: stretch;
+  }
+  .ranking-header .btn {
+    width: 100%;
+  }
   .public-ranking-row {
     grid-template-columns: 36px 44px minmax(0, 1fr);
   }
