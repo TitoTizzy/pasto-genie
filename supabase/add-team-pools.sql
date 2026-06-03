@@ -6,6 +6,8 @@
 alter table public.equipes
   add column if not exists poule text default 'Poule unique';
 
+drop view if exists public.v_classement_equipes;
+
 create or replace view public.v_classement_equipes as
 select
   s.equipe_id,
