@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <meta name="description" content="PASTO GÉNIE — Suivi en direct du tournoi paroissial"/>
-  <title>PASTO GÉNIE — En Direct</title>
+  <meta name="description" content="PASTO GENIE - Suivi public du tournoi paroissial"/>
+  <title>PASTO GENIE - Tournoi en direct</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
@@ -25,14 +25,13 @@
     <div class="blob blob-4"></div>
   </div>
 
-  <!-- ══ NAVBAR ════════════════════════════════════════════════ -->
   <nav class="navbar">
     <div class="brand">
       <img src="assets/images/logo.jpeg" alt="Logo" class="brand-logo"
            onerror="this.style.display='none';document.getElementById('nav-logo-fb').style.display='flex'"/>
-      <div id="nav-logo-fb" class="brand-logo-fallback" style="display:none;">✝️</div>
+      <div id="nav-logo-fb" class="brand-logo-fallback" style="display:none;">PG</div>
       <div>
-        <div class="brand-name">PASTO GÉNIE</div>
+        <div class="brand-name">PASTO GENIE</div>
         <div class="brand-sub">Tournoi Paroissial</div>
       </div>
     </div>
@@ -44,7 +43,7 @@
       <div class="match-select-wrap">
         <i class="ri-trophy-line text-muted" style="font-size:1rem;"></i>
         <select id="match-selector" class="nav-select">
-          <option value="">— Sélectionner un match —</option>
+          <option value="">Selectionner un match</option>
         </select>
       </div>
       <a href="login.html" class="btn btn-outline btn-sm">
@@ -53,29 +52,39 @@
     </div>
   </nav>
 
-  <!-- ══ LOADING ═══════════════════════════════════════════════ -->
   <div id="loading-screen" class="loading-screen">
     <div class="spinner"></div>
-    <p class="text-muted text-sm">Chargement du tournoi…</p>
+    <p class="text-muted text-sm">Chargement du tournoi...</p>
   </div>
 
-  <!-- ══ EMPTY STATE ═══════════════════════════════════════════ -->
   <div id="empty-state" class="empty-state hidden">
     <div class="empty-icon"><i class="ri-trophy-line"></i></div>
-    <h2 class="text-gold mt-4">Aucun match en cours</h2>
-    <p class="text-muted mt-2">Le prochain match commencera bientôt.</p>
+    <h2 class="text-gold mt-4">Aucun match en direct</h2>
+    <p class="text-muted mt-2">Le calendrier public reste disponible plus bas.</p>
     <a href="login.html" class="btn btn-outline btn-sm mt-4">
       <i class="ri-login-box-line"></i> Organisateurs
     </a>
   </div>
 
-  <!-- ══ MAIN CONTENT ══════════════════════════════════════════ -->
+  <main id="public-home" class="public-home">
+    <section class="home-section hero-today-section animate-fadeUp">
+      <div class="section-heading">
+        <div>
+          <span class="section-kicker"><i class="ri-calendar-check-line"></i> Tournoi en cours</span>
+          <h1>Match du jour</h1>
+        </div>
+        <button id="refresh-public-home" class="btn btn-ghost btn-sm">
+          <i class="ri-refresh-line"></i> Actualiser
+        </button>
+      </div>
+      <div id="today-matches" class="today-match-grid">
+        <div class="neo-card placeholder-card">Chargement des matchs du jour...</div>
+      </div>
+    </section>
+  </main>
+
   <div id="main-content" class="public-layout hidden">
-
-    <!-- ── Left column ──────────────────────────────────────── -->
     <div style="display:flex;flex-direction:column;gap:var(--space-4);">
-
-      <!-- Hero Scoreboard -->
       <div class="scoreboard-hero glass-gold glass-lg animate-fadeUp">
         <div class="scoreboard-inner">
           <div class="scoreboard-meta">
@@ -88,75 +97,65 @@
             </span>
           </div>
 
-          <!-- Category track -->
           <div id="pub-cat-track" class="cat-track mb-2"></div>
           <div class="progress-bar mb-4">
             <div id="pub-progress" class="progress-fill" style="width:0%"></div>
           </div>
 
-          <!-- Score row -->
           <div class="score-row">
             <div class="team-side">
               <div id="pub-crest-a" class="team-crest">A</div>
-              <div id="pub-name-a" class="team-label">Équipe A</div>
+              <div id="pub-name-a" class="team-label">Equipe A</div>
               <div id="pub-parish-a" class="team-parish"></div>
             </div>
             <div class="score-center">
               <div class="score-numbers">
                 <span id="pub-score-a" class="score-hero">0</span>
-                <span class="score-sep">—</span>
+                <span class="score-sep">-</span>
                 <span id="pub-score-b" class="score-hero">0</span>
               </div>
               <div id="pub-cat-active" class="cat-active-strip">
                 <i class="ri-question-line"></i>
-                <span>—</span>
+                <span>-</span>
               </div>
             </div>
             <div class="team-side">
               <div id="pub-crest-b" class="team-crest">B</div>
-              <div id="pub-name-b" class="team-label">Équipe B</div>
+              <div id="pub-name-b" class="team-label">Equipe B</div>
               <div id="pub-parish-b" class="team-parish"></div>
             </div>
           </div>
 
-          <!-- Category scores -->
           <div id="pub-cat-scores" class="cat-scores-grid mt-4"></div>
         </div>
       </div>
 
-      <!-- Players grid -->
       <div class="glass glass-md animate-fadeUp delay-1">
         <div class="card-header">
-          <div class="card-label"><i class="ri-group-line"></i> Joueurs en compétition</div>
+          <div class="card-label"><i class="ri-group-line"></i> Joueurs en competition</div>
         </div>
         <div id="pub-players-grid" class="players-grid"></div>
       </div>
-
     </div>
 
-    <!-- ── Right column ──────────────────────────────────────── -->
     <div class="right-col">
-
-      <!-- Chrono -->
       <div class="glass-gold animate-fadeUp delay-2">
         <div class="chrono-widget">
           <div class="card-label justify-center mb-2">
             <i class="ri-time-line"></i> Temps de jeu
           </div>
           <div id="pub-chrono" class="chrono-time">00:00</div>
-          <div id="pub-chrono-cat" class="chrono-cat">—</div>
+          <div id="pub-chrono-cat" class="chrono-cat">-</div>
         </div>
       </div>
 
-      <!-- Last action -->
       <div class="glass glass-sm animate-fadeUp delay-3">
-        <div class="card-label mb-3"><i class="ri-flashlight-line"></i> Dernière action</div>
+        <div class="card-label mb-3"><i class="ri-flashlight-line"></i> Derniere action</div>
         <div id="pub-last-action" class="text-center text-sm text-muted" style="padding:var(--space-3) 0;">
-          En attente de la première action…
+          En attente de la premiere action...
         </div>
       </div>
 
-      <!-- Event feed -->
       <div class="glass glass-sm animate-fadeUp delay-4">
         <div class="card-header">
           <div class="card-label"><i class="ri-list-check-3"></i> Fil du match</div>
@@ -168,33 +167,90 @@
         </div>
         <div id="pub-feed" class="event-feed">
           <p class="text-muted text-xs text-center" style="padding:var(--space-4);">
-            Les actions apparaîtront ici…
+            Les actions apparaitront ici...
           </p>
         </div>
       </div>
-
     </div>
   </div>
 
-  <section id="public-rankings" class="public-rankings">
+  <section id="public-calendar-section" class="public-rankings home-section">
     <div class="ranking-header">
       <div>
-        <h2>Classements</h2>
-        <p>Performances figées après validation finale des matchs</p>
+        <span class="section-kicker"><i class="ri-calendar-event-line"></i> Programme</span>
+        <h2>Calendrier des matchs</h2>
+        <p>Matchs planifies, en cours et termines du tournoi</p>
       </div>
-      <button id="refresh-public-rankings" class="btn btn-ghost btn-sm">
-        <i class="ri-refresh-line"></i> Actualiser
+    </div>
+    <div id="public-calendar-list" class="calendar-list">
+      <div class="neo-card placeholder-card">Chargement du calendrier...</div>
+    </div>
+  </section>
+
+  <section id="pool-standings-section" class="public-rankings home-section">
+    <div class="ranking-header">
+      <div>
+        <span class="section-kicker"><i class="ri-team-line"></i> Poules</span>
+        <h2>Classements d'equipes</h2>
+        <p>Classements separes par poules</p>
+      </div>
+    </div>
+    <div id="pool-standings" class="pool-standings-grid">
+      <div class="neo-card placeholder-card">Chargement des poules...</div>
+    </div>
+  </section>
+
+  <section id="tournament-player-section" class="public-rankings home-section">
+    <div class="ranking-header">
+      <div>
+        <span class="section-kicker"><i class="ri-user-star-line"></i> Tournoi actif</span>
+        <h2>Classements individuels</h2>
+        <p>Performances figees apres validation finale des matchs</p>
+      </div>
+    </div>
+    <div class="glass glass-md neo-panel">
+      <div id="tournament-player-ranking" class="public-ranking-list">
+        <p class="text-muted text-center">Chargement...</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="dynamic-rankings-section" class="public-rankings home-section">
+    <div class="ranking-header">
+      <div>
+        <span class="section-kicker"><i class="ri-bar-chart-box-line"></i> Dynamique</span>
+        <h2>Classements all time</h2>
+        <p>Filtres par categorie et plage de date</p>
+      </div>
+    </div>
+    <div class="filter-bar glass glass-sm">
+      <label>
+        <span>Categorie</span>
+        <select id="alltime-category" class="form-select">
+          <option value="all">Toutes</option>
+        </select>
+      </label>
+      <label>
+        <span>Du</span>
+        <input id="alltime-from" type="date" class="form-input"/>
+      </label>
+      <label>
+        <span>Au</span>
+        <input id="alltime-to" type="date" class="form-input"/>
+      </label>
+      <button id="alltime-apply" class="btn btn-gold">
+        <i class="ri-filter-3-line"></i> Filtrer
       </button>
     </div>
     <div class="public-ranking-grid">
-      <div class="glass glass-md">
-        <div class="card-label mb-4"><i class="ri-shield-star-line"></i> Equipes</div>
+      <div class="glass glass-md neo-panel">
+        <div class="card-label mb-4"><i class="ri-shield-star-line"></i> Equipes all time</div>
         <div id="public-team-ranking" class="public-ranking-list">
           <p class="text-muted text-center">Chargement...</p>
         </div>
       </div>
-      <div class="glass glass-md">
-        <div class="card-label mb-4"><i class="ri-user-star-line"></i> Joueurs</div>
+      <div class="glass glass-md neo-panel">
+        <div class="card-label mb-4"><i class="ri-user-star-line"></i> Joueurs all time</div>
         <div id="public-player-ranking" class="public-ranking-list">
           <p class="text-muted text-center">Chargement...</p>
         </div>

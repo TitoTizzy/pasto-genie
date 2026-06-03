@@ -1,26 +1,38 @@
 // ================================================================
-//  PASTO GENIE - Public scoreboard Supabase
+//  PASTO GENIE - Public tournament hub + live scoreboard
 // ================================================================
-import { supabase, T, CATEGORIES } from "./supabase-config.js";
+import { supabase, T, CATEGORIES, BAREME_DEFAULT } from "./supabase-config.js";
 import { formatTime, pulsify, renderCatTrack } from "./utils.js";
 
 const $ = id => document.getElementById(id);
 const CAT = Object.fromEntries(CATEGORIES.map(c => [c.id, c]));
+const MS_DAY = 24 * 60 * 60 * 1000;
 
 let channels = [];
 let chronoInterval = null;
+let countdownInterval = null;
 let publicPlayersById = new Map();
+let activeTournament = null;
+let homeMatches = [];
+let teamsById = new Map();
+let playersById = new Map();
+let allTeamStats = [];
+let allPlayerStats = [];
 
 function showMain() {
-  $("loading-screen").classList.add("hidden");
-  $("main-content").classList.remove("hidden");
-  $("empty-state").classList.add("hidden");
+  $("loading-screen")?.classList.add("hidden");
+  $("main-content")?.classList.remove("hidden");
+  $("empty-state")?.classList.add("hidden");
 }
 
 function showEmpty() {
-  $("loading-screen").classList.add("hidden");
-  $("empty-state").classList.remove("hidden");
-  $("main-content").classList.add("hidden");
+  $("loading-screen")?.classList.add("hidden");
+  $("empty-state")?.classList.add("hidden");
+  $("main-content")?.classList.add("hidden");
+}
+
+function hideLoadingOnly() {
+  $("loading-screen")?.classList.add("hidden");
 }
 
 function normalizeMatch(row) {
@@ -33,6 +45,8 @@ function normalizeMatch(row) {
     categorieActuelle: row.categorie_actuelle,
     tournamentName: row.tournament_name,
     startedAt: row.started_at ? new Date(row.started_at) : null,
+    scheduledAt: row.scheduled_at ? new Date(row.scheduled_at) : null,
+    createdAt: row.created_at ? new Date(row.created_at) : null,
   };
 }
 
@@ -47,21 +61,362 @@ function normalizeScore(row) {
   };
 }
 
+function matchDate(m) {
+  return m?.scheduledAt || m?.startedAt || m?.createdAt || new Date();
+}
+
+function sameLocalDay(a, b) {
+  return a.getFullYear() === b.getFullYear()
+    && a.getMonth() === b.getMonth()
+    && a.getDate() === b.getDate();
+}
+
+function formatDateTime(date) {
+  if (!date) return "Date a definir";
+  return date.toLocaleString("fr-FR", {
+    weekday: "short",
+    day: "2-digit",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function countdownText(date, status) {
+  if (status === "en_cours") return "En direct maintenant";
+  if (status === "termine") return "Match termine";
+  if (!date) return "Horaire a definir";
+  const diff = date.getTime() - Date.now();
+  if (diff <= 0) return "Demarrage attendu";
+  const days = Math.floor(diff / MS_DAY);
+  const hours = Math.floor((diff % MS_DAY) / 3600000);
+  const mins = Math.floor((diff % 3600000) / 60000);
+  const secs = Math.floor((diff % 60000) / 1000);
+  if (days > 0) return `${days}j ${hours}h ${mins}m`;
+  if (hours > 0) return `${hours}h ${mins}m ${secs}s`;
+  return `${mins}m ${secs}s`;
+}
+
+function statusLabel(status) {
+  const labels = {
+    planifie: "Planifie",
+    en_cours: "En direct",
+    pause: "Pause",
+    termine: "Termine",
+  };
+  return labels[status] || status || "A definir";
+}
+
+function teamName(match, side) {
+  return match?.[side]?.nom || (side === "equipeA" ? "Equipe A" : "Equipe B");
+}
+
+function teamRefFromMatch(match, side) {
+  const id = side === "A" ? match.equipe_a_id : match.equipe_b_id;
+  return teamsById.get(id) || (side === "A" ? match.equipeA : match.equipeB) || {};
+}
+
+async function fetchRows(table, builder = q => q) {
+  const query = builder(supabase.from(table).select("*"));
+  const { data, error } = await query;
+  if (error) throw error;
+  return data || [];
+}
+
+async function loadActiveTournament() {
+  try {
+    const rows = await fetchRows(T.TOURNOIS, q => q.order("actif", { ascending: false }).order("created_at", { ascending: false }).limit(1));
+    activeTournament = rows[0] || null;
+  } catch (err) {
+    console.error(err);
+    activeTournament = null;
+  }
+}
+
+async function loadPublicHome() {
+  try {
+    await loadActiveTournament();
+    const [matches, equipes, joueurs, teamStats, playerStats] = await Promise.all([
+      fetchRows(T.MATCHES, q => q.order("scheduled_at", { ascending: true, nullsFirst: false }).order("created_at", { ascending: false }).limit(120)),
+      fetchRows(T.EQUIPES, q => q.order("nom", { ascending: true })),
+      fetchRows(T.JOUEURS, q => q.order("nom", { ascending: true })),
+      fetchRows(T.STATS_EQUIPES, q => q.order("played_at", { ascending: false }).limit(2000)).catch(() => []),
+      fetchRows(T.STATS_JOUEURS, q => q.order("played_at", { ascending: false }).limit(3000)).catch(() => []),
+    ]);
+    teamsById = new Map(equipes.map(eq => [eq.id, eq]));
+    playersById = new Map(joueurs.map(j => [j.id, j]));
+    allTeamStats = teamStats;
+    allPlayerStats = playerStats;
+    homeMatches = (matches || []).map(normalizeMatch);
+    if (activeTournament) {
+      const tournamentMatches = homeMatches.filter(m => m.tournoi_id === activeTournament.id);
+      if (tournamentMatches.length) homeMatches = tournamentMatches;
+    }
+    renderTodayMatches();
+    renderCalendar();
+    renderPoolStandings();
+    renderTournamentPlayerRanking();
+    await loadPublicRankings();
+    hideLoadingOnly();
+  } catch (err) {
+    console.error(err);
+    hideLoadingOnly();
+    renderEmptyBlock("today-matches", "Impossible de charger les donnees publiques.");
+  }
+}
+
+function renderEmptyBlock(id, message) {
+  const wrap = $(id);
+  if (wrap) wrap.innerHTML = `<div class="neo-card placeholder-card">${message}</div>`;
+}
+
+function renderTodayMatches() {
+  const wrap = $("today-matches");
+  if (!wrap) return;
+  const today = new Date();
+  let matches = homeMatches.filter(m => m.statut === "en_cours" || sameLocalDay(matchDate(m), today));
+  if (!matches.length) {
+    matches = homeMatches
+      .filter(m => m.statut !== "termine")
+      .sort((a, b) => matchDate(a) - matchDate(b))
+      .slice(0, 2);
+  }
+  wrap.innerHTML = "";
+  if (!matches.length) {
+    renderEmptyBlock("today-matches", "Aucun match programme pour le moment.");
+    return;
+  }
+  matches.forEach(match => {
+    const date = matchDate(match);
+    const card = document.createElement("article");
+    card.className = "today-match-card neo-card";
+    card.innerHTML = `
+      <div class="today-card-top">
+        <span class="status-pill ${match.statut === "en_cours" ? "is-live" : ""}">${statusLabel(match.statut)}</span>
+        <span class="today-date">${formatDateTime(date)}</span>
+      </div>
+      <div class="today-teams">
+        <div class="mini-team" data-side="A"><div class="mini-crest"></div><strong></strong></div>
+        <div class="versus-3d">VS</div>
+        <div class="mini-team" data-side="B"><div class="mini-crest"></div><strong></strong></div>
+      </div>
+      <div class="countdown-box">
+        <span>Compte a rebours</span>
+        <strong data-countdown="${match.id}">${countdownText(date, match.statut)}</strong>
+      </div>
+      <button class="btn btn-gold watch-match-btn" data-watch-match="${match.id}">
+        <i class="ri-live-line"></i> Regarder
+      </button>`;
+    const teamA = teamRefFromMatch(match, "A");
+    const teamB = teamRefFromMatch(match, "B");
+    const a = card.querySelector('[data-side="A"]');
+    const b = card.querySelector('[data-side="B"]');
+    a.querySelector("strong").textContent = teamName(match, "equipeA");
+    b.querySelector("strong").textContent = teamName(match, "equipeB");
+    renderMiniCrest(a.querySelector(".mini-crest"), teamA, "A");
+    renderMiniCrest(b.querySelector(".mini-crest"), teamB, "B");
+    wrap.appendChild(card);
+  });
+}
+
+function renderMiniCrest(el, team, fallback) {
+  if (!el) return;
+  el.style.backgroundImage = "";
+  el.style.borderColor = team?.couleur_primaire || "rgba(255,255,255,0.8)";
+  if (team?.embleme_url) {
+    el.style.backgroundImage = `url("${team.embleme_url}")`;
+    el.textContent = "";
+  } else {
+    el.textContent = (team?.nom || fallback || "?")[0].toUpperCase();
+  }
+}
+
+function updateCountdowns() {
+  homeMatches.forEach(match => {
+    const el = document.querySelector(`[data-countdown="${match.id}"]`);
+    if (el) el.textContent = countdownText(matchDate(match), match.statut);
+  });
+}
+
+function renderCalendar() {
+  const wrap = $("public-calendar-list");
+  if (!wrap) return;
+  wrap.innerHTML = "";
+  const rows = [...homeMatches].sort((a, b) => matchDate(a) - matchDate(b)).slice(0, 30);
+  if (!rows.length) {
+    renderEmptyBlock("public-calendar-list", "Aucun match dans le calendrier.");
+    return;
+  }
+  rows.forEach(match => {
+    const row = document.createElement("article");
+    row.className = "calendar-match neo-card";
+    row.innerHTML = `
+      <div class="calendar-date">
+        <strong>${formatDateTime(matchDate(match))}</strong>
+        <span>${activeTournament?.nom || match.tournamentName || "Tournoi"}</span>
+      </div>
+      <div class="calendar-teams">
+        <strong>${teamName(match, "equipeA")}</strong>
+        <span>contre</span>
+        <strong>${teamName(match, "equipeB")}</strong>
+      </div>
+      <span class="status-pill ${match.statut === "en_cours" ? "is-live" : ""}">${statusLabel(match.statut)}</span>
+      <button class="btn btn-outline btn-sm watch-match-btn" data-watch-match="${match.id}">
+        <i class="ri-eye-line"></i> Regarder
+      </button>`;
+    wrap.appendChild(row);
+  });
+}
+
+function aggregateTeamStats(stats) {
+  const map = new Map();
+  stats.forEach(row => {
+    if (!row.equipe_id) return;
+    const team = teamsById.get(row.equipe_id) || {};
+    const item = map.get(row.equipe_id) || {
+      equipe_id: row.equipe_id,
+      nom: team.nom || "Equipe",
+      paroisse: team.paroisse || "",
+      embleme_url: team.embleme_url || "",
+      couleur_primaire: team.couleur_primaire || "#38bdf8",
+      poule: team.poule || "Poule unique",
+      matchs: 0,
+      victoires: 0,
+      nuls: 0,
+      defaites: 0,
+      points_marques: 0,
+      points_encaisses: 0,
+      points_classement: 0,
+    };
+    item.matchs += 1;
+    item.victoires += row.gagne ? 1 : 0;
+    item.nuls += row.nul ? 1 : 0;
+    item.defaites += row.perdu ? 1 : 0;
+    item.points_marques += row.score || 0;
+    item.points_encaisses += row.score_adverse || 0;
+    item.points_classement += row.gagne ? 3 : row.nul ? 1 : 0;
+    map.set(row.equipe_id, item);
+  });
+  return [...map.values()].sort(sortTeams);
+}
+
+function sortTeams(a, b) {
+  return (b.points_classement || 0) - (a.points_classement || 0)
+    || (b.points_marques || 0) - (a.points_marques || 0)
+    || ((a.nom || "").localeCompare(b.nom || ""));
+}
+
+function renderPoolStandings() {
+  const wrap = $("pool-standings");
+  if (!wrap) return;
+  const stats = activeTournament
+    ? allTeamStats.filter(s => s.tournoi_id === activeTournament.id)
+    : allTeamStats;
+  let rows = aggregateTeamStats(stats);
+  if (!rows.length) {
+    rows = [...teamsById.values()].map(team => ({
+      equipe_id: team.id,
+      nom: team.nom,
+      paroisse: team.paroisse,
+      embleme_url: team.embleme_url,
+      couleur_primaire: team.couleur_primaire,
+      poule: team.poule || "Poule unique",
+      matchs: 0,
+      victoires: 0,
+      nuls: 0,
+      defaites: 0,
+      points_marques: 0,
+      points_classement: 0,
+    }));
+  }
+  const grouped = rows.reduce((acc, row) => {
+    const key = row.poule || "Poule unique";
+    if (!acc.has(key)) acc.set(key, []);
+    acc.get(key).push(row);
+    return acc;
+  }, new Map());
+  wrap.innerHTML = "";
+  if (!grouped.size) {
+    renderEmptyBlock("pool-standings", "Aucune equipe enregistree.");
+    return;
+  }
+  grouped.forEach((teams, poule) => {
+    const card = document.createElement("div");
+    card.className = "glass glass-md pool-card neo-panel";
+    card.innerHTML = `<div class="pool-title">${poule}</div><div class="public-ranking-list"></div>`;
+    const list = card.querySelector(".public-ranking-list");
+    teams.sort(sortTeams).forEach((team, index) => list.appendChild(createTeamRankingRow(team, index)));
+    wrap.appendChild(card);
+  });
+}
+
+function aggregatePlayerStats(stats) {
+  const map = new Map();
+  stats.forEach(row => {
+    if (!row.joueur_id) return;
+    const player = playersById.get(row.joueur_id) || {};
+    const team = teamsById.get(row.equipe_id) || {};
+    const item = map.get(row.joueur_id) || {
+      joueur_id: row.joueur_id,
+      prenom: player.prenom || "",
+      nom: player.nom || "Joueur",
+      photo_url: player.photo_url || "",
+      equipe_nom: team.nom || "Equipe",
+      equipe_id: row.equipe_id,
+      matchs: 0,
+      points: 0,
+      bonnes: 0,
+      mauvaises: 0,
+      repliques_bonnes: 0,
+      repliques_mauvaises: 0,
+    };
+    item.matchs += 1;
+    item.points += row.points || 0;
+    item.bonnes += row.bonnes || 0;
+    item.mauvaises += row.mauvaises || 0;
+    item.repliques_bonnes += row.repliques_bonnes || 0;
+    item.repliques_mauvaises += row.repliques_mauvaises || 0;
+    map.set(row.joueur_id, item);
+  });
+  return [...map.values()].sort(sortPlayers);
+}
+
+function sortPlayers(a, b) {
+  return (b.points || 0) - (a.points || 0)
+    || (b.bonnes || 0) - (a.bonnes || 0)
+    || (`${a.prenom || ""} ${a.nom || ""}`).localeCompare(`${b.prenom || ""} ${b.nom || ""}`);
+}
+
+function renderTournamentPlayerRanking() {
+  const wrap = $("tournament-player-ranking");
+  if (!wrap) return;
+  const stats = activeTournament
+    ? allPlayerStats.filter(s => s.tournoi_id === activeTournament.id)
+    : allPlayerStats;
+  const players = aggregatePlayerStats(stats).slice(0, 20);
+  wrap.innerHTML = "";
+  if (!players.length) {
+    wrap.innerHTML = '<p class="text-muted text-center">Aucune statistique individuelle pour le tournoi actif.</p>';
+    return;
+  }
+  publicPlayersById = new Map(players.map(p => [p.joueur_id, p]));
+  players.forEach((player, index) => wrap.appendChild(createPlayerRankingRow(player, index)));
+}
+
 async function loadMatchList() {
   try {
-    const { data, error } = await supabase.from(T.MATCHES).select("*").order("created_at", { ascending: false }).limit(20);
+    const { data, error } = await supabase.from(T.MATCHES).select("*").order("scheduled_at", { ascending: true, nullsFirst: false }).limit(50);
     if (error) throw error;
     const sel = $("match-selector");
     while (sel.options.length > 1) sel.remove(1);
     let autoMatch = null;
-    (data || []).forEach(row => {
-      const m = normalizeMatch(row);
-      sel.appendChild(new Option(`${m.equipeA?.nom || "A"} vs ${m.equipeB?.nom || "B"} - ${m.statut}`, m.id));
+    (data || []).map(normalizeMatch).forEach(m => {
+      sel.appendChild(new Option(`${teamName(m, "equipeA")} vs ${teamName(m, "equipeB")} - ${statusLabel(m.statut)}`, m.id));
       if (m.statut === "en_cours" && !autoMatch) autoMatch = m.id;
     });
     if (autoMatch) {
       sel.value = autoMatch;
-      subscribeMatch(autoMatch);
+      subscribeMatch(autoMatch, false);
     } else {
       showEmpty();
     }
@@ -71,7 +426,7 @@ async function loadMatchList() {
   }
 }
 
-async function subscribeMatch(matchId) {
+async function subscribeMatch(matchId, scrollIntoView = true) {
   channels.forEach(ch => supabase.removeChannel(ch));
   channels = [];
   clearInterval(chronoInterval);
@@ -80,7 +435,7 @@ async function subscribeMatch(matchId) {
   $("pub-feed").innerHTML = '<p class="text-muted text-xs text-center" style="padding:var(--space-4);">Chargement...</p>';
 
   const { data: match, error: matchError } = await supabase.from(T.MATCHES).select("*").eq("id", matchId).single();
-  if (!matchError) renderMatchInfo(normalizeMatch(match));
+  if (!matchError && match) renderMatchInfo(normalizeMatch(match));
 
   const { data: score, error: scoreError } = await supabase.from(T.MATCH_EN_COURS).select("*").eq("id", matchId).maybeSingle();
   if (!scoreError && score) {
@@ -88,6 +443,9 @@ async function subscribeMatch(matchId) {
     renderScores(normalized);
     renderPlayerScores(normalized);
     renderCatScores(normalized);
+  } else {
+    renderScores({ scoreA: 0, scoreB: 0 });
+    renderCatScores({ scoreParCategorie: {} });
   }
 
   const { data: events } = await supabase
@@ -96,11 +454,18 @@ async function subscribeMatch(matchId) {
     .eq("match_id", matchId)
     .order("created_at", { ascending: false })
     .limit(50);
+  $("pub-feed").innerHTML = "";
   (events || []).reverse().forEach(prependEvent);
+  if (!events?.length) {
+    $("pub-feed").innerHTML = '<p class="text-muted text-xs text-center" style="padding:var(--space-4);">Les actions apparaitront ici...</p>';
+  }
 
   const matchChannel = supabase
     .channel(`public-match-${matchId}`)
-    .on("postgres_changes", { event: "*", schema: "public", table: T.MATCHES, filter: `id=eq.${matchId}` }, payload => renderMatchInfo(normalizeMatch(payload.new)))
+    .on("postgres_changes", { event: "*", schema: "public", table: T.MATCHES, filter: `id=eq.${matchId}` }, payload => {
+      renderMatchInfo(normalizeMatch(payload.new));
+      loadPublicHome();
+    })
     .subscribe();
   const scoreChannel = supabase
     .channel(`public-score-${matchId}`)
@@ -116,11 +481,26 @@ async function subscribeMatch(matchId) {
     .on("postgres_changes", { event: "INSERT", schema: "public", table: T.EVENEMENTS, filter: `match_id=eq.${matchId}` }, payload => prependEvent(payload.new))
     .subscribe();
   channels.push(matchChannel, scoreChannel, eventChannel);
+  $("match-selector").value = matchId;
   showMain();
+  if (scrollIntoView) $("main-content")?.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 async function loadPublicRankings() {
   await Promise.all([loadPublicTeamRanking(), loadPublicPlayerRanking()]);
+}
+
+function filterByDates(rows, dateKey = "played_at") {
+  const from = $("alltime-from")?.value;
+  const to = $("alltime-to")?.value;
+  return rows.filter(row => {
+    const raw = row[dateKey] || row.created_at;
+    if (!raw) return true;
+    const ts = new Date(raw).getTime();
+    if (from && ts < new Date(`${from}T00:00:00`).getTime()) return false;
+    if (to && ts > new Date(`${to}T23:59:59`).getTime()) return false;
+    return true;
+  });
 }
 
 async function loadPublicTeamRanking() {
@@ -128,39 +508,13 @@ async function loadPublicTeamRanking() {
   if (!wrap) return;
   wrap.innerHTML = '<p class="text-muted text-center">Chargement...</p>';
   try {
-    const { data, error } = await supabase
-      .from(T.CLASSEMENT_EQUIPES)
-      .select("*")
-      .order("points_classement", { ascending: false })
-      .order("points_marques", { ascending: false })
-      .limit(10);
-    if (error) throw error;
+    const rows = aggregateTeamStats(filterByDates(allTeamStats)).slice(0, 12);
     wrap.innerHTML = "";
-    if (!data?.length) {
-      wrap.innerHTML = '<p class="text-muted text-center">Aucun classement pour le moment.</p>';
+    if (!rows.length) {
+      wrap.innerHTML = '<p class="text-muted text-center">Aucun classement equipe pour le moment.</p>';
       return;
     }
-    data.forEach((team, index) => {
-      const row = document.createElement("div");
-      row.className = "public-ranking-row";
-      row.innerHTML = `
-        <div class="public-ranking-pos">${index + 1}</div>
-        <div class="public-ranking-avatar"></div>
-        <div class="public-ranking-main">
-          <div class="public-ranking-name"></div>
-          <div class="public-ranking-meta">${team.matchs || 0} match(s) - ${team.victoires || 0}V ${team.nuls || 0}N ${team.defaites || 0}D</div>
-        </div>
-        <div class="public-ranking-score">${team.points_classement || 0}</div>`;
-      const avatar = row.querySelector(".public-ranking-avatar");
-      if (team.embleme_url) {
-        avatar.style.backgroundImage = `url("${team.embleme_url}")`;
-        avatar.textContent = "";
-      } else {
-        avatar.textContent = (team.nom || "?")[0].toUpperCase();
-      }
-      row.querySelector(".public-ranking-name").textContent = team.nom || "Equipe";
-      wrap.appendChild(row);
-    });
+    rows.forEach((team, index) => wrap.appendChild(createTeamRankingRow(team, index)));
   } catch (err) {
     console.error(err);
     wrap.innerHTML = '<p class="text-muted text-center">Classement equipes indisponible.</p>';
@@ -172,42 +526,19 @@ async function loadPublicPlayerRanking() {
   if (!wrap) return;
   wrap.innerHTML = '<p class="text-muted text-center">Chargement...</p>';
   try {
-    const { data, error } = await supabase
-      .from(T.CLASSEMENT_JOUEURS)
-      .select("*")
-      .order("points", { ascending: false })
-      .order("bonnes", { ascending: false })
-      .limit(10);
-    if (error) throw error;
+    const category = $("alltime-category")?.value || "all";
+    const rows = category === "all"
+      ? aggregatePlayerStats(filterByDates(allPlayerStats)).slice(0, 12)
+      : (await loadCategoryPlayerRanking(category)).slice(0, 12);
     wrap.innerHTML = "";
     publicPlayersById = new Map();
-    if (!data?.length) {
-      wrap.innerHTML = '<p class="text-muted text-center">Aucun classement pour le moment.</p>';
+    if (!rows.length) {
+      wrap.innerHTML = '<p class="text-muted text-center">Aucun classement joueur pour le moment.</p>';
       return;
     }
-    data.forEach((player, index) => {
+    rows.forEach((player, index) => {
       if (player.joueur_id) publicPlayersById.set(player.joueur_id, player);
-      const row = document.createElement("button");
-      row.type = "button";
-      row.className = "public-ranking-row public-ranking-button";
-      row.innerHTML = `
-        <div class="public-ranking-pos">${index + 1}</div>
-        <div class="public-ranking-avatar"></div>
-        <div class="public-ranking-main">
-          <div class="public-ranking-name"></div>
-          <div class="public-ranking-meta">${player.equipe_nom || "Equipe"} - ${player.matchs || 0} match(s) - ${player.bonnes || 0} bonnes</div>
-        </div>
-        <div class="public-ranking-score">${player.points || 0}</div>`;
-      const avatar = row.querySelector(".public-ranking-avatar");
-      if (player.photo_url) {
-        avatar.style.backgroundImage = `url("${player.photo_url}")`;
-        avatar.textContent = "";
-      } else {
-        avatar.textContent = (player.prenom || player.nom || "?")[0].toUpperCase();
-      }
-      row.querySelector(".public-ranking-name").textContent = `${player.prenom || ""} ${player.nom || ""}`.trim() || "Joueur";
-      row.addEventListener("click", () => openPlayerProfileFromRanking(player));
-      wrap.appendChild(row);
+      wrap.appendChild(createPlayerRankingRow(player, index));
     });
   } catch (err) {
     console.error(err);
@@ -215,15 +546,117 @@ async function loadPublicPlayerRanking() {
   }
 }
 
+async function loadCategoryPlayerRanking(category) {
+  let query = supabase.from(T.EVENEMENTS).select("*").eq("categorie", category).limit(3000);
+  const from = $("alltime-from")?.value;
+  const to = $("alltime-to")?.value;
+  if (from) query = query.gte("created_at", `${from}T00:00:00`);
+  if (to) query = query.lte("created_at", `${to}T23:59:59`);
+  const { data, error } = await query;
+  if (error) throw error;
+  const bareme = await loadBareme();
+  const rule = bareme[category] || BAREME_DEFAULT[category] || {};
+  const map = new Map();
+  (data || []).forEach(ev => {
+    const player = playersById.get(ev.joueur_id) || {};
+    const item = map.get(ev.joueur_id) || {
+      joueur_id: ev.joueur_id,
+      prenom: player.prenom || "",
+      nom: player.nom || ev.joueur_nom || "Joueur",
+      photo_url: player.photo_url || "",
+      equipe_nom: ev.equipe ? `Equipe ${ev.equipe}` : "Equipe",
+      matchs: 0,
+      points: 0,
+      bonnes: 0,
+      mauvaises: 0,
+      repliques_bonnes: 0,
+      repliques_mauvaises: 0,
+    };
+    if (ev.action === "bonne_reponse") {
+      item.bonnes += 1;
+      item.points += rule.bonne || 0;
+    } else if (ev.action === "mauvaise_reponse") {
+      item.mauvaises += 1;
+      item.points += rule.mauvaise || 0;
+    } else if (ev.action === "replique_bonne") {
+      item.repliques_bonnes += 1;
+      item.points += rule.replique || 0;
+    } else if (ev.action === "replique_mauvaise") {
+      item.repliques_mauvaises += 1;
+      item.points -= rule.replique_penalite || 0;
+    }
+    map.set(ev.joueur_id, item);
+  });
+  return [...map.values()].sort(sortPlayers);
+}
+
+async function loadBareme() {
+  try {
+    const { data, error } = await supabase.from(T.CONFIG_POINTS).select("bareme").limit(1).maybeSingle();
+    if (error) throw error;
+    return data?.bareme || BAREME_DEFAULT;
+  } catch {
+    return BAREME_DEFAULT;
+  }
+}
+
+function createTeamRankingRow(team, index) {
+  const row = document.createElement("div");
+  row.className = "public-ranking-row";
+  row.innerHTML = `
+    <div class="public-ranking-pos">${index + 1}</div>
+    <div class="public-ranking-avatar"></div>
+    <div class="public-ranking-main">
+      <div class="public-ranking-name"></div>
+      <div class="public-ranking-meta">${team.matchs || 0} match(s) - ${team.victoires || 0}V ${team.nuls || 0}N ${team.defaites || 0}D</div>
+    </div>
+    <div class="public-ranking-score">${team.points_classement || 0}</div>`;
+  const avatar = row.querySelector(".public-ranking-avatar");
+  if (team.embleme_url) {
+    avatar.style.backgroundImage = `url("${team.embleme_url}")`;
+    avatar.textContent = "";
+  } else {
+    avatar.textContent = (team.nom || "?")[0].toUpperCase();
+  }
+  row.querySelector(".public-ranking-name").textContent = team.nom || "Equipe";
+  return row;
+}
+
+function createPlayerRankingRow(player, index) {
+  const row = document.createElement("button");
+  row.type = "button";
+  row.className = "public-ranking-row public-ranking-button";
+  row.innerHTML = `
+    <div class="public-ranking-pos">${index + 1}</div>
+    <div class="public-ranking-avatar"></div>
+    <div class="public-ranking-main">
+      <div class="public-ranking-name"></div>
+      <div class="public-ranking-meta">${player.equipe_nom || "Equipe"} - ${player.matchs || 0} match(s) - ${player.bonnes || 0} bonnes</div>
+    </div>
+    <div class="public-ranking-score">${player.points || 0}</div>`;
+  const avatar = row.querySelector(".public-ranking-avatar");
+  if (player.photo_url) {
+    avatar.style.backgroundImage = `url("${player.photo_url}")`;
+    avatar.textContent = "";
+  } else {
+    avatar.textContent = (player.prenom || player.nom || "?")[0].toUpperCase();
+  }
+  row.querySelector(".public-ranking-name").textContent = `${player.prenom || ""} ${player.nom || ""}`.trim() || "Joueur";
+  row.addEventListener("click", () => openPlayerProfileFromRanking(player));
+  return row;
+}
+
 function renderMatchInfo(m) {
-  $("pub-match-title").textContent = `${m.equipeA?.nom || "A"} - ${m.equipeB?.nom || "B"}`;
-  $("pub-tournoi-label").textContent = m.tournamentName || "Tournoi PASTO GENIE";
-  $("pub-name-a").textContent = m.equipeA?.nom || "Equipe A";
-  $("pub-name-b").textContent = m.equipeB?.nom || "Equipe B";
-  $("pub-parish-a").textContent = m.equipeA?.paroisse || "";
-  $("pub-parish-b").textContent = m.equipeB?.paroisse || "";
-  renderTeamCrest($("pub-crest-a"), m.equipeA, "A");
-  renderTeamCrest($("pub-crest-b"), m.equipeB, "B");
+  $("pub-match-title").textContent = `${teamName(m, "equipeA")} - ${teamName(m, "equipeB")}`;
+  $("pub-tournoi-label").textContent = m.tournamentName || activeTournament?.nom || "Tournoi PASTO GENIE";
+  $("pub-name-a").textContent = teamName(m, "equipeA");
+  $("pub-name-b").textContent = teamName(m, "equipeB");
+  const teamA = teamRefFromMatch(m, "A");
+  const teamB = teamRefFromMatch(m, "B");
+  $("pub-parish-a").textContent = teamA?.paroisse || m.equipeA?.paroisse || "";
+  $("pub-parish-b").textContent = teamB?.paroisse || m.equipeB?.paroisse || "";
+  renderTeamCrest($("pub-crest-a"), teamA, "A");
+  renderTeamCrest($("pub-crest-b"), teamB, "B");
 
   const badge = $("pub-status-badge");
   if (m.statut === "en_cours") {
@@ -238,7 +671,7 @@ function renderMatchInfo(m) {
     clearInterval(chronoInterval);
   } else {
     badge.className = "badge badge-gold";
-    badge.textContent = m.statut;
+    badge.textContent = statusLabel(m.statut);
     $("live-badge").classList.add("hidden");
   }
 
@@ -296,7 +729,7 @@ function renderCatScores(data) {
     const s = scores[cat.id] || { A: 0, B: 0 };
     const el = document.createElement("div");
     el.className = "cat-score-cell";
-    el.innerHTML = `<div class="cat-score-icon"><i class="${cat.icon}"></i></div><div class="cat-score-name"></div><div class="cat-score-vs"><span>${s.A}</span> - <span>${s.B}</span></div>`;
+    el.innerHTML = `<div class="cat-score-icon"><i class="${cat.icon}"></i></div><div class="cat-score-name"></div><div class="cat-score-vs"><span>${s.A || 0}</span> - <span>${s.B || 0}</span></div>`;
     el.querySelector(".cat-score-name").textContent = cat.label;
     grid.appendChild(el);
   });
@@ -312,7 +745,7 @@ function renderPlayers(eA, eB) {
     const col = document.createElement("div");
     const title = document.createElement("div");
     title.className = "players-team-title";
-    title.style.color = idx === 0 ? "#6ab0f5" : "var(--red)";
+    title.style.color = idx === 0 ? "#0369a1" : "var(--red)";
     title.textContent = equipe.nom || `Equipe ${idx === 0 ? "A" : "B"}`;
     col.appendChild(title);
     const all = [
@@ -388,7 +821,7 @@ function openPlayerProfileFromRanking(player) {
   if (!overlay) return;
   $("profile-name").textContent = `${player.prenom || ""} ${player.nom || ""}`.trim() || "Joueur";
   $("profile-team").textContent = player.equipe_nom || "Equipe";
-  $("profile-note").textContent = "Classement all time base sur les matchs valides.";
+  $("profile-note").textContent = "Classement base sur les historiques figes et les filtres publics.";
   const photo = $("profile-photo");
   photo.style.backgroundImage = "";
   if (player.photo_url) {
@@ -427,7 +860,7 @@ function prependEvent(ev) {
   feed.prepend(item);
   while (feed.children.length > 50) feed.removeChild(feed.lastChild);
 
-  $("pub-last-action").innerHTML = `<div class="flex items-center justify-center gap-3"><i class="${m.icon}" style="font-size:1.3rem;color:${m.cls === "bonne" ? "var(--green)" : m.cls === "mauvaise" ? "var(--red)" : "var(--gold)"}"></i><div class="text-left"><div class="font-bold text-sm last-name"></div><div class="text-xs text-muted last-meta"></div></div></div>`;
+  $("pub-last-action").innerHTML = `<div class="flex items-center justify-center gap-3"><i class="${m.icon}" style="font-size:1.3rem;color:${m.cls === "bonne" ? "var(--green)" : m.cls === "mauvaise" ? "var(--red)" : "var(--orange)"}"></i><div class="text-left"><div class="font-bold text-sm last-name"></div><div class="text-xs text-muted last-meta"></div></div></div>`;
   $("pub-last-action").querySelector(".last-name").textContent = ev.joueur_nom || ev.joueur_id;
   $("pub-last-action").querySelector(".last-meta").textContent = `${m.txt} - ${cat.label}`;
 }
@@ -445,18 +878,30 @@ function startChrono(startDate) {
   }, 1000);
 }
 
-$("match-selector").addEventListener("change", e => {
-  if (e.target.value) subscribeMatch(e.target.value);
-});
+function wireEvents() {
+  $("match-selector")?.addEventListener("change", e => {
+    if (e.target.value) subscribeMatch(e.target.value);
+  });
+  document.addEventListener("click", e => {
+    const watch = e.target.closest("[data-watch-match]");
+    if (watch?.dataset.watchMatch) subscribeMatch(watch.dataset.watchMatch);
+  });
+  $("close-player-profile")?.addEventListener("click", () => $("player-profile-overlay")?.classList.add("hidden"));
+  $("player-profile-overlay")?.addEventListener("click", e => {
+    if (e.target.id === "player-profile-overlay") e.currentTarget.classList.add("hidden");
+  });
+  $("refresh-public-home")?.addEventListener("click", () => {
+    loadPublicHome();
+    loadMatchList();
+  });
+  $("alltime-apply")?.addEventListener("click", loadPublicRankings);
+  const categorySelect = $("alltime-category");
+  CATEGORIES.forEach(cat => categorySelect?.appendChild(new Option(cat.label, cat.id)));
+}
 
-$("close-player-profile")?.addEventListener("click", () => $("player-profile-overlay")?.classList.add("hidden"));
-$("player-profile-overlay")?.addEventListener("click", e => {
-  if (e.target.id === "player-profile-overlay") e.currentTarget.classList.add("hidden");
-});
-
-$("refresh-public-rankings")?.addEventListener("click", loadPublicRankings);
-
+wireEvents();
+loadPublicHome();
 loadMatchList();
-loadPublicRankings();
+countdownInterval = setInterval(updateCountdowns, 1000);
 setInterval(loadMatchList, 30000);
-setInterval(loadPublicRankings, 60000);
+setInterval(loadPublicHome, 60000);

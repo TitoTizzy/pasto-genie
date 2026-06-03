@@ -309,7 +309,7 @@ function renderEquipesList() {
       avatar.textContent = (eq.nom || "?")[0].toUpperCase();
     }
     card.querySelector(".entity-title").textContent = eq.nom || "-";
-    card.querySelector(".entity-meta").textContent = eq.paroisse || "Sans paroisse";
+    card.querySelector(".entity-meta").textContent = `${eq.paroisse || "Sans paroisse"} - ${eq.poule || "Poule unique"}`;
     wrap.appendChild(card);
   });
 }
@@ -362,6 +362,7 @@ async function saveEquipe() {
   const payload = {
     nom,
     paroisse: $("eq-paroisse").value.trim(),
+    poule: $("eq-poule")?.value.trim() || "Poule unique",
     couleur_primaire: $("eq-couleur-1").value || "#38bdf8",
     couleur_secondaire: $("eq-couleur-2").value || "#f59e0b",
     updated_at: nowISO(),
@@ -374,7 +375,7 @@ async function saveEquipe() {
     const { error } = await supabase.from(T.EQUIPES).insert({ ...payload, created_at: nowISO() });
     if (error) throw error;
     toast("Equipe enregistree.", "success");
-    ["eq-nom", "eq-paroisse", "eq-embleme-file"].forEach(id => { $(id).value = ""; });
+    ["eq-nom", "eq-paroisse", "eq-poule", "eq-embleme-file"].forEach(id => { $(id).value = ""; });
     $("eq-embleme-preview").style.backgroundImage = "";
     $("eq-embleme-preview").innerHTML = '<i class="ri-image-add-line"></i>';
     await loadEquipes();
