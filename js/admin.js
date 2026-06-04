@@ -204,6 +204,9 @@ function buildTournoiCard(id, t) {
     </div>
     <div class="item-card-actions">
       <span class="statut-badge ${t.actif ? "en_cours" : "termine"}">${t.actif ? "Actif" : "Termine"}</span>
+      <button class="btn btn-ghost btn-sm generate-tournoi-matches" title="Generer les matchs">
+        <i class="ri-calendar-schedule-line"></i> Generer
+      </button>
       <button class="btn btn-ghost btn-sm btn-icon toggle-tournoi" title="${t.actif ? "Cloturer" : "Activer"}">
         <i class="${t.actif ? "ri-stop-circle-line" : "ri-play-circle-line"}"></i>
       </button>
@@ -211,7 +214,25 @@ function buildTournoiCard(id, t) {
   card.querySelector(".item-card-title").textContent = t.nom || "";
   card.querySelector(".meta").textContent = `${t.annee || ""} - ${t.description || "Pas de description"}`;
   card.querySelector(".toggle-tournoi").addEventListener("click", () => toggleTournoi(id, t.actif));
+  card.querySelector(".generate-tournoi-matches").addEventListener("click", () => generateTournoiMatches(id, t.nom));
   return card;
+}
+
+async function generateTournoiMatches(id, nom) {
+  if (!confirm(`Generer automatiquement les matchs de poule pour "${nom}" ? Les doublons existants ne seront pas recrees.`)) return;
+  try {
+    const { data, error } = await supabase.rpc("generer_matchs_competition", {
+      p_tournoi_id: id,
+      p_start_at: null,
+      p_interval_minutes: 60,
+    });
+    if (error) throw error;
+    toast(`${data || 0} match(s) genere(s).`, "success");
+    await loadMatchesList();
+  } catch (err) {
+    console.error(err);
+    toast("Erreur generation calendrier : " + err.message, "error");
+  }
 }
 
 async function creerTournoi() {
