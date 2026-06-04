@@ -28,15 +28,23 @@
 
 .blog-zone,
 .home-module {
-  border: 3px solid rgba(8,35,61,0.84);
-  border-radius: 0;
+  border: 1px solid rgba(255,255,255,0.66);
+  border-radius: var(--r-2xl);
+  background:
+    linear-gradient(145deg, rgba(255,255,255,0.84), rgba(205,232,255,0.54)),
+    radial-gradient(circle at 8% 10%, rgba(14,165,233,0.20), transparent 38%),
+    radial-gradient(circle at 92% 12%, rgba(245,158,11,0.13), transparent 30%);
+  box-shadow:
+    0 28px 80px rgba(7,89,133,0.18),
+    inset 0 1px 0 rgba(255,255,255,0.82);
 }
 
 .blog-zone {
-  min-height: 660px;
+  min-height: 680px;
   display: grid;
   grid-template-rows: auto 1fr auto;
   gap: var(--space-4);
+  padding: clamp(var(--space-5), 3vw, var(--space-8));
 }
 
 .right-modules {
@@ -54,17 +62,24 @@
   z-index: 1;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   gap: var(--space-2);
   color: var(--text);
-  font-size: clamp(1.25rem, 2vw, 1.9rem);
+  font-size: clamp(1.28rem, 2vw, 1.85rem);
   font-weight: 950;
   line-height: 1;
   margin-bottom: var(--space-3);
 }
 
 .module-title i {
-  color: var(--sky-deep);
+  width: 42px;
+  height: 42px;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 14px;
+  color: #fff;
+  background: linear-gradient(135deg, var(--sky-deep), var(--indigo));
+  box-shadow: 0 16px 34px rgba(7,89,133,0.22);
 }
 
 .compact-heading {
@@ -72,8 +87,10 @@
 }
 
 .blog-zone h1 {
-  font-size: clamp(3rem, 7vw, 5rem);
-  font-weight: 500;
+  font-size: clamp(3rem, 7vw, 5.4rem);
+  font-weight: 900;
+  color: var(--text);
+  letter-spacing: 0;
 }
 
 .blog-preview-list {
@@ -81,20 +98,18 @@
   z-index: 1;
   display: grid;
   align-content: start;
-  border: 3px solid rgba(8,35,61,0.85);
+  gap: var(--space-3);
 }
 
 .blog-preview-item {
-  min-height: 120px;
+  min-height: 132px;
   padding: var(--space-5);
   display: grid;
   gap: var(--space-2);
-  border-bottom: 3px solid rgba(8,35,61,0.85);
-  background: rgba(255,255,255,0.54);
-}
-
-.blog-preview-item:last-child {
-  border-bottom: 0;
+  border: 1px solid rgba(7,89,133,0.14);
+  border-radius: var(--r-xl);
+  background: rgba(255,255,255,0.58);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.72);
 }
 
 .blog-preview-item span {
@@ -132,13 +147,13 @@
   justify-content: center;
   min-height: 34px;
   min-width: 160px;
-  padding: 0.25rem 1.1rem;
-  border: 3px solid rgba(8,35,61,0.88);
+  padding: 0.38rem 1.15rem;
+  border: 1px solid rgba(7,89,133,0.22);
   border-radius: var(--r-full);
-  color: var(--text);
-  background: rgba(255,255,255,0.72);
+  color: #fff;
+  background: linear-gradient(135deg, var(--sky-deep), var(--indigo));
   font-weight: 950;
-  box-shadow: none;
+  box-shadow: 0 16px 34px rgba(7,89,133,0.22);
 }
 
 .featured-module .today-match-grid {
@@ -148,7 +163,7 @@
 
 .featured-module .today-match-card {
   min-height: 0;
-  padding: var(--space-2);
+  padding: var(--space-3);
   border: 0;
   box-shadow: none;
   background: transparent;
@@ -162,7 +177,8 @@
 
 .featured-module .today-teams {
   grid-template-columns: 1fr auto 1fr;
-  gap: var(--space-2);
+  gap: var(--space-3);
+  padding: var(--space-2) 0 var(--space-3);
 }
 
 .featured-module .mini-crest {
@@ -170,7 +186,8 @@
 }
 
 .featured-module .mini-team strong {
-  font-size: clamp(1.05rem, 2vw, 1.35rem);
+  font-size: clamp(1.12rem, 2vw, 1.45rem);
+  color: var(--text);
 }
 
 .featured-module .versus-3d {
@@ -180,7 +197,8 @@
   border-radius: var(--r-full);
   padding: 0.3rem 0.8rem;
   font-size: 0.95rem;
-  box-shadow: none;
+  background: linear-gradient(135deg, var(--sky-deep), var(--cyan));
+  box-shadow: 0 12px 28px rgba(7,89,133,0.20);
 }
 
 .featured-module .featured-watch-btn {
@@ -188,8 +206,8 @@
   width: min(220px, 100%);
   justify-self: center;
   font-size: 0.82rem;
-  border: 3px solid rgba(8,35,61,0.88);
-  box-shadow: none;
+  border: 0;
+  box-shadow: 0 16px 34px rgba(245,158,11,0.24);
 }
 
 .compact-calendar {
@@ -200,9 +218,9 @@
   grid-template-columns: 1fr;
   gap: var(--space-2);
   padding: var(--space-3);
-  border: 3px solid rgba(8,35,61,0.82);
-  border-radius: 0;
-  box-shadow: none;
+  border: 1px solid rgba(7,89,133,0.16);
+  border-radius: var(--r-xl);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.66);
 }
 
 .compact-calendar .calendar-teams,
@@ -231,8 +249,8 @@
 
 .compact-pools .pool-card {
   padding: var(--space-3);
-  border-radius: 0;
-  box-shadow: none;
+  border-radius: var(--r-xl);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.66);
 }
 
 .compact-pools .pool-card:nth-of-type(n+3) {
@@ -248,8 +266,69 @@
   position: relative;
   z-index: 1;
   padding: var(--space-3);
-  border: 3px solid rgba(8,35,61,0.82);
-  background: rgba(255,255,255,0.46);
+  border: 1px solid rgba(7,89,133,0.16);
+  border-radius: var(--r-xl);
+  background: rgba(255,255,255,0.52);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.66);
+}
+
+.calendar-module,
+.tournament-module,
+.stats-module {
+  min-height: 160px;
+}
+
+.featured-module {
+  background:
+    linear-gradient(145deg, rgba(255,255,255,0.88), rgba(192,226,255,0.62)),
+    radial-gradient(circle at 50% 0%, rgba(14,165,233,0.26), transparent 54%),
+    radial-gradient(circle at 88% 12%, rgba(245,158,11,0.18), transparent 32%);
+}
+
+.calendar-module,
+.stats-module {
+  background:
+    linear-gradient(145deg, rgba(255,255,255,0.82), rgba(205,232,255,0.50)),
+    radial-gradient(circle at 0% 0%, rgba(79,70,229,0.13), transparent 36%);
+}
+
+.tournament-module {
+  background:
+    linear-gradient(145deg, rgba(255,255,255,0.86), rgba(207,238,255,0.56)),
+    radial-gradient(circle at 92% 10%, rgba(16,185,129,0.15), transparent 36%);
+}
+
+.module-footer .btn {
+  border-color: rgba(7,89,133,0.24);
+  color: var(--sky-deep);
+  background: rgba(255,255,255,0.62);
+}
+
+.home-dashboard .public-ranking-row {
+  grid-template-columns: 38px minmax(0, 1fr) 52px;
+  padding: var(--space-2);
+}
+
+.home-dashboard .public-ranking-avatar {
+  display: none;
+}
+
+.home-dashboard .public-ranking-pos {
+  width: 34px;
+  height: 34px;
+  font-size: 0.92rem;
+}
+
+.home-dashboard .public-ranking-name {
+  font-size: 1rem;
+}
+
+.home-dashboard .public-ranking-meta {
+  font-size: 0.82rem;
+}
+
+.home-dashboard .public-ranking-score {
+  font-size: 1.15rem;
 }
 
 .home-section {
