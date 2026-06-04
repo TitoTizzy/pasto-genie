@@ -60,20 +60,74 @@
     </a>
   </div>
 
-  <main id="public-home" class="public-home">
-    <section class="home-section hero-today-section animate-fadeUp">
-      <div class="section-heading">
+  <main id="public-home" class="public-home home-dashboard">
+    <section class="blog-zone neo-card animate-fadeUp">
+      <div class="section-heading compact-heading">
         <div>
-          <span class="section-kicker"><i class="ri-calendar-check-line"></i> Tournoi en cours</span>
-          <h1>Match a la une</h1>
+          <span class="section-kicker"><i class="ri-news-line"></i> Actualites</span>
+          <h1>Zone Blog</h1>
         </div>
-        <button id="refresh-public-home" class="btn btn-ghost btn-sm">
-          <i class="ri-refresh-line"></i> Actualiser
-        </button>
       </div>
-      <div id="today-matches" class="today-match-grid">
-        <div class="neo-card placeholder-card">Chargement du match a la une...</div>
+      <div id="blog-preview-list" class="blog-preview-list">
+        <article class="blog-preview-item">
+          <span>Competition</span>
+          <strong>Les annonces importantes du tournoi apparaitront ici.</strong>
+        </article>
+        <article class="blog-preview-item">
+          <span>Organisation</span>
+          <strong>Calendrier, reglements et communiques seront centralises.</strong>
+        </article>
+        <article class="blog-preview-item">
+          <span>Communauté</span>
+          <strong>Les derniers articles publics seront affiches ici.</strong>
+        </article>
       </div>
+      <div class="module-footer">
+        <span>Les derniers articles</span>
+        <a href="blog.html" class="btn btn-outline btn-sm">Voir la page Blog</a>
+      </div>
+    </section>
+
+    <section class="right-modules">
+      <section class="home-module featured-module neo-card animate-fadeUp">
+        <div class="module-title"><i class="ri-broadcast-line"></i> Match du Jour</div>
+        <div id="today-matches" class="today-match-grid">
+          <div class="neo-card placeholder-card">Chargement du match a la une...</div>
+        </div>
+      </section>
+
+      <section id="public-calendar-section" class="home-module calendar-module neo-card">
+        <div class="module-title"><i class="ri-calendar-schedule-line"></i> Calendrier</div>
+        <div id="public-calendar-list" class="calendar-list compact-calendar">
+          <div class="placeholder-card">Chargement du calendrier...</div>
+        </div>
+        <a href="matches.html" class="module-link">Voir tout</a>
+      </section>
+
+      <section id="pool-standings-section" class="home-module tournament-module neo-card">
+        <div class="module-title"><i class="ri-node-tree"></i> Tournoi en cours</div>
+        <p>Resume du tournoi, infos sur les equipes et les meilleurs joueurs.</p>
+        <div id="pool-standings" class="pool-standings-grid compact-pools">
+          <div class="placeholder-card">Chargement du tournoi...</div>
+        </div>
+        <a id="competition-more-link" href="competition.html" class="module-link">Voir le tournoi</a>
+      </section>
+
+      <section id="dynamic-rankings-section" class="home-module stats-module neo-card">
+        <div class="module-title"><i class="ri-line-chart-line"></i> Statistiques Historiques</div>
+        <p>Les meilleurs equipes et joueurs de toute l'histoire.</p>
+        <div class="public-ranking-grid compact-podiums">
+          <div>
+            <div class="card-label mb-4"><i class="ri-shield-flash-line"></i> Podium equipe</div>
+            <div id="public-team-ranking" class="public-ranking-list"></div>
+          </div>
+          <div>
+            <div class="card-label mb-4"><i class="ri-user-follow-line"></i> Podium joueurs</div>
+            <div id="public-player-ranking" class="public-ranking-list"></div>
+          </div>
+        </div>
+        <a href="historiques.html" class="module-link">Voir tout</a>
+      </section>
     </section>
   </main>
 
@@ -168,64 +222,6 @@
     </div>
   </div>
 
-  <section id="public-calendar-section" class="public-rankings home-section">
-    <div class="ranking-header">
-      <div>
-        <span class="section-kicker"><i class="ri-calendar-event-line"></i> Programme</span>
-        <h2>Calendrier des matchs</h2>
-        <p>Les 2 derniers matchs et les 2 prochains autour du match a la une</p>
-      </div>
-      <a href="matches.html" class="btn btn-outline btn-sm">
-        <i class="ri-history-line"></i> Voir tous les matchs
-      </a>
-    </div>
-    <div id="public-calendar-list" class="calendar-list">
-      <div class="neo-card placeholder-card">Chargement du calendrier...</div>
-    </div>
-  </section>
-
-  <section id="pool-standings-section" class="public-rankings home-section">
-    <div class="ranking-header">
-      <div>
-        <span class="section-kicker"><i class="ri-team-line"></i> Competition</span>
-        <h2>Poules et format</h2>
-        <p>Apercu rapide de la competition active</p>
-      </div>
-      <a id="competition-more-link" href="competition.html" class="btn btn-outline btn-sm">
-        <i class="ri-arrow-right-line"></i> Voir plus
-      </a>
-    </div>
-    <div id="pool-standings" class="pool-standings-grid">
-      <div class="neo-card placeholder-card">Chargement des poules...</div>
-    </div>
-  </section>
-
-  <section id="dynamic-rankings-section" class="public-rankings home-section">
-    <div class="ranking-header">
-      <div>
-        <span class="section-kicker"><i class="ri-vip-crown-line"></i> All time</span>
-        <h2>Podiums historiques</h2>
-        <p>Les meilleurs equipes et joueurs de toute l'histoire</p>
-      </div>
-      <a href="historiques.html" class="btn btn-outline btn-sm">
-        <i class="ri-bar-chart-box-line"></i> Voir plus
-      </a>
-    </div>
-    <div class="public-ranking-grid">
-      <div class="glass glass-md neo-panel">
-        <div class="card-label mb-4"><i class="ri-shield-star-line"></i> Podium equipes</div>
-        <div id="public-team-ranking" class="public-ranking-list">
-          <p class="text-muted text-center">Chargement...</p>
-        </div>
-      </div>
-      <div class="glass glass-md neo-panel">
-        <div class="card-label mb-4"><i class="ri-user-star-line"></i> Podium joueurs</div>
-        <div id="public-player-ranking" class="public-ranking-list">
-          <p class="text-muted text-center">Chargement...</p>
-        </div>
-      </div>
-    </div>
-  </section>
 
   <div id="player-profile-overlay" class="profile-overlay hidden">
     <div class="profile-card glass glass-md">

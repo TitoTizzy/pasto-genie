@@ -225,7 +225,7 @@ function renderTodayMatches() {
         <strong data-countdown="${match.id}">${countdownText(date, match.statut)}</strong>
       </div>
       <button class="btn btn-gold watch-match-btn featured-watch-btn" data-watch-match="${match.id}">
-        <i class="ri-live-line"></i> Suivre en direct
+        <i class="ri-broadcast-line"></i> Suivre en direct
       </button>`;
     const teamA = teamRefFromMatch(match, "A");
     const teamB = teamRefFromMatch(match, "B");
@@ -286,7 +286,7 @@ function renderCalendar() {
       </div>
       <span class="status-pill ${match.statut === "en_cours" ? "is-live" : ""}">${statusLabel(match.statut)}</span>
       <button class="btn btn-outline btn-sm watch-match-btn" data-watch-match="${match.id}">
-        <i class="ri-eye-line"></i> Suivre
+        <i class="ri-broadcast-line"></i> Suivre
       </button>`;
     wrap.appendChild(row);
   });
@@ -384,13 +384,16 @@ function renderPoolStandings() {
       <div><strong>${rules.nombre_poules ?? grouped.size}</strong><span>Poules</span></div>
     </div>`;
   wrap.appendChild(intro);
+  let rendered = 0;
   grouped.forEach((teams, poule) => {
+    if (rendered >= 2) return;
     const card = document.createElement("div");
     card.className = "glass glass-md pool-card neo-panel";
     card.innerHTML = `<div class="pool-title">${poule}</div><div class="public-ranking-list"></div>`;
     const list = card.querySelector(".public-ranking-list");
     teams.sort(sortTeams).slice(0, 4).forEach((team, index) => list.appendChild(createTeamRankingRow(team, index)));
     wrap.appendChild(card);
+    rendered += 1;
   });
 }
 

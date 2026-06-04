@@ -258,6 +258,10 @@ async function registerTeamToTournament() {
     return;
   }
   try {
+    if (await isTournamentLocked(tournoiId)) {
+      toast("Tournoi verrouille : impossible d'inscrire une equipe apres le premier match.", "error");
+      return;
+    }
     const { error } = await supabase.from(T.TOURNOI_EQUIPES).upsert({
       tournoi_id: tournoiId,
       equipe_id: equipeId,
@@ -297,6 +301,10 @@ async function transferPlayerInTournament() {
   }
   const current = allJoueurs.find(j => j.id === joueurId);
   try {
+    if (await isTournamentLocked(tournoiId)) {
+      toast("Tournoi verrouille : transfert interdit apres le premier match.", "error");
+      return;
+    }
     const { error: transferError } = await supabase.from(T.TRANSFERTS).insert({
       tournoi_id: tournoiId,
       joueur_id: joueurId,
@@ -377,6 +385,10 @@ function buildTournoiCard(id, t) {
 async function generateTournoiMatches(id, nom) {
   if (!confirm(`Generer automatiquement les matchs de poule pour "${nom}" ? Les doublons existants ne seront pas recrees.`)) return;
   try {
+    if (await isTournamentLocked(id)) {
+      toast("Tournoi verrouille : un match a deja demarre.", "error");
+      return;
+    }
     const { data, error } = await supabase.rpc("generer_matchs_competition", {
       p_tournoi_id: id,
       p_start_at: null,
@@ -389,6 +401,17 @@ async function generateTournoiMatches(id, nom) {
     console.error(err);
     toast("Erreur generation calendrier : " + err.message, "error");
   }
+}
+
+async function isTournamentLocked(tournoiId) {
+  const { data, error } = await supabase
+    .from(T.MATCHES)
+    .select("id")
+    .eq("tournoi_id", tournoiId)
+    .or("statut.in.(en_cours,pause,termine),started_at.not.is.null")
+    .limit(1);
+  if (error) throw error;
+  return (data || []).length > 0;
 }
 
 async function creerTournoi() {
@@ -1007,6 +1030,9 @@ function enableDragSort(list) {
 
 async function saveMatch(autoStart) {
   hideAlert("match-alert");
+  showAlert("match-alert-msg", "match-alert", "Les matchs sont generes automatiquement depuis le module Tournoi.");
+  showSection("s-tournois");
+  return;
   const nomA = $("ea-nom").value.trim();
   const nomB = $("eb-nom").value.trim();
   if (!nomA || !nomB) {

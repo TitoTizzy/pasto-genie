@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Administration — PASTO GÉNIE</title>
+  <title>Administration â€” PASTO GÃ‰NIE</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
@@ -24,13 +24,13 @@
     <div class="blob blob-4"></div>
   </div>
 
-  <!-- ══ NAVBAR ════════════════════════════════════════════════ -->
+  <!-- â•â• NAVBAR â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
   <nav class="navbar">
     <div class="brand">
       <img src="assets/images/logo.jpeg" alt="Logo" class="brand-logo"
            onerror="this.style.display='none'"/>
       <div>
-        <div class="brand-name">PASTO GÉNIE</div>
+        <div class="brand-name">PASTO GÃ‰NIE</div>
         <div class="brand-sub">Administration</div>
       </div>
     </div>
@@ -49,7 +49,7 @@
     </div>
   </nav>
 
-  <!-- ══ LAYOUT ════════════════════════════════════════════════ -->
+  <!-- â•â• LAYOUT â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
   <div class="layout-sidebar admin-layout">
 
     <!-- SIDEBAR -->
@@ -59,22 +59,19 @@
         <i class="ri-dashboard-3-line"></i> Dashboard
       </button>
       <button class="sidebar-link" data-section="s-tournois">
-        <i class="ri-trophy-line"></i> Tournois
+        <i class="ri-node-tree"></i> Tournois
       </button>
       <button class="sidebar-link" data-section="s-matches">
-        <i class="ri-football-line"></i> Matchs
-      </button>
-      <button class="sidebar-link" data-section="s-create-match">
-        <i class="ri-add-circle-line"></i> Créer un match
+        <i class="ri-pulse-line"></i> Matchs
       </button>
 
-      <div class="sidebar-section-label" style="margin-top:var(--space-4);">Paramètres</div>
+      <div class="sidebar-section-label" style="margin-top:var(--space-4);">ParamÃ¨tres</div>
       <div class="sidebar-section-label" style="margin-top:var(--space-4);">Effectifs</div>
       <button class="sidebar-link" data-section="s-equipes">
-        <i class="ri-shield-star-line"></i> Equipes
+        <i class="ri-shield-flash-line"></i> Equipes
       </button>
       <button class="sidebar-link" data-section="s-joueurs">
-        <i class="ri-user-star-line"></i> Joueurs
+        <i class="ri-user-follow-line"></i> Joueurs
       </button>
 
       <div class="sidebar-section-label" style="margin-top:var(--space-4);">Analyse</div>
@@ -83,25 +80,25 @@
       </button>
 
       <button class="sidebar-link" data-section="s-bareme">
-        <i class="ri-scales-3-line"></i> Barème des points
+        <i class="ri-scales-3-line"></i> BarÃ¨me des points
       </button>
       <button class="sidebar-link" data-section="s-regles">
-        <i class="ri-file-list-3-line"></i> Règles du jeu
+        <i class="ri-file-list-3-line"></i> RÃ¨gles du jeu
       </button>
 
-      <div class="sidebar-section-label" style="margin-top:var(--space-4);">Accès</div>
+      <div class="sidebar-section-label" style="margin-top:var(--space-4);">AccÃ¨s</div>
       <button class="sidebar-link" data-section="s-users">
         <i class="ri-group-line"></i> Utilisateurs
       </button>
       <button class="sidebar-link" data-section="s-create-user">
-        <i class="ri-user-add-line"></i> Créer un compte
+        <i class="ri-user-add-line"></i> CrÃ©er un compte
       </button>
     </aside>
 
     <!-- MAIN -->
     <main class="page-content">
 
-      <!-- ── DASHBOARD ────────────────────────────────────────── -->
+      <!-- â”€â”€ DASHBOARD â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
       <section id="s-dashboard" class="section">
         <div class="page-header">
           <div>
@@ -114,35 +111,35 @@
           <div class="glass dash-stat animate-fadeUp delay-1">
             <div class="dash-stat-icon gold"><i class="ri-trophy-line"></i></div>
             <div>
-              <div class="dash-stat-val" id="stat-tournois">—</div>
+              <div class="dash-stat-val" id="stat-tournois">â€”</div>
               <div class="dash-stat-lbl">Tournois</div>
             </div>
           </div>
           <div class="glass dash-stat animate-fadeUp delay-2">
             <div class="dash-stat-icon green"><i class="ri-football-line"></i></div>
             <div>
-              <div class="dash-stat-val" id="stat-matches">—</div>
+              <div class="dash-stat-val" id="stat-matches">â€”</div>
               <div class="dash-stat-lbl">Matchs</div>
             </div>
           </div>
           <div class="glass dash-stat animate-fadeUp delay-3">
             <div class="dash-stat-icon red"><i class="ri-live-line"></i></div>
             <div>
-              <div class="dash-stat-val" id="stat-live">—</div>
+              <div class="dash-stat-val" id="stat-live">â€”</div>
               <div class="dash-stat-lbl">En direct</div>
             </div>
           </div>
           <div class="glass dash-stat animate-fadeUp delay-4">
             <div class="dash-stat-icon blue"><i class="ri-group-line"></i></div>
             <div>
-              <div class="dash-stat-val" id="stat-users">—</div>
+              <div class="dash-stat-val" id="stat-users">â€”</div>
               <div class="dash-stat-lbl">Utilisateurs</div>
             </div>
           </div>
         </div>
 
         <div class="glass glass-md animate-fadeUp delay-5">
-          <div class="card-label mb-4"><i class="ri-football-line"></i> Matchs récents</div>
+          <div class="card-label mb-4"><i class="ri-football-line"></i> Matchs rÃ©cents</div>
           <div id="dash-recent-matches" style="display:flex;flex-direction:column;gap:var(--space-3);">
             <div class="skeleton" style="height:52px;border-radius:var(--r-sm);"></div>
             <div class="skeleton" style="height:52px;border-radius:var(--r-sm);"></div>
@@ -150,12 +147,12 @@
         </div>
       </section>
 
-      <!-- ── TOURNOIS ──────────────────────────────────────────── -->
+      <!-- â”€â”€ TOURNOIS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
       <section id="s-tournois" class="section">
         <div class="page-header">
           <div>
             <h2 class="section-title">Tournois</h2>
-            <p class="section-subtitle">Gérez les éditions du tournoi</p>
+            <p class="section-subtitle">GÃ©rez les Ã©ditions du tournoi</p>
           </div>
           <button id="btn-new-tournoi" class="btn btn-gold">
             <i class="ri-add-line"></i> Nouveau tournoi
@@ -217,35 +214,33 @@
         </div>
       </section>
 
-      <!-- ── MATCHS ────────────────────────────────────────────── -->
+      <!-- â”€â”€ MATCHS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
       <section id="s-matches" class="section">
         <div class="page-header">
           <div>
             <h2 class="section-title">Matchs</h2>
             <p class="section-subtitle">Tous les matchs du tournoi</p>
           </div>
-          <button class="btn btn-gold" data-goto="s-create-match">
-            <i class="ri-add-line"></i> Nouveau match
-          </button>
+          <button class="btn btn-ghost" data-goto="s-tournois">`r`n            <i class="ri-node-tree"></i> Generer depuis Tournoi`r`n          </button>
         </div>
         <div id="matches-list" style="display:flex;flex-direction:column;gap:var(--space-3);"></div>
       </section>
 
-      <!-- ── CRÉER MATCH ────────────────────────────────────────── -->
+      <!-- â”€â”€ CRÃ‰ER MATCH â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
       <section id="s-create-match" class="section">
         <div class="page-header">
           <div>
             <button class="back-btn" data-goto="s-matches">
               <i class="ri-arrow-left-line"></i> Retour aux matchs
             </button>
-            <h2 class="section-title">Créer un match</h2>
+            <h2 class="section-title">CrÃ©er un match</h2>
           </div>
           <div style="display:flex;gap:var(--space-3);">
             <button id="btn-save-match" class="btn btn-ghost">
               <i class="ri-save-line"></i> Sauvegarder
             </button>
             <button id="btn-save-start-match" class="btn btn-gold" disabled>
-              <i class="ri-play-fill"></i> Créer & Démarrer
+              <i class="ri-play-fill"></i> CrÃ©er & DÃ©marrer
             </button>
           </div>
         </div>
@@ -254,21 +249,21 @@
         </div>
 
         <div class="match-create-grid">
-          <!-- Équipe A -->
+          <!-- Ã‰quipe A -->
           <div class="glass glass-md">
             <div class="card-label mb-4" style="color:#6ab0f5;">
-              <i class="ri-team-line"></i> ÉQUIPE A
+              <i class="ri-team-line"></i> Ã‰QUIPE A
             </div>
             <div class="form-group">
-              <label class="form-label">Nom de l'équipe</label>
+              <label class="form-label">Nom de l'Ã©quipe</label>
               <select id="ea-equipe-id" class="form-select mb-3">
                 <option value="">Choisir une equipe enregistree</option>
               </select>
               <input id="ea-nom" type="text" class="form-input" placeholder="Ex. Sainte-Marie"/>
             </div>
             <div class="form-group">
-              <label class="form-label">Paroisse / École</label>
-              <input id="ea-paroisse" type="text" class="form-input" placeholder="Paroisse ou établissement"/>
+              <label class="form-label">Paroisse / Ã‰cole</label>
+              <input id="ea-paroisse" type="text" class="form-input" placeholder="Paroisse ou Ã©tablissement"/>
             </div>
             <div class="team-builder-wrap">
               <div class="team-section-label">
@@ -279,21 +274,21 @@
                 <select id="ea-t-existing" class="form-select player-pick">
                   <option value="">Nouveau joueur</option>
                 </select>
-                <input id="ea-t-prenom" type="text" class="form-input" placeholder="Prénom"/>
+                <input id="ea-t-prenom" type="text" class="form-input" placeholder="PrÃ©nom"/>
                 <input id="ea-t-nom"    type="text" class="form-input" placeholder="Nom"/>
                 <button class="btn btn-gold btn-sm btn-icon" data-add="A-titulaire" title="Ajouter">
                   <i class="ri-user-add-line"></i>
                 </button>
               </div>
               <div class="team-section-label" style="margin-top:var(--space-4);">
-                <i class="ri-user-line" style="color:var(--text-muted);"></i> Remplaçants (3)
+                <i class="ri-user-line" style="color:var(--text-muted);"></i> RemplaÃ§ants (3)
               </div>
               <div id="ea-remplacants" class="players-list"></div>
               <div class="add-player-row">
                 <select id="ea-r-existing" class="form-select player-pick">
                   <option value="">Nouveau joueur</option>
                 </select>
-                <input id="ea-r-prenom" type="text" class="form-input" placeholder="Prénom"/>
+                <input id="ea-r-prenom" type="text" class="form-input" placeholder="PrÃ©nom"/>
                 <input id="ea-r-nom"    type="text" class="form-input" placeholder="Nom"/>
                 <button class="btn btn-outline btn-sm btn-icon" data-add="A-remplacant" title="Ajouter">
                   <i class="ri-user-add-line"></i>
@@ -302,21 +297,21 @@
             </div>
           </div>
 
-          <!-- Équipe B -->
+          <!-- Ã‰quipe B -->
           <div class="glass glass-md">
             <div class="card-label mb-4" style="color:var(--red);">
-              <i class="ri-team-line"></i> ÉQUIPE B
+              <i class="ri-team-line"></i> Ã‰QUIPE B
             </div>
             <div class="form-group">
-              <label class="form-label">Nom de l'équipe</label>
+              <label class="form-label">Nom de l'Ã©quipe</label>
               <select id="eb-equipe-id" class="form-select mb-3">
                 <option value="">Choisir une equipe enregistree</option>
               </select>
               <input id="eb-nom" type="text" class="form-input" placeholder="Ex. Saint-Joseph"/>
             </div>
             <div class="form-group">
-              <label class="form-label">Paroisse / École</label>
-              <input id="eb-paroisse" type="text" class="form-input" placeholder="Paroisse ou établissement"/>
+              <label class="form-label">Paroisse / Ã‰cole</label>
+              <input id="eb-paroisse" type="text" class="form-input" placeholder="Paroisse ou Ã©tablissement"/>
             </div>
             <div class="team-builder-wrap">
               <div class="team-section-label">
@@ -327,21 +322,21 @@
                 <select id="eb-t-existing" class="form-select player-pick">
                   <option value="">Nouveau joueur</option>
                 </select>
-                <input id="eb-t-prenom" type="text" class="form-input" placeholder="Prénom"/>
+                <input id="eb-t-prenom" type="text" class="form-input" placeholder="PrÃ©nom"/>
                 <input id="eb-t-nom"    type="text" class="form-input" placeholder="Nom"/>
                 <button class="btn btn-gold btn-sm btn-icon" data-add="B-titulaire" title="Ajouter">
                   <i class="ri-user-add-line"></i>
                 </button>
               </div>
               <div class="team-section-label" style="margin-top:var(--space-4);">
-                <i class="ri-user-line" style="color:var(--text-muted);"></i> Remplaçants (3)
+                <i class="ri-user-line" style="color:var(--text-muted);"></i> RemplaÃ§ants (3)
               </div>
               <div id="eb-remplacants" class="players-list"></div>
               <div class="add-player-row">
                 <select id="eb-r-existing" class="form-select player-pick">
                   <option value="">Nouveau joueur</option>
                 </select>
-                <input id="eb-r-prenom" type="text" class="form-input" placeholder="Prénom"/>
+                <input id="eb-r-prenom" type="text" class="form-input" placeholder="PrÃ©nom"/>
                 <input id="eb-r-nom"    type="text" class="form-input" placeholder="Nom"/>
                 <button class="btn btn-outline btn-sm btn-icon" data-add="B-remplacant" title="Ajouter">
                   <i class="ri-user-add-line"></i>
@@ -358,13 +353,13 @@
             <div class="form-group">
               <label class="form-label"><i class="ri-trophy-line"></i> Tournoi</label>
               <select id="match-tournoi" class="form-select">
-                <option value="">— Choisir un tournoi —</option>
+                <option value="">â€” Choisir un tournoi â€”</option>
               </select>
             </div>
             <div class="form-group">
-              <label class="form-label"><i class="ri-scales-3-line"></i> Jury assigné</label>
+              <label class="form-label"><i class="ri-scales-3-line"></i> Jury assignÃ©</label>
               <select id="match-jury" class="form-select">
-                <option value="">— Choisir un jury —</option>
+                <option value="">â€” Choisir un jury â€”</option>
               </select>
             </div>
             <div class="form-group">
@@ -374,14 +369,14 @@
           </div>
           <div class="form-group">
             <label class="form-label">
-              <i class="ri-drag-move-2-line"></i> Ordre des catégories (glisser-déposer)
+              <i class="ri-drag-move-2-line"></i> Ordre des catÃ©gories (glisser-dÃ©poser)
             </label>
             <div id="cat-drag-list" class="drag-list"></div>
           </div>
         </div>
       </section>
 
-      <!-- ── BARÈME ─────────────────────────────────────────────── -->
+      <!-- â”€â”€ BARÃˆME â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
       <section id="s-equipes" class="section">
         <div class="page-header">
           <div>
@@ -549,8 +544,8 @@
       <section id="s-bareme" class="section">
         <div class="page-header">
           <div>
-            <h2 class="section-title">Barème des points</h2>
-            <p class="section-subtitle">Points par catégorie, source de vérité de l'anti-triche</p>
+            <h2 class="section-title">BarÃ¨me des points</h2>
+            <p class="section-subtitle">Points par catÃ©gorie, source de vÃ©ritÃ© de l'anti-triche</p>
           </div>
           <button id="btn-save-bareme" class="btn btn-gold">
             <i class="ri-save-line"></i> Enregistrer
@@ -558,11 +553,11 @@
         </div>
         <div class="glass glass-md bareme-card">
           <div class="bareme-header">
-            <div class="bareme-col-lbl">Catégorie</div>
+            <div class="bareme-col-lbl">CatÃ©gorie</div>
             <div class="bareme-col-lbl">Bonne</div>
             <div class="bareme-col-lbl">Mauvaise</div>
-            <div class="bareme-col-lbl">Réplique</div>
-            <div class="bareme-col-lbl">Pénalité réplique</div>
+            <div class="bareme-col-lbl">RÃ©plique</div>
+            <div class="bareme-col-lbl">PÃ©nalitÃ© rÃ©plique</div>
           </div>
           <div id="bareme-rows"></div>
           <div id="bareme-alert" class="alert alert-red hidden mt-4">
@@ -571,15 +566,15 @@
         </div>
         <div class="alert alert-gold mt-4 bareme-note">
           <i class="ri-information-line"></i>
-          <span>La modification du barème s'applique aux <strong>nouveaux événements uniquement</strong>. Les points déjà enregistrés ne sont pas recalculés rétroactivement.</span>
+          <span>La modification du barÃ¨me s'applique aux <strong>nouveaux Ã©vÃ©nements uniquement</strong>. Les points dÃ©jÃ  enregistrÃ©s ne sont pas recalculÃ©s rÃ©troactivement.</span>
         </div>
       </section>
 
-      <!-- ── RÈGLES ─────────────────────────────────────────────── -->
+      <!-- â”€â”€ RÃˆGLES â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
       <section id="s-regles" class="section">
         <div class="page-header">
           <div>
-            <h2 class="section-title">Règles du jeu</h2>
+            <h2 class="section-title">RÃ¨gles du jeu</h2>
             <p class="section-subtitle">Texte officiel visible par tous les participants</p>
           </div>
           <button id="btn-save-regles" class="btn btn-gold">
@@ -588,9 +583,9 @@
         </div>
         <div class="glass glass-md" style="max-width:700px;">
           <div class="form-group">
-            <label class="form-label"><i class="ri-file-text-line"></i> Règles officielles</label>
+            <label class="form-label"><i class="ri-file-text-line"></i> RÃ¨gles officielles</label>
             <textarea id="regles-texte" class="form-textarea" rows="14"
-                      placeholder="Décrivez ici les règles officielles du PASTO GÉNIE…"
+                      placeholder="DÃ©crivez ici les rÃ¨gles officielles du PASTO GÃ‰NIEâ€¦"
                       style="min-height:280px;"></textarea>
           </div>
           <div id="regles-alert" class="alert alert-red hidden">
@@ -599,12 +594,12 @@
         </div>
       </section>
 
-      <!-- ── UTILISATEURS ───────────────────────────────────────── -->
+      <!-- â”€â”€ UTILISATEURS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
       <section id="s-users" class="section">
         <div class="page-header">
           <div>
             <h2 class="section-title">Utilisateurs</h2>
-            <p class="section-subtitle">Gérez les accès à la plateforme</p>
+            <p class="section-subtitle">GÃ©rez les accÃ¨s Ã  la plateforme</p>
           </div>
           <button class="btn btn-gold" data-goto="s-create-user">
             <i class="ri-user-add-line"></i> Nouveau compte
@@ -614,7 +609,7 @@
           <div class="form-group" style="margin-bottom:var(--space-4);">
             <div class="input-icon-wrap">
               <input id="users-search" type="text" class="form-input"
-                     placeholder="Rechercher par e-mail ou nom…"/>
+                     placeholder="Rechercher par e-mail ou nomâ€¦"/>
               <i class="ri-search-line"></i>
             </div>
           </div>
@@ -624,59 +619,59 @@
                 <tr>
                   <th>E-mail</th>
                   <th>Nom</th>
-                  <th>Rôle</th>
+                  <th>RÃ´le</th>
                   <th style="text-align:right;">Actions</th>
                 </tr>
               </thead>
               <tbody id="users-tbody">
-                <tr><td colspan="4" class="text-muted text-center" style="padding:var(--space-6);">Chargement…</td></tr>
+                <tr><td colspan="4" class="text-muted text-center" style="padding:var(--space-6);">Chargementâ€¦</td></tr>
               </tbody>
             </table>
           </div>
         </div>
       </section>
 
-      <!-- ── CRÉER UTILISATEUR ──────────────────────────────────── -->
+      <!-- â”€â”€ CRÃ‰ER UTILISATEUR â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
       <section id="s-create-user" class="section">
         <div class="page-header">
           <div>
             <button class="back-btn" data-goto="s-users">
               <i class="ri-arrow-left-line"></i> Retour
             </button>
-            <h2 class="section-title">Créer un compte</h2>
+            <h2 class="section-title">CrÃ©er un compte</h2>
           </div>
         </div>
         <div class="glass glass-md" style="max-width:460px;">
           <div class="alert alert-blue mb-4">
             <i class="ri-information-line"></i>
-            <span>Le compte est créé dans Supabase Auth via l'Edge Function admin. Communiquez le mot de passe temporaire à l'utilisateur.</span>
+            <span>Le compte est crÃ©Ã© dans Supabase Auth via l'Edge Function admin. Communiquez le mot de passe temporaire Ã  l'utilisateur.</span>
           </div>
           <div class="form-group">
             <label class="form-label"><i class="ri-mail-line"></i> E-mail</label>
             <input id="nu-email" type="email" class="form-input" placeholder="jury@exemple.com"/>
           </div>
           <div class="form-group">
-            <label class="form-label"><i class="ri-user-line"></i> Nom affiché</label>
+            <label class="form-label"><i class="ri-user-line"></i> Nom affichÃ©</label>
             <input id="nu-displayname" type="text" class="form-input" placeholder="Jean Dupont"/>
           </div>
           <div class="form-group">
             <label class="form-label"><i class="ri-lock-line"></i> Mot de passe temporaire</label>
-            <input id="nu-password" type="text" class="form-input" placeholder="Min. 6 caractères"/>
+            <input id="nu-password" type="text" class="form-input" placeholder="Min. 6 caractÃ¨res"/>
           </div>
           <div class="form-group">
-            <label class="form-label"><i class="ri-shield-line"></i> Rôle</label>
+            <label class="form-label"><i class="ri-shield-line"></i> RÃ´le</label>
             <select id="nu-role" class="form-select">
-              <option value="public">👁 Public</option>
-              <option value="membre">👤 Membre</option>
-              <option value="jury" selected>⚖️ Jury</option>
-              <option value="superadmin">🔑 Superadmin</option>
+              <option value="public">ðŸ‘ Public</option>
+              <option value="membre">ðŸ‘¤ Membre</option>
+              <option value="jury" selected>âš–ï¸ Jury</option>
+              <option value="superadmin">ðŸ”‘ Superadmin</option>
             </select>
           </div>
           <div id="nu-alert" class="alert alert-red hidden">
             <i class="ri-error-warning-line"></i><span id="nu-alert-msg"></span>
           </div>
           <button id="btn-creer-user" class="btn btn-gold btn-block btn-lg">
-            <i class="ri-user-add-line"></i> Créer le compte
+            <i class="ri-user-add-line"></i> CrÃ©er le compte
           </button>
         </div>
       </section>
@@ -693,15 +688,15 @@
       </div>
       <div class="form-group">
         <label class="form-label">Nom du tournoi</label>
-        <input id="t-nom" type="text" class="form-input" placeholder="Ex. PASTO GÉNIE 2025"/>
+        <input id="t-nom" type="text" class="form-input" placeholder="Ex. PASTO GÃ‰NIE 2025"/>
       </div>
       <div class="form-group">
-        <label class="form-label">Année</label>
+        <label class="form-label">AnnÃ©e</label>
         <input id="t-annee" type="number" class="form-input" value="2025"/>
       </div>
       <div class="form-group">
         <label class="form-label">Description</label>
-        <textarea id="t-desc" class="form-textarea" rows="3" placeholder="Description optionnelle…"></textarea>
+        <textarea id="t-desc" class="form-textarea" rows="3" placeholder="Description optionnelleâ€¦"></textarea>
       </div>
       <div class="grid-2">
         <div class="form-group">
@@ -746,7 +741,7 @@
         <i class="ri-error-warning-line"></i><span id="t-alert-msg"></span>
       </div>
       <button id="btn-creer-tournoi" class="btn btn-gold btn-block btn-lg mt-2">
-        <i class="ri-add-circle-line"></i> Créer
+        <i class="ri-add-circle-line"></i> CrÃ©er
       </button>
     </div>
   </div>
