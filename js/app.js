@@ -18,6 +18,7 @@ let homeMatches = [];
 let featuredMatchId = null;
 let teamsById = new Map();
 let playersById = new Map();
+let tournamentTeamsByEquipe = new Map();
 let allTeamStats = [];
 let allPlayerStats = [];
 
@@ -161,6 +162,10 @@ async function loadPublicHome() {
     ]);
     teamsById = new Map(equipes.map(eq => [eq.id, eq]));
     playersById = new Map(joueurs.map(j => [j.id, j]));
+    const tournamentTeamRows = activeTournament
+      ? await fetchRows(T.TOURNOI_EQUIPES, q => q.eq("tournoi_id", activeTournament.id)).catch(() => [])
+      : [];
+    tournamentTeamsByEquipe = new Map(tournamentTeamRows.map(row => [row.equipe_id, row]));
     allTeamStats = teamStats;
     allPlayerStats = playerStats;
     homeMatches = (matches || []).map(normalizeMatch);
@@ -292,13 +297,14 @@ function aggregateTeamStats(stats) {
   stats.forEach(row => {
     if (!row.equipe_id) return;
     const team = teamsById.get(row.equipe_id) || {};
+    const tournamentTeam = tournamentTeamsByEquipe.get(row.equipe_id) || {};
     const item = map.get(row.equipe_id) || {
       equipe_id: row.equipe_id,
       nom: team.nom || "Equipe",
       paroisse: team.paroisse || "",
       embleme_url: team.embleme_url || "",
       couleur_primaire: team.couleur_primaire || "#38bdf8",
-      poule: team.poule || "Poule unique",
+      poule: tournamentTeam.poule || team.poule || "Poule unique",
       matchs: 0,
       victoires: 0,
       nuls: 0,
@@ -333,13 +339,16 @@ function renderPoolStandings() {
     : allTeamStats;
   let rows = aggregateTeamStats(stats);
   if (!rows.length) {
-    rows = [...teamsById.values()].map(team => ({
+    const baseTeams = tournamentTeamsByEquipe.size
+      ? [...tournamentTeamsByEquipe.values()].map(row => teamsById.get(row.equipe_id)).filter(Boolean)
+      : [...teamsById.values()];
+    rows = baseTeams.map(team => ({
       equipe_id: team.id,
       nom: team.nom,
       paroisse: team.paroisse,
       embleme_url: team.embleme_url,
       couleur_primaire: team.couleur_primaire,
-      poule: team.poule || "Poule unique",
+      poule: tournamentTeamsByEquipe.get(team.id)?.poule || team.poule || "Poule unique",
       matchs: 0,
       victoires: 0,
       nuls: 0,

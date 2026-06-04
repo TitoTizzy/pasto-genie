@@ -8,6 +8,7 @@ let equipes = [];
 let joueurs = [];
 let teamStats = [];
 let playerStats = [];
+let tournamentTeams = [];
 
 async function fetchRows(table, builder = q => q) {
   const { data, error } = await builder(supabase.from(table).select("*"));
@@ -109,6 +110,9 @@ async function initCompetitionPage() {
   await loadBase();
   const id = qs.get("tournoi") || tournois.find(t => t.actif)?.id || tournois[0]?.id;
   const tournoi = tournois.find(t => t.id === id) || tournois[0];
+  tournamentTeams = id
+    ? await fetchRows(T.TOURNOI_EQUIPES, q => q.eq("tournoi_id", id)).catch(() => [])
+    : [];
   renderCompetition(tournoi);
 }
 
@@ -117,7 +121,8 @@ function aggregateTeamsForTournament(tournoiId) {
   const map = new Map();
   teamStats.filter(s => !tournoiId || s.tournoi_id === tournoiId).forEach(row => {
     const team = teams.get(row.equipe_id) || {};
-    const cur = map.get(row.equipe_id) || { nom: team.nom || "Equipe", poule: team.poule || "Poule unique", matchs: 0, victoires: 0, nuls: 0, defaites: 0, points_marques: 0, points_classement: 0 };
+    const tournamentTeam = tournamentTeams.find(item => item.equipe_id === row.equipe_id) || {};
+    const cur = map.get(row.equipe_id) || { nom: team.nom || "Equipe", poule: tournamentTeam.poule || team.poule || "Poule unique", matchs: 0, victoires: 0, nuls: 0, defaites: 0, points_marques: 0, points_classement: 0 };
     cur.matchs += 1;
     cur.victoires += row.gagne ? 1 : 0;
     cur.nuls += row.nul ? 1 : 0;
@@ -126,7 +131,12 @@ function aggregateTeamsForTournament(tournoiId) {
     cur.points_classement += row.gagne ? 3 : row.nul ? 1 : 0;
     map.set(row.equipe_id, cur);
   });
-  if (!map.size) equipes.forEach(team => map.set(team.id, { nom: team.nom, poule: team.poule || "Poule unique", matchs: 0, victoires: 0, nuls: 0, defaites: 0, points_marques: 0, points_classement: 0 }));
+  if (!map.size) {
+    const baseTeams = tournamentTeams.length
+      ? tournamentTeams.map(row => ({ ...teamMap().get(row.equipe_id), poule: row.poule })).filter(team => team.id)
+      : equipes;
+    baseTeams.forEach(team => map.set(team.id, { nom: team.nom, poule: team.poule || "Poule unique", matchs: 0, victoires: 0, nuls: 0, defaites: 0, points_marques: 0, points_classement: 0 }));
+  }
   return [...map.values()].sort((a, b) => (b.points_classement || 0) - (a.points_classement || 0) || (b.points_marques || 0) - (a.points_marques || 0));
 }
 

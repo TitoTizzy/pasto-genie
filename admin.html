@@ -162,6 +162,59 @@
           </button>
         </div>
         <div id="tournois-list" style="display:flex;flex-direction:column;gap:var(--space-3);"></div>
+        <div class="glass glass-md mt-5 competition-engine">
+          <div class="card-header">
+            <div>
+              <div class="card-label"><i class="ri-node-tree"></i> Moteur de competition</div>
+              <p class="text-muted text-sm mt-1">Inscrivez les equipes dans un tournoi, organisez les poules et gerez les transferts.</p>
+            </div>
+          </div>
+          <div class="grid-3 mt-4">
+            <div class="form-group">
+              <label class="form-label">Competition</label>
+              <select id="engine-tournoi" class="form-select">
+                <option value="">Choisir un tournoi</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Equipe a inscrire</label>
+              <select id="engine-equipe" class="form-select">
+                <option value="">Choisir une equipe</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Poule dans ce tournoi</label>
+              <input id="engine-poule" type="text" class="form-input" placeholder="Ex. Poule A"/>
+            </div>
+          </div>
+          <button id="btn-register-team" class="btn btn-gold mt-2">
+            <i class="ri-shield-star-line"></i> Inscrire l'equipe au tournoi
+          </button>
+          <div id="engine-teams-list" class="entity-list mt-4"></div>
+
+          <div class="divider" style="margin:var(--space-5) 0;"></div>
+          <div class="grid-3">
+            <div class="form-group">
+              <label class="form-label">Joueur a transferer</label>
+              <select id="transfer-joueur" class="form-select">
+                <option value="">Choisir un joueur</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Nouvelle equipe</label>
+              <select id="transfer-equipe" class="form-select">
+                <option value="">Choisir une equipe</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Motif</label>
+              <input id="transfer-note" type="text" class="form-input" placeholder="Ex. remplacement, transfert..."/>
+            </div>
+          </div>
+          <button id="btn-transfer-player" class="btn btn-outline mt-2">
+            <i class="ri-user-shared-line"></i> Enregistrer le transfert
+          </button>
+        </div>
       </section>
 
       <!-- ── MATCHS ────────────────────────────────────────────── -->

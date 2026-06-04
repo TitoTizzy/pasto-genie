@@ -144,6 +144,9 @@ function wireTournois() {
   bind("btn-new-tournoi", "click", () => openOverlay("tournoi-overlay"));
   bind("close-tournoi-modal", "click", () => closeOverlay("tournoi-overlay"));
   bind("btn-creer-tournoi", "click", creerTournoi);
+  bind("engine-tournoi", "change", renderCompetitionEngine);
+  bind("btn-register-team", "click", registerTeamToTournament);
+  bind("btn-transfer-player", "click", transferPlayerInTournament);
 }
 
 async function loadTournoisList() {
@@ -160,9 +163,162 @@ async function loadTournoisList() {
       tournoisMap[t.id] = t;
       wrap.appendChild(buildTournoiCard(t.id, t));
     });
+    await populateCompetitionEngine(rows);
   } catch (err) {
     console.error(err);
     toast("Erreur chargement tournois.", "error");
+  }
+}
+
+async function populateCompetitionEngine(tournois = null) {
+  try {
+    if (!allEquipes.length) allEquipes = await fetchRows(T.EQUIPES, { order: { column: "nom", ascending: true } });
+    if (!allJoueurs.length) allJoueurs = await fetchRows(T.JOUEURS, { order: { column: "nom", ascending: true } });
+    const rows = tournois || await fetchRows(T.TOURNOIS, { order: { column: "annee", ascending: false } });
+    const tSel = $("engine-tournoi");
+    const eSel = $("engine-equipe");
+    const teSel = $("transfer-equipe");
+    const jSel = $("transfer-joueur");
+    if (tSel) {
+      const current = tSel.value;
+      while (tSel.options.length > 1) tSel.remove(1);
+      rows.forEach(t => tSel.appendChild(new Option(t.nom, t.id)));
+      tSel.value = current || rows.find(t => t.actif)?.id || rows[0]?.id || "";
+    }
+    [eSel, teSel].forEach(sel => {
+      if (!sel) return;
+      const current = sel.value;
+      while (sel.options.length > 1) sel.remove(1);
+      allEquipes.forEach(eq => sel.appendChild(new Option(eq.nom, eq.id)));
+      sel.value = current;
+    });
+    if (jSel) {
+      const current = jSel.value;
+      while (jSel.options.length > 1) jSel.remove(1);
+      allJoueurs.forEach(j => jSel.appendChild(new Option(`${j.prenom || ""} ${j.nom || ""}`.trim(), j.id)));
+      jSel.value = current;
+    }
+    await renderCompetitionEngine();
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+async function renderCompetitionEngine() {
+  const wrap = $("engine-teams-list");
+  const tournoiId = $("engine-tournoi")?.value;
+  if (!wrap || !tournoiId) return;
+  wrap.innerHTML = '<p class="text-muted text-center">Chargement des inscriptions...</p>';
+  try {
+    const { data, error } = await supabase
+      .from(T.TOURNOI_EQUIPES)
+      .select("*")
+      .eq("tournoi_id", tournoiId)
+      .order("poule", { ascending: true });
+    if (error) throw error;
+    wrap.innerHTML = "";
+    if (!data?.length) {
+      wrap.innerHTML = '<p class="text-muted text-center">Aucune equipe inscrite dans ce tournoi.</p>';
+      return;
+    }
+    data.forEach(row => {
+      const eq = allEquipes.find(item => item.id === row.equipe_id);
+      const card = document.createElement("div");
+      card.className = "entity-card";
+      card.innerHTML = `
+        <div class="entity-avatar"></div>
+        <div class="entity-main">
+          <div class="entity-title"></div>
+          <div class="entity-meta"></div>
+        </div>
+        <span class="statut-badge en_cours">${row.poule || "Poule unique"}</span>`;
+      const avatar = card.querySelector(".entity-avatar");
+      if (eq?.embleme_url) {
+        avatar.style.backgroundImage = `url("${eq.embleme_url}")`;
+        avatar.textContent = "";
+      } else {
+        avatar.textContent = (eq?.nom || "?")[0].toUpperCase();
+      }
+      card.querySelector(".entity-title").textContent = eq?.nom || "Equipe inconnue";
+      card.querySelector(".entity-meta").textContent = `${eq?.paroisse || "Sans paroisse"} - inscrite au tournoi`;
+      wrap.appendChild(card);
+    });
+  } catch (err) {
+    console.error(err);
+    wrap.innerHTML = '<p class="text-muted text-center">Executez le script SQL du moteur de competition.</p>';
+  }
+}
+
+async function registerTeamToTournament() {
+  const tournoiId = $("engine-tournoi")?.value;
+  const equipeId = $("engine-equipe")?.value;
+  const poule = $("engine-poule")?.value.trim() || "Poule unique";
+  if (!tournoiId || !equipeId) {
+    toast("Choisissez un tournoi et une equipe.", "error");
+    return;
+  }
+  try {
+    const { error } = await supabase.from(T.TOURNOI_EQUIPES).upsert({
+      tournoi_id: tournoiId,
+      equipe_id: equipeId,
+      poule,
+      statut: "active",
+      updated_at: nowISO(),
+    }, { onConflict: "tournoi_id,equipe_id" });
+    if (error) throw error;
+    const joueurs = allJoueurs.filter(j => j.equipe_id === equipeId).map(j => ({
+      tournoi_id: tournoiId,
+      joueur_id: j.id,
+      equipe_id: equipeId,
+      statut: "active",
+      date_debut: nowISO(),
+      updated_at: nowISO(),
+    }));
+    if (joueurs.length) {
+      const { error: joueursError } = await supabase.from(T.TOURNOI_JOUEURS).upsert(joueurs, { onConflict: "tournoi_id,joueur_id" });
+      if (joueursError) throw joueursError;
+    }
+    toast("Equipe inscrite au tournoi.", "success");
+    await renderCompetitionEngine();
+  } catch (err) {
+    console.error(err);
+    toast("Erreur inscription : " + err.message, "error");
+  }
+}
+
+async function transferPlayerInTournament() {
+  const tournoiId = $("engine-tournoi")?.value;
+  const joueurId = $("transfer-joueur")?.value;
+  const toEquipeId = $("transfer-equipe")?.value;
+  const note = $("transfer-note")?.value.trim() || "";
+  if (!tournoiId || !joueurId || !toEquipeId) {
+    toast("Choisissez un tournoi, un joueur et une equipe.", "error");
+    return;
+  }
+  const current = allJoueurs.find(j => j.id === joueurId);
+  try {
+    const { error: transferError } = await supabase.from(T.TRANSFERTS).insert({
+      tournoi_id: tournoiId,
+      joueur_id: joueurId,
+      ancienne_equipe_id: current?.equipe_id || null,
+      nouvelle_equipe_id: toEquipeId,
+      note,
+      created_at: nowISO(),
+    });
+    if (transferError) throw transferError;
+    const { error: rosterError } = await supabase.from(T.TOURNOI_JOUEURS).upsert({
+      tournoi_id: tournoiId,
+      joueur_id: joueurId,
+      equipe_id: toEquipeId,
+      statut: "active",
+      date_debut: nowISO(),
+      updated_at: nowISO(),
+    }, { onConflict: "tournoi_id,joueur_id" });
+    if (rosterError) throw rosterError;
+    toast("Transfert enregistre pour ce tournoi.", "success");
+  } catch (err) {
+    console.error(err);
+    toast("Erreur transfert : " + err.message, "error");
   }
 }
 
