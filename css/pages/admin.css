@@ -67,6 +67,57 @@
 .item-card-sub   { font-size: 0.95rem; color: var(--text-muted); margin-top: 2px; }
 .item-card-actions { display: flex; align-items: center; gap: var(--space-2); flex-shrink: 0; }
 
+.tournament-modal {
+  width: min(1040px, calc(100vw - var(--space-8)));
+  max-width: none;
+  max-height: calc(100dvh - var(--space-6));
+  overflow-y: auto;
+  padding: clamp(var(--space-5), 3vw, var(--space-8));
+}
+
+.tournament-modal .modal-header {
+  position: sticky;
+  top: calc(-1 * clamp(var(--space-5), 3vw, var(--space-8)));
+  z-index: 3;
+  padding: var(--space-3) 0 var(--space-5);
+  margin-bottom: var(--space-5);
+  background: linear-gradient(180deg, rgba(255,255,255,0.92), rgba(255,255,255,0.72));
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.tournament-modal .modal-title {
+  font-size: clamp(1.45rem, 3vw, 2.25rem);
+  color: var(--text);
+}
+
+.tournament-modal .form-group {
+  min-width: 0;
+}
+
+.tournament-modal .form-label {
+  font-size: 1rem;
+}
+
+.tournament-modal .form-input,
+.tournament-modal .form-select,
+.tournament-modal .form-textarea {
+  min-height: 64px;
+  font-size: 1.12rem;
+}
+
+.tournament-modal .form-textarea {
+  min-height: 132px;
+}
+
+.tournament-modal #btn-creer-tournoi {
+  position: sticky;
+  bottom: 0;
+  min-height: 68px;
+  margin-top: var(--space-5);
+  box-shadow: 0 -16px 40px rgba(255,255,255,0.52), var(--glow-gold);
+}
+
 /* ── Statut badges (match/tournoi) ─────────────────────────────── */
 .statut-badge {
   padding: 0.2rem 0.65rem;
@@ -518,6 +569,18 @@
   .bareme-header,
   .bareme-row {
     min-width: 760px;
+  }
+}
+
+@media (max-width: 760px) {
+  .tournament-modal {
+    width: calc(100vw - var(--space-4));
+    max-height: calc(100dvh - var(--space-4));
+    padding: var(--space-4);
+  }
+
+  .tournament-modal .modal-header {
+    top: calc(-1 * var(--space-4));
   }
 }
 
