@@ -443,17 +443,17 @@ async function loadMatchList() {
     const { data, error } = await supabase.from(T.MATCHES).select("*").order("scheduled_at", { ascending: true, nullsFirst: false }).limit(50);
     if (error) throw error;
     const sel = $("match-selector");
-    while (sel.options.length > 1) sel.remove(1);
+    if (sel) while (sel.options.length > 1) sel.remove(1);
     let autoMatch = null;
     (data || []).map(normalizeMatch).forEach(m => {
-      sel.appendChild(new Option(`${teamName(m, "equipeA")} vs ${teamName(m, "equipeB")} - ${statusLabel(m.statut)}`, m.id));
+      sel?.appendChild(new Option(`${teamName(m, "equipeA")} vs ${teamName(m, "equipeB")} - ${statusLabel(m.statut)}`, m.id));
       if (m.statut === "en_cours" && !autoMatch) autoMatch = m.id;
     });
     if (requestedMatchId) {
-      sel.value = requestedMatchId;
+      if (sel) sel.value = requestedMatchId;
       subscribeMatch(requestedMatchId, true);
     } else if (autoMatch) {
-      sel.value = autoMatch;
+      if (sel) sel.value = autoMatch;
       subscribeMatch(autoMatch, false);
     } else {
       showEmpty();
@@ -519,7 +519,7 @@ async function subscribeMatch(matchId, scrollIntoView = true) {
     .on("postgres_changes", { event: "INSERT", schema: "public", table: T.EVENEMENTS, filter: `match_id=eq.${matchId}` }, payload => prependEvent(payload.new))
     .subscribe();
   channels.push(matchChannel, scoreChannel, eventChannel);
-  $("match-selector").value = matchId;
+  if ($("match-selector")) $("match-selector").value = matchId;
   showMain();
   if (scrollIntoView) $("main-content")?.scrollIntoView({ behavior: "smooth", block: "start" });
 }
