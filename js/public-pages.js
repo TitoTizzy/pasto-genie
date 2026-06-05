@@ -194,11 +194,15 @@ async function initBlogPage() {
   if (!wrap) return;
   wrap.innerHTML = '<article class="blog-preview-item"><span>Chargement</span><strong>Chargement des articles...</strong></article>';
   try {
+    const selectedArticleId = new URLSearchParams(window.location.search).get("article");
     const articles = await fetchRows(T.BLOG_ARTICLES, q => q
       .eq("statut", "published")
       .order("published_at", { ascending: false, nullsFirst: false })
       .order("created_at", { ascending: false })
       .limit(60));
+    if (selectedArticleId) {
+      articles.sort((a, b) => (b.id === selectedArticleId) - (a.id === selectedArticleId));
+    }
     wrap.innerHTML = "";
     if (!articles.length) {
       wrap.innerHTML = '<article class="blog-preview-item"><span>A venir</span><strong>Aucun article publie pour le moment.</strong></article>';
@@ -207,6 +211,7 @@ async function initBlogPage() {
     articles.forEach(article => {
       const card = document.createElement("article");
       card.className = "blog-preview-item blog-full-item";
+      if (article.id === selectedArticleId) card.classList.add("blog-selected-item");
       card.innerHTML = `${article.image_url ? '<div class="blog-preview-image"></div>' : ''}<span></span><strong></strong><p></p><div class="blog-content"></div>`;
       const image = card.querySelector(".blog-preview-image");
       if (image) image.style.backgroundImage = `url("${article.image_url}")`;

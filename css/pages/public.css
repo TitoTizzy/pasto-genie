@@ -112,6 +112,28 @@
   box-shadow: inset 0 1px 0 rgba(255,255,255,0.12);
 }
 
+.blog-preview-link {
+  color: inherit;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform var(--ease), border-color var(--ease), box-shadow var(--ease);
+}
+
+.blog-preview-link:hover {
+  transform: translateY(-3px);
+  border-color: rgba(245,158,11,0.45);
+  box-shadow:
+    0 20px 48px rgba(6,78,59,0.18),
+    inset 0 1px 0 rgba(255,255,255,0.64);
+}
+
+.blog-selected-item {
+  border-color: rgba(245,158,11,0.58) !important;
+  box-shadow:
+    0 22px 60px rgba(245,158,11,0.18),
+    inset 0 1px 0 rgba(255,255,255,0.78) !important;
+}
+
 .blog-preview-item span {
   color: var(--sky-bright);
   font-size: 0.95rem;
@@ -1678,7 +1700,26 @@
 }
 .nav-select:focus { border-color: var(--sky); }
 
-/* Readability skin: normal blue, high contrast */
+/* Readability skin: forest green public background, high contrast */
+.public-page {
+  background: #064e3b;
+}
+
+.public-page::before {
+  background:
+    linear-gradient(135deg, rgba(3,54,42,0.97), rgba(5,81,63,0.94) 42%, rgba(10,98,75,0.90)),
+    radial-gradient(ellipse 70% 55% at 14% 6%, rgba(20,184,166,0.30) 0%, transparent 62%),
+    radial-gradient(ellipse 52% 42% at 88% 10%, rgba(14,165,233,0.18) 0%, transparent 64%),
+    radial-gradient(ellipse 58% 48% at 78% 88%, rgba(245,158,11,0.12) 0%, transparent 60%),
+    #064e3b;
+}
+
+.public-page::after {
+  background-image:
+    linear-gradient(rgba(209,250,229,0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(209,250,229,0.08) 1px, transparent 1px);
+}
+
 .public-page .navbar,
 .public-page .blog-zone,
 .public-page .home-module,

@@ -197,8 +197,9 @@ function renderBlogPreview(articles = []) {
 
   wrap.innerHTML = "";
   articles.slice(0, 3).forEach(article => {
-    const card = document.createElement("article");
-    card.className = "blog-preview-item";
+    const card = document.createElement("a");
+    card.className = "blog-preview-item blog-preview-link";
+    card.href = `blog.html?article=${encodeURIComponent(article.id)}`;
     card.innerHTML = `
       ${article.image_url ? '<div class="blog-preview-image"></div>' : ''}
       <span></span>
