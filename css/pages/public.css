@@ -186,7 +186,62 @@
   color: var(--text);
   font-size: clamp(1.12rem, 1.7vw, 1.32rem);
   line-height: 1.75;
-  white-space: pre-wrap;
+}
+
+.article-body > * + *,
+.blog-content > * + * {
+  margin-top: var(--space-4);
+}
+
+.article-body h2,
+.article-body h3,
+.blog-content h2,
+.blog-content h3 {
+  color: var(--text);
+  line-height: 1.16;
+  margin-top: var(--space-6);
+}
+
+.article-body h2,
+.blog-content h2 {
+  font-size: clamp(1.75rem, 3vw, 2.4rem);
+}
+
+.article-body h3,
+.blog-content h3 {
+  font-size: clamp(1.35rem, 2vw, 1.8rem);
+}
+
+.article-body ul,
+.article-body ol,
+.blog-content ul,
+.blog-content ol {
+  padding-left: 1.45rem;
+  margin: var(--space-4) 0;
+}
+
+.article-body li,
+.blog-content li {
+  margin: 0.35rem 0;
+}
+
+.article-body blockquote,
+.blog-content blockquote {
+  margin: var(--space-5) 0;
+  padding: var(--space-4) var(--space-5);
+  border-left: 5px solid var(--sky);
+  border-radius: var(--r-md);
+  background: rgba(14,165,216,0.10);
+  color: var(--text-dim);
+  font-weight: 700;
+}
+
+.article-body a,
+.blog-content a {
+  color: var(--sky-deep);
+  font-weight: 900;
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 .blog-preview-item span {
@@ -1539,6 +1594,28 @@
     padding: var(--space-3);
     gap: var(--space-4);
   }
+  .public-page {
+    background: #064e3b;
+  }
+  .public-page::before {
+    background:
+      linear-gradient(135deg, rgba(3,54,42,0.98), rgba(5,81,63,0.96) 48%, rgba(8,86,67,0.94)),
+      radial-gradient(ellipse 88% 46% at 18% 0%, rgba(20,184,166,0.26) 0%, transparent 62%),
+      #064e3b;
+  }
+  .article-reader-shell {
+    padding: var(--space-4) var(--space-3) var(--space-8);
+  }
+  .article-reader {
+    padding: var(--space-4);
+  }
+  .article-hero-image {
+    aspect-ratio: 16 / 10;
+    border-radius: var(--r-lg);
+  }
+  .article-reader h1 {
+    font-size: clamp(2rem, 10vw, 3rem);
+  }
   .scoreboard-meta {
     align-items: flex-start;
     gap: var(--space-3);
@@ -1826,4 +1903,17 @@
 .public-page .btn-gold {
   background: linear-gradient(135deg, #0ea5d8, #2563eb);
   color: #fff;
+}
+
+@media (max-width: 600px) {
+  .public-page {
+    background: #064e3b !important;
+  }
+
+  .public-page::before {
+    background:
+      linear-gradient(135deg, rgba(3,54,42,0.98), rgba(5,81,63,0.96) 48%, rgba(8,86,67,0.94)),
+      radial-gradient(ellipse 88% 46% at 18% 0%, rgba(20,184,166,0.26) 0%, transparent 62%),
+      #064e3b !important;
+  }
 }

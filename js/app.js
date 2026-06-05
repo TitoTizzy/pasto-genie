@@ -209,9 +209,15 @@ function renderBlogPreview(articles = []) {
     if (image) image.style.backgroundImage = `url("${article.image_url}")`;
     card.querySelector("span").textContent = article.categorie || "Actualites";
     card.querySelector("strong").textContent = article.titre || "Article";
-    card.querySelector("p").textContent = article.resume || article.contenu || "";
+    card.querySelector("p").textContent = article.resume || stripHtml(article.contenu || "");
     wrap.appendChild(card);
   });
+}
+
+function stripHtml(value = "") {
+  const div = document.createElement("div");
+  div.innerHTML = value;
+  return div.textContent || div.innerText || "";
 }
 
 function renderEmptyBlock(id, message) {

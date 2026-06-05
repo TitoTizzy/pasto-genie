@@ -276,6 +276,96 @@
   color: var(--text);
 }
 
+.rich-editor {
+  overflow: hidden;
+  border: 1px solid rgba(7,89,133,0.20);
+  border-radius: var(--r-md);
+  background: rgba(255,255,255,0.82);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.76);
+}
+
+.rich-toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  padding: var(--space-3);
+  border-bottom: 1px solid rgba(7,89,133,0.16);
+  background: rgba(225,243,251,0.76);
+}
+
+.rich-tool {
+  min-width: 42px;
+  min-height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(7,89,133,0.18);
+  border-radius: var(--r-sm);
+  background: rgba(255,255,255,0.78);
+  color: var(--text);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 900;
+  transition: transform var(--ease), background var(--ease), border-color var(--ease);
+}
+
+.rich-tool:hover {
+  transform: translateY(-1px);
+  background: rgba(255,255,255,0.96);
+  border-color: var(--border-hover);
+}
+
+.rich-tool i {
+  font-size: 1.15rem;
+}
+
+.rich-tool-text {
+  min-width: 72px;
+  padding: 0 var(--space-3);
+}
+
+.rich-divider {
+  width: 1px;
+  height: 32px;
+  background: rgba(7,89,133,0.18);
+}
+
+.rich-editor-area {
+  min-height: 260px;
+  padding: var(--space-5);
+  color: var(--text);
+  font-size: 1.12rem;
+  line-height: 1.7;
+  outline: none;
+}
+
+.rich-editor-area:empty::before {
+  content: attr(data-placeholder);
+  color: rgba(10,39,66,0.40);
+}
+
+.rich-editor-area h2,
+.rich-editor-area h3 {
+  margin: var(--space-4) 0 var(--space-2);
+  line-height: 1.15;
+}
+
+.rich-editor-area ul,
+.rich-editor-area ol {
+  padding-left: 1.5rem;
+  margin: var(--space-3) 0;
+}
+
+.rich-editor-area blockquote {
+  margin: var(--space-4) 0;
+  padding: var(--space-3) var(--space-4);
+  border-left: 4px solid var(--sky);
+  border-radius: var(--r-sm);
+  background: rgba(14,165,216,0.10);
+  color: var(--text-dim);
+}
+
 .color-swatch {
   width: 34px;
   height: 34px;
@@ -656,6 +746,24 @@
   .upload-preview {
     width: 58px;
     height: 58px;
+  }
+  .rich-toolbar {
+    gap: 7px;
+    padding: var(--space-2);
+  }
+  .rich-tool {
+    min-width: 40px;
+    min-height: 40px;
+  }
+  .rich-tool-text {
+    flex: 1 1 86px;
+  }
+  .rich-divider {
+    display: none;
+  }
+  .rich-editor-area {
+    min-height: 220px;
+    padding: var(--space-4);
   }
   .users-table-wrap {
     max-width: calc(100vw - var(--space-6));

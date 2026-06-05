@@ -636,7 +636,24 @@
             </div>
             <div class="form-group">
               <label class="form-label">Contenu</label>
-              <textarea id="blog-content" class="form-textarea" rows="10" placeholder="Texte complet de l'article..."></textarea>
+              <div class="rich-editor">
+                <div class="rich-toolbar" aria-label="Mise en forme de l'article">
+                  <button type="button" class="rich-tool" data-blog-format="bold" title="Gras"><i class="ri-bold"></i></button>
+                  <button type="button" class="rich-tool" data-blog-format="italic" title="Italique"><i class="ri-italic"></i></button>
+                  <button type="button" class="rich-tool" data-blog-format="underline" title="Souligne"><i class="ri-underline"></i></button>
+                  <span class="rich-divider"></span>
+                  <button type="button" class="rich-tool rich-tool-text" data-blog-block="<h2>" title="Titre">Titre</button>
+                  <button type="button" class="rich-tool rich-tool-text" data-blog-block="<p>" title="Paragraphe">Texte</button>
+                  <button type="button" class="rich-tool" data-blog-block="<blockquote>" title="Citation"><i class="ri-double-quotes-l"></i></button>
+                  <span class="rich-divider"></span>
+                  <button type="button" class="rich-tool" data-blog-format="insertUnorderedList" title="Liste a puces"><i class="ri-list-unordered"></i></button>
+                  <button type="button" class="rich-tool" data-blog-format="insertOrderedList" title="Liste numerotee"><i class="ri-list-ordered"></i></button>
+                  <button type="button" class="rich-tool" data-blog-link title="Ajouter un lien"><i class="ri-link"></i></button>
+                  <button type="button" class="rich-tool" data-blog-format="removeFormat" title="Nettoyer le format"><i class="ri-eraser-line"></i></button>
+                </div>
+                <div id="blog-editor" class="rich-editor-area" contenteditable="true" role="textbox" aria-multiline="true" data-placeholder="Texte complet de l'article..."></div>
+                <textarea id="blog-content" class="hidden" aria-hidden="true" tabindex="-1"></textarea>
+              </div>
             </div>
             <div class="form-group">
               <label class="form-label">Statut</label>

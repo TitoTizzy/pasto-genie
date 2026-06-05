@@ -34,6 +34,36 @@ function formatDateTime(date) {
   return date?.toLocaleString("fr-FR", { weekday: "short", day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }) || "Date a definir";
 }
 
+function sanitizeArticleHtml(value = "") {
+  const template = document.createElement("template");
+  template.innerHTML = value;
+  const allowedTags = new Set(["P", "BR", "STRONG", "B", "EM", "I", "U", "UL", "OL", "LI", "H2", "H3", "BLOCKQUOTE", "A"]);
+  const allowedAttrs = new Set(["href", "target", "rel"]);
+
+  template.content.querySelectorAll("*").forEach(node => {
+    if (!allowedTags.has(node.tagName)) {
+      node.replaceWith(...node.childNodes);
+      return;
+    }
+    [...node.attributes].forEach(attr => {
+      if (!allowedAttrs.has(attr.name)) node.removeAttribute(attr.name);
+    });
+    if (node.tagName === "A") {
+      const href = node.getAttribute("href") || "";
+      if (!/^https?:\/\//i.test(href) && !/^mailto:/i.test(href)) node.removeAttribute("href");
+      node.setAttribute("target", "_blank");
+      node.setAttribute("rel", "noopener noreferrer");
+    }
+  });
+
+  return template.innerHTML;
+}
+
+function setFormattedArticleContent(el, html) {
+  if (!el) return;
+  el.innerHTML = sanitizeArticleHtml(html || "");
+}
+
 function statusLabel(status) {
   return ({ planifie: "Planifie", en_cours: "En direct", pause: "Pause", termine: "Termine" })[status] || status || "A definir";
 }
@@ -213,7 +243,7 @@ async function initBlogPage() {
       card.querySelector("span").textContent = article.categorie || "Actualites";
       card.querySelector("strong").textContent = article.titre || "Article";
       card.querySelector("p").textContent = article.resume || "";
-      card.querySelector(".blog-content").textContent = article.contenu || "";
+      setFormattedArticleContent(card.querySelector(".blog-content"), article.contenu || "");
       wrap.appendChild(card);
     });
   } catch (err) {
@@ -257,7 +287,7 @@ async function initArticlePage() {
     wrap.querySelector(".article-reader-meta small").textContent = date;
     wrap.querySelector("h1").textContent = article.titre || "Article";
     wrap.querySelector(".article-lead").textContent = article.resume || "";
-    wrap.querySelector(".article-body").textContent = article.contenu || "";
+    setFormattedArticleContent(wrap.querySelector(".article-body"), article.contenu || "");
   } catch (err) {
     console.error(err);
     wrap.innerHTML = '<div class="placeholder-card">Impossible de charger cet article.</div>';

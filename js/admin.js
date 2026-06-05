@@ -1411,6 +1411,51 @@ async function saveRegles() {
 function wireBlog() {
   bind("btn-save-blog", "click", saveBlogArticle);
   previewUpload("blog-image-file", "blog-image-preview");
+  wireBlogEditor();
+}
+
+function wireBlogEditor() {
+  const editor = $("blog-editor");
+  const hidden = $("blog-content");
+  if (!editor || !hidden) return;
+
+  const sync = () => { hidden.value = editor.innerHTML.trim(); };
+  editor.addEventListener("input", sync);
+  editor.addEventListener("blur", sync);
+
+  document.querySelectorAll("[data-blog-format]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      editor.focus();
+      document.execCommand(btn.dataset.blogFormat, false, null);
+      sync();
+    });
+  });
+
+  document.querySelectorAll("[data-blog-block]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      editor.focus();
+      document.execCommand("formatBlock", false, btn.dataset.blogBlock);
+      sync();
+    });
+  });
+
+  document.querySelectorAll("[data-blog-link]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      let url = prompt("Lien a ajouter");
+      if (!url) return;
+      if (!/^https?:\/\//i.test(url) && !/^mailto:/i.test(url)) url = `https://${url}`;
+      editor.focus();
+      document.execCommand("createLink", false, url);
+      sync();
+    });
+  });
+}
+
+function resetBlogEditor() {
+  const editor = $("blog-editor");
+  const hidden = $("blog-content");
+  if (editor) editor.innerHTML = "";
+  if (hidden) hidden.value = "";
 }
 
 async function loadBlogArticles() {
@@ -1473,7 +1518,7 @@ async function saveBlogArticle() {
   const titre = $("blog-title")?.value.trim();
   const categorie = $("blog-category")?.value.trim() || "Actualites";
   const resume = $("blog-excerpt")?.value.trim();
-  const contenu = $("blog-content")?.value.trim();
+  const contenu = $("blog-editor")?.innerHTML.trim() || $("blog-content")?.value.trim();
   const statut = $("blog-status")?.value || "published";
 
   if (!titre) {
@@ -1500,7 +1545,8 @@ async function saveBlogArticle() {
     });
     if (error) throw error;
     toast(statut === "published" ? "Article publie." : "Brouillon enregistre.", "success");
-    ["blog-title", "blog-category", "blog-excerpt", "blog-content"].forEach(id => { const el = $(id); if (el) el.value = ""; });
+    ["blog-title", "blog-category", "blog-excerpt"].forEach(id => { const el = $(id); if (el) el.value = ""; });
+    resetBlogEditor();
     if ($("blog-status")) $("blog-status").value = "published";
     if ($("blog-image-file")) $("blog-image-file").value = "";
     if ($("blog-image-preview")) {
