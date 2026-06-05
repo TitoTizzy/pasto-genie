@@ -1390,7 +1390,16 @@ async function creerUser() {
     const { data, error } = await supabase.functions.invoke("admin-create-user", {
       body: { email, password, display_name: displayName, role },
     });
-    if (error) throw error;
+    if (error) {
+      let functionMessage = "";
+      try {
+        const body = await error.context?.json?.();
+        functionMessage = body?.error || body?.message || "";
+      } catch {
+        functionMessage = "";
+      }
+      throw new Error(functionMessage || error.message || "Edge Function refusee.");
+    }
     if (data?.error) throw new Error(data.error);
 
     toast(`Compte cree : ${email} (${role})`, "success");
@@ -1406,7 +1415,7 @@ async function creerUser() {
     showAlert(
       "nu-alert-msg",
       "nu-alert",
-      `Creation impossible: la fonction Supabase admin-create-user n'est pas encore joignable ou pas deployee. Detail: ${detail}`
+      `Creation impossible. Detail: ${detail}`
     );
   } finally {
     btn.disabled = false;
