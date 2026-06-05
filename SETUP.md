@@ -128,6 +128,12 @@ npx supabase functions deploy admin-create-user --project-ref xtqinyqyrcmwerjanx
 
 Ensuite rechargez `admin.html` avec `Ctrl + F5` et recreez le compte depuis la console superadmin.
 
+Si la console affiche `permission denied for table users`, executez aussi:
+
+```text
+supabase/repair-service-role-grants.sql
+```
+
 ## 5. Calcul du score
 
 Les jurys inserent uniquement des lignes dans `match_evenements`. Le trigger SQL recalcule `match_en_cours` apres chaque evenement.
