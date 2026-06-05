@@ -104,6 +104,30 @@ Activez Realtime sur:
 
 Le panneau admin appelle une Edge Function nommee `admin-create-user`. Cette fonction doit utiliser la service role key cote serveur pour creer le compte Auth, puis inserer le profil dans `public.users`.
 
+### Deployer la fonction `admin-create-user`
+
+Dans PowerShell, depuis le dossier du projet:
+
+```powershell
+cd "C:\Users\ouhha\OneDrive\Desktop\Platform Nesmy"
+npx supabase login
+npx supabase functions deploy admin-create-user --project-ref xtqinyqyrcmwerjanxjp
+```
+
+Si Supabase demande un token, ouvrez:
+
+```text
+https://supabase.com/dashboard/account/tokens
+```
+
+Copiez un nouveau token personnel, collez-le dans PowerShell, puis relancez:
+
+```powershell
+npx supabase functions deploy admin-create-user --project-ref xtqinyqyrcmwerjanxjp
+```
+
+Ensuite rechargez `admin.html` avec `Ctrl + F5` et recreez le compte depuis la console superadmin.
+
 ## 5. Calcul du score
 
 Les jurys inserent uniquement des lignes dans `match_evenements`. Le trigger SQL recalcule `match_en_cours` apres chaque evenement.

@@ -1402,7 +1402,12 @@ async function creerUser() {
     loadJurySelect();
   } catch (err) {
     console.error(err);
-    showAlert("nu-alert-msg", "nu-alert", "Creer une Edge Function Supabase admin-create-user pour gerer Auth. " + err.message);
+    const detail = err?.message || "requete impossible";
+    showAlert(
+      "nu-alert-msg",
+      "nu-alert",
+      `Creation impossible: la fonction Supabase admin-create-user n'est pas encore joignable ou pas deployee. Detail: ${detail}`
+    );
   } finally {
     btn.disabled = false;
     btn.innerHTML = '<i class="ri-user-add-line"></i> Creer le compte';
