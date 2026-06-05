@@ -194,15 +194,11 @@ async function initBlogPage() {
   if (!wrap) return;
   wrap.innerHTML = '<article class="blog-preview-item"><span>Chargement</span><strong>Chargement des articles...</strong></article>';
   try {
-    const selectedArticleId = new URLSearchParams(window.location.search).get("article");
     const articles = await fetchRows(T.BLOG_ARTICLES, q => q
       .eq("statut", "published")
       .order("published_at", { ascending: false, nullsFirst: false })
       .order("created_at", { ascending: false })
       .limit(60));
-    if (selectedArticleId) {
-      articles.sort((a, b) => (b.id === selectedArticleId) - (a.id === selectedArticleId));
-    }
     wrap.innerHTML = "";
     if (!articles.length) {
       wrap.innerHTML = '<article class="blog-preview-item"><span>A venir</span><strong>Aucun article publie pour le moment.</strong></article>';
@@ -211,7 +207,6 @@ async function initBlogPage() {
     articles.forEach(article => {
       const card = document.createElement("article");
       card.className = "blog-preview-item blog-full-item";
-      if (article.id === selectedArticleId) card.classList.add("blog-selected-item");
       card.innerHTML = `${article.image_url ? '<div class="blog-preview-image"></div>' : ''}<span></span><strong></strong><p></p><div class="blog-content"></div>`;
       const image = card.querySelector(".blog-preview-image");
       if (image) image.style.backgroundImage = `url("${article.image_url}")`;
@@ -224,6 +219,48 @@ async function initBlogPage() {
   } catch (err) {
     console.error(err);
     wrap.innerHTML = '<article class="blog-preview-item"><span>Configuration</span><strong>Le blog sera disponible apres execution du script SQL.</strong></article>';
+  }
+}
+
+async function initArticlePage() {
+  const wrap = $("article-reader");
+  const articleId = qs.get("id");
+  if (!wrap) return;
+  if (!articleId) {
+    wrap.innerHTML = '<div class="placeholder-card">Article introuvable.</div>';
+    return;
+  }
+
+  try {
+    const { data: article, error } = await supabase
+      .from(T.BLOG_ARTICLES)
+      .select("*")
+      .eq("id", articleId)
+      .eq("statut", "published")
+      .single();
+    if (error) throw error;
+    const date = article.published_at || article.created_at
+      ? new Date(article.published_at || article.created_at).toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" })
+      : "";
+    wrap.innerHTML = `
+      ${article.image_url ? '<div class="article-hero-image"></div>' : ''}
+      <div class="article-reader-meta">
+        <span></span>
+        <small></small>
+      </div>
+      <h1></h1>
+      <p class="article-lead"></p>
+      <div class="article-body"></div>`;
+    const image = wrap.querySelector(".article-hero-image");
+    if (image) image.style.backgroundImage = `url("${article.image_url}")`;
+    wrap.querySelector(".article-reader-meta span").textContent = article.categorie || "Actualites";
+    wrap.querySelector(".article-reader-meta small").textContent = date;
+    wrap.querySelector("h1").textContent = article.titre || "Article";
+    wrap.querySelector(".article-lead").textContent = article.resume || "";
+    wrap.querySelector(".article-body").textContent = article.contenu || "";
+  } catch (err) {
+    console.error(err);
+    wrap.innerHTML = '<div class="placeholder-card">Impossible de charger cet article.</div>';
   }
 }
 
@@ -331,3 +368,4 @@ if (page === "matches") initMatchesPage().catch(console.error);
 if (page === "competition") initCompetitionPage().catch(console.error);
 if (page === "historiques") initHistoriquesPage().catch(console.error);
 if (page === "blog") initBlogPage().catch(console.error);
+if (page === "article") initArticlePage().catch(console.error);
