@@ -15,6 +15,7 @@ let teamA = { titulaires: [], remplacants: [] };
 let teamB = { titulaires: [], remplacants: [] };
 let catOrder = CATEGORIES.map(c => c.id);
 let allBlogArticles = [];
+let editingBlogArticle = null;
 let currentAdminUser = null;
 
 (async () => {
@@ -1410,6 +1411,7 @@ async function saveRegles() {
 
 function wireBlog() {
   bind("btn-save-blog", "click", saveBlogArticle);
+  bind("btn-cancel-blog-edit", "click", clearBlogForm);
   previewUpload("blog-image-file", "blog-image-preview");
   wireBlogEditor();
 }
@@ -1458,6 +1460,74 @@ function resetBlogEditor() {
   if (hidden) hidden.value = "";
 }
 
+function setBlogEditorContent(html = "") {
+  const editor = $("blog-editor");
+  const hidden = $("blog-content");
+  if (editor) editor.innerHTML = html || "";
+  if (hidden) hidden.value = html || "";
+}
+
+function clearBlogImagePreview() {
+  if ($("blog-image-file")) $("blog-image-file").value = "";
+  if ($("blog-image-preview")) {
+    $("blog-image-preview").style.backgroundImage = "";
+    $("blog-image-preview").innerHTML = '<i class="ri-image-add-line"></i>';
+  }
+}
+
+function setBlogImagePreview(url = "") {
+  const preview = $("blog-image-preview");
+  if (!preview) return;
+  if (!url) {
+    clearBlogImagePreview();
+    return;
+  }
+  preview.style.backgroundImage = `url("${url}")`;
+  preview.innerHTML = "";
+}
+
+function setBlogEditMode(article = null) {
+  editingBlogArticle = article;
+  const saveBtn = $("btn-save-blog");
+  const cancelBtn = $("btn-cancel-blog-edit");
+  const label = document.querySelector("#s-blog .card-label");
+  if (saveBtn) {
+    saveBtn.innerHTML = article
+      ? '<i class="ri-save-line"></i> Mettre a jour'
+      : '<i class="ri-send-plane-line"></i> Publier l\'article';
+  }
+  cancelBtn?.classList.toggle("hidden", !article);
+  if (label) label.innerHTML = article
+    ? '<i class="ri-edit-2-line"></i> Modifier l\'article'
+    : '<i class="ri-draft-line"></i> Nouvel article';
+}
+
+function clearBlogForm() {
+  ["blog-title", "blog-category", "blog-excerpt"].forEach(id => {
+    const el = $(id);
+    if (el) el.value = "";
+  });
+  resetBlogEditor();
+  if ($("blog-status")) $("blog-status").value = "published";
+  clearBlogImagePreview();
+  setBlogEditMode(null);
+  hideAlert("blog-alert");
+  renderBlogArticles();
+}
+
+function editBlogArticle(article) {
+  $("blog-title").value = article.titre || "";
+  $("blog-category").value = article.categorie || "";
+  $("blog-excerpt").value = article.resume || "";
+  if ($("blog-status")) $("blog-status").value = article.statut || "published";
+  setBlogEditorContent(article.contenu || "");
+  setBlogImagePreview(article.image_url || "");
+  setBlogEditMode(article);
+  renderBlogArticles();
+  $("s-blog")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  $("blog-title")?.focus();
+}
+
 async function loadBlogArticles() {
   const wrap = $("blog-list");
   if (!wrap) return;
@@ -1489,7 +1559,7 @@ function renderBlogArticles() {
 
   allBlogArticles.forEach(article => {
     const card = document.createElement("div");
-    card.className = "entity-card";
+    card.className = `entity-card ${editingBlogArticle?.id === article.id ? "entity-card-active" : ""}`;
     card.innerHTML = `
       <div class="entity-avatar"><i class="ri-article-line"></i></div>
       <div class="entity-main">
@@ -1497,6 +1567,9 @@ function renderBlogArticles() {
         <div class="entity-meta"></div>
       </div>
       <span class="statut-badge ${article.statut === "published" ? "termine" : "planifie"}"></span>
+      <button class="btn btn-ghost btn-sm btn-icon edit-blog" title="Modifier l'article">
+        <i class="ri-edit-2-line"></i>
+      </button>
       <button class="btn btn-ghost btn-sm btn-icon delete-blog" title="Supprimer l'article">
         <i class="ri-delete-bin-line" style="color:var(--red);"></i>
       </button>`;
@@ -1508,6 +1581,7 @@ function renderBlogArticles() {
       avatar.style.backgroundImage = `url("${article.image_url}")`;
       avatar.innerHTML = "";
     }
+    card.querySelector(".edit-blog").addEventListener("click", () => editBlogArticle(article));
     card.querySelector(".delete-blog").addEventListener("click", () => deleteBlogArticle(article));
     wrap.appendChild(card);
   });
@@ -1528,31 +1602,35 @@ async function saveBlogArticle() {
 
   const btn = $("btn-save-blog");
   btn.disabled = true;
-  btn.innerHTML = '<i class="ri-loader-4-line spin"></i> Publication...';
+  btn.innerHTML = editingBlogArticle
+    ? '<i class="ri-loader-4-line spin"></i> Mise a jour...'
+    : '<i class="ri-loader-4-line spin"></i> Publication...';
   try {
     const imageUrl = await uploadImage("blog-image-file", "blog");
-    const { error } = await supabase.from(T.BLOG_ARTICLES).insert({
+    const payload = {
       titre,
       categorie,
       resume,
       contenu,
-      image_url: imageUrl || null,
+      image_url: imageUrl || editingBlogArticle?.image_url || null,
       statut,
       auteur_id: currentAdminUser?.id || null,
-      published_at: statut === "published" ? nowISO() : null,
-      created_at: nowISO(),
       updated_at: nowISO(),
-    });
-    if (error) throw error;
-    toast(statut === "published" ? "Article publie." : "Brouillon enregistre.", "success");
-    ["blog-title", "blog-category", "blog-excerpt"].forEach(id => { const el = $(id); if (el) el.value = ""; });
-    resetBlogEditor();
-    if ($("blog-status")) $("blog-status").value = "published";
-    if ($("blog-image-file")) $("blog-image-file").value = "";
-    if ($("blog-image-preview")) {
-      $("blog-image-preview").style.backgroundImage = "";
-      $("blog-image-preview").innerHTML = '<i class="ri-image-add-line"></i>';
+    };
+    if (!editingBlogArticle) {
+      payload.published_at = statut === "published" ? nowISO() : null;
+      payload.created_at = nowISO();
+    } else if (statut === "published" && !editingBlogArticle.published_at) {
+      payload.published_at = nowISO();
     }
+
+    const query = editingBlogArticle
+      ? supabase.from(T.BLOG_ARTICLES).update(payload).eq("id", editingBlogArticle.id)
+      : supabase.from(T.BLOG_ARTICLES).insert(payload);
+    const { error } = await query;
+    if (error) throw error;
+    toast(editingBlogArticle ? "Article mis a jour." : (statut === "published" ? "Article publie." : "Brouillon enregistre."), "success");
+    clearBlogForm();
     await loadBlogArticles();
   } catch (err) {
     console.error(err);
@@ -1563,7 +1641,9 @@ async function saveBlogArticle() {
     }
   } finally {
     btn.disabled = false;
-    btn.innerHTML = '<i class="ri-send-plane-line"></i> Publier l\'article';
+    btn.innerHTML = editingBlogArticle
+      ? '<i class="ri-save-line"></i> Mettre a jour'
+      : '<i class="ri-send-plane-line"></i> Publier l\'article';
   }
 }
 
@@ -1573,6 +1653,7 @@ async function deleteBlogArticle(article) {
     const { error } = await supabase.from(T.BLOG_ARTICLES).delete().eq("id", article.id);
     if (error) throw error;
     toast("Article supprime.", "success");
+    if (editingBlogArticle?.id === article.id) clearBlogForm();
     await loadBlogArticles();
   } catch (err) {
     console.error(err);

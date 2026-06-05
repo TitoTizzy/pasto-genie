@@ -188,6 +188,13 @@
   border-color: var(--border-hover);
 }
 
+.entity-card-active {
+  border-color: rgba(245,158,11,0.52) !important;
+  box-shadow:
+    0 18px 48px rgba(245,158,11,0.14),
+    inset 0 1px 0 rgba(255,255,255,0.74) !important;
+}
+
 .entity-avatar {
   width: 56px;
   height: 56px;
