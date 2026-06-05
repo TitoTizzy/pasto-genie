@@ -153,12 +153,13 @@ async function loadActiveTournament() {
 async function loadPublicHome() {
   try {
     await loadActiveTournament();
-    const [matches, equipes, joueurs, teamStats, playerStats] = await Promise.all([
+    const [matches, equipes, joueurs, teamStats, playerStats, blogArticles] = await Promise.all([
       fetchRows(T.MATCHES, q => q.order("scheduled_at", { ascending: true, nullsFirst: false }).order("created_at", { ascending: false }).limit(120)),
       fetchRows(T.EQUIPES, q => q.order("nom", { ascending: true })),
       fetchRows(T.JOUEURS, q => q.order("nom", { ascending: true })),
       fetchRows(T.STATS_EQUIPES, q => q.order("played_at", { ascending: false }).limit(2000)).catch(() => []),
       fetchRows(T.STATS_JOUEURS, q => q.order("played_at", { ascending: false }).limit(3000)).catch(() => []),
+      fetchRows(T.BLOG_ARTICLES, q => q.eq("statut", "published").order("published_at", { ascending: false, nullsFirst: false }).order("created_at", { ascending: false }).limit(3)).catch(() => []),
     ]);
     teamsById = new Map(equipes.map(eq => [eq.id, eq]));
     playersById = new Map(joueurs.map(j => [j.id, j]));
@@ -179,6 +180,7 @@ async function loadPublicHome() {
     renderCalendar();
     renderPoolStandings();
     renderTournamentPlayerRanking();
+    renderBlogPreview(blogArticles);
     await loadPublicRankings();
     hideLoadingOnly();
   } catch (err) {
@@ -186,6 +188,26 @@ async function loadPublicHome() {
     hideLoadingOnly();
     renderEmptyBlock("today-matches", "Impossible de charger les donnees publiques.");
   }
+}
+
+function renderBlogPreview(articles = []) {
+  const wrap = $("blog-preview-list");
+  if (!wrap) return;
+  if (!articles.length) return;
+
+  wrap.innerHTML = "";
+  articles.slice(0, 3).forEach(article => {
+    const card = document.createElement("article");
+    card.className = "blog-preview-item";
+    card.innerHTML = `
+      <span></span>
+      <strong></strong>
+      <p></p>`;
+    card.querySelector("span").textContent = article.categorie || "Actualites";
+    card.querySelector("strong").textContent = article.titre || "Article";
+    card.querySelector("p").textContent = article.resume || article.contenu || "";
+    wrap.appendChild(card);
+  });
 }
 
 function renderEmptyBlock(id, message) {

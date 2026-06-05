@@ -15,7 +15,7 @@
   <link rel="stylesheet" href="css/animations.css"/>
   <link rel="stylesheet" href="css/pages/public.css"/>
 </head>
-<body class="public-page public-detail-page">
+<body class="public-page public-detail-page" data-public-page="blog">
   <div class="bg-blobs"><div class="blob blob-1"></div><div class="blob blob-2"></div><div class="blob blob-3"></div><div class="blob blob-4"></div></div>
   <nav class="navbar">
     <a class="brand" href="index.html">
@@ -32,9 +32,10 @@
         <p>Les communiques, annonces et articles publics seront publies ici.</p>
       </div>
     </div>
-    <div class="blog-preview-list neo-card">
+    <div id="blog-articles-list" class="blog-preview-list neo-card">
       <article class="blog-preview-item"><span>A venir</span><strong>Module d'articles en preparation.</strong></article>
     </div>
   </main>
+  <script type="module" src="js/public-pages.js"></script>
 </body>
 </html>

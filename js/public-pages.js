@@ -189,6 +189,37 @@ async function initHistoriquesPage() {
   await renderHistoricalRankings();
 }
 
+async function initBlogPage() {
+  const wrap = $("blog-articles-list");
+  if (!wrap) return;
+  wrap.innerHTML = '<article class="blog-preview-item"><span>Chargement</span><strong>Chargement des articles...</strong></article>';
+  try {
+    const articles = await fetchRows(T.BLOG_ARTICLES, q => q
+      .eq("statut", "published")
+      .order("published_at", { ascending: false, nullsFirst: false })
+      .order("created_at", { ascending: false })
+      .limit(60));
+    wrap.innerHTML = "";
+    if (!articles.length) {
+      wrap.innerHTML = '<article class="blog-preview-item"><span>A venir</span><strong>Aucun article publie pour le moment.</strong></article>';
+      return;
+    }
+    articles.forEach(article => {
+      const card = document.createElement("article");
+      card.className = "blog-preview-item blog-full-item";
+      card.innerHTML = `<span></span><strong></strong><p></p><div class="blog-content"></div>`;
+      card.querySelector("span").textContent = article.categorie || "Actualites";
+      card.querySelector("strong").textContent = article.titre || "Article";
+      card.querySelector("p").textContent = article.resume || "";
+      card.querySelector(".blog-content").textContent = article.contenu || "";
+      wrap.appendChild(card);
+    });
+  } catch (err) {
+    console.error(err);
+    wrap.innerHTML = '<article class="blog-preview-item"><span>Configuration</span><strong>Le blog sera disponible apres execution du script SQL.</strong></article>';
+  }
+}
+
 function filterStats(rows) {
   const tournoiId = $("rank-tournoi")?.value;
   const from = $("rank-from")?.value;
@@ -292,3 +323,4 @@ function playerRow(player, index) {
 if (page === "matches") initMatchesPage().catch(console.error);
 if (page === "competition") initCompetitionPage().catch(console.error);
 if (page === "historiques") initHistoriquesPage().catch(console.error);
+if (page === "blog") initBlogPage().catch(console.error);

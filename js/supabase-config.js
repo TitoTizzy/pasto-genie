@@ -21,6 +21,7 @@ export const T = {
   TOURNOI_EQUIPES: "tournoi_equipes",
   TOURNOI_JOUEURS: "tournoi_joueurs",
   TRANSFERTS: "transferts_joueurs",
+  BLOG_ARTICLES: "blog_articles",
   EQUIPES: "equipes",
   JOUEURS: "joueurs",
   MATCHES: "matches",

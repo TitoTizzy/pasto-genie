@@ -12,15 +12,15 @@
   --fs-lg: 1.42rem;
   --fs-xl: 1.75rem;
 
-  --bg-base: #071426;
-  --bg-surface: #0d2742;
-  --bg-deep: #04101f;
+  --bg-base: #e7f5fb;
+  --bg-surface: #f5fbff;
+  --bg-deep: #b7dced;
 
-  --sky: #0284c7;
+  --sky: #0ea5d8;
   --sky-bright: #38bdf8;
-  --sky-deep: #0c4a6e;
+  --sky-deep: #075985;
   --cyan: #22d3ee;
-  --indigo: #1d4ed8;
+  --indigo: #2563eb;
   --violet: #7c3aed;
   --coral: #e11d48;
   --orange: #fb923c;
@@ -31,10 +31,10 @@
   --gold-bright: #fbbf24;
   --blue-accent: #0369a1;
 
-  --glass-0: rgba(8, 24, 43, 0.42);
-  --glass-1: rgba(12, 36, 61, 0.58);
-  --glass-2: rgba(16, 52, 84, 0.68);
-  --glass-3: rgba(232, 246, 255, 0.92);
+  --glass-0: rgba(255, 255, 255, 0.34);
+  --glass-1: rgba(255, 255, 255, 0.58);
+  --glass-2: rgba(255, 255, 255, 0.74);
+  --glass-3: rgba(255, 255, 255, 0.92);
   --glass-gold: rgba(245, 158, 11, 0.14);
   --glass-green: rgba(16, 185, 129, 0.16);
   --glass-red: rgba(239, 68, 68, 0.16);
@@ -43,17 +43,17 @@
   --blur-md: blur(22px) saturate(180%);
   --blur-lg: blur(34px) saturate(200%);
 
-  --border: rgba(148, 210, 255, 0.18);
-  --border-hover: rgba(56, 189, 248, 0.48);
+  --border: rgba(7, 89, 133, 0.22);
+  --border-hover: rgba(7, 89, 133, 0.46);
   --border-gold: rgba(245, 158, 11, 0.34);
   --border-gold-2: rgba(245, 158, 11, 0.55);
   --border-green: rgba(16, 185, 129, 0.32);
   --border-red: rgba(239, 68, 68, 0.34);
   --border-blue: rgba(56, 189, 248, 0.42);
 
-  --text: #eaf6ff;
-  --text-dim: rgba(219, 236, 255, 0.76);
-  --text-muted: rgba(188, 211, 232, 0.62);
+  --text: #0a2742;
+  --text-dim: rgba(10, 39, 66, 0.76);
+  --text-muted: rgba(10, 39, 66, 0.58);
   --text-inverse: #ffffff;
   --text-gold: #fbbf24;
   --text-green: #34d399;
@@ -66,13 +66,13 @@
   --glow-green: 0 18px 45px rgba(16, 185, 129, 0.24);
   --glow-red: 0 18px 45px rgba(239, 68, 68, 0.22);
 
-  --shadow-sm: 0 8px 22px rgba(0, 0, 0, 0.22);
-  --shadow-md: 0 16px 42px rgba(0, 0, 0, 0.28);
-  --shadow-lg: 0 24px 70px rgba(0, 0, 0, 0.36);
+  --shadow-sm: 0 8px 22px rgba(7, 89, 133, 0.12);
+  --shadow-md: 0 16px 42px rgba(7, 89, 133, 0.16);
+  --shadow-lg: 0 24px 70px rgba(7, 89, 133, 0.22);
   --shadow-card:
-    0 18px 55px rgba(0, 0, 0, 0.30),
-    inset 0 1px 0 rgba(255, 255, 255, 0.18),
-    inset 0 -1px 0 rgba(255, 255, 255, 0.06);
+    0 18px 55px rgba(7, 89, 133, 0.14),
+    inset 0 1px 0 rgba(255, 255, 255, 0.78),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.26);
 
   --r-xs: 6px;
   --r-sm: 10px;

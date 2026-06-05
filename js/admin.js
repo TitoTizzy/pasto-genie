@@ -14,9 +14,12 @@ let tournoisMap = {};
 let teamA = { titulaires: [], remplacants: [] };
 let teamB = { titulaires: [], remplacants: [] };
 let catOrder = CATEGORIES.map(c => c.id);
+let allBlogArticles = [];
+let currentAdminUser = null;
 
 (async () => {
   const { user } = await initAuth({ allowedRoles: [ROLES.SUPERADMIN], redirectTo: "login.html" });
+  currentAdminUser = user;
   $("admin-email").textContent = user.email;
   bootstrap();
 })();
@@ -70,6 +73,7 @@ function bootstrap() {
   wireEquipes();
   wireJoueurs();
   wireStats();
+  wireBlog();
   buildCatDragList();
   showSection("s-dashboard");
   loadDashboard();
@@ -94,6 +98,7 @@ function wireSidebar() {
       if (btn.dataset.section === "s-statistiques") loadStats();
       if (btn.dataset.section === "s-bareme") loadBareme();
       if (btn.dataset.section === "s-regles") loadRegles();
+      if (btn.dataset.section === "s-blog") loadBlogArticles();
       if (btn.dataset.section === "s-users") loadUsers();
     });
   });
@@ -111,6 +116,18 @@ async function fetchRows(table, options = {}) {
   const { data, error } = await q;
   if (error) throw error;
   return data || [];
+}
+
+function isMissingTableError(error) {
+  const msg = `${error?.message || ""} ${error?.details || ""}`.toLowerCase();
+  return msg.includes("could not find the table")
+    || msg.includes("does not exist")
+    || msg.includes("schema cache");
+}
+
+async function optionalDelete(query) {
+  const { error } = await query;
+  if (error && !isMissingTableError(error)) throw error;
 }
 
 async function loadDashboard() {
@@ -286,7 +303,11 @@ async function registerTeamToTournament() {
     await renderCompetitionEngine();
   } catch (err) {
     console.error(err);
-    toast("Erreur inscription : " + err.message, "error");
+    if (isMissingTableError(err)) {
+      toast("Moteur competition incomplet : executez le script SQL repair-blog-and-competition-engine.sql dans Supabase.", "error");
+    } else {
+      toast("Erreur inscription : " + err.message, "error");
+    }
   }
 }
 
@@ -326,7 +347,11 @@ async function transferPlayerInTournament() {
     toast("Transfert enregistre pour ce tournoi.", "success");
   } catch (err) {
     console.error(err);
-    toast("Erreur transfert : " + err.message, "error");
+    if (isMissingTableError(err)) {
+      toast("Moteur competition incomplet : executez le script SQL repair-blog-and-competition-engine.sql dans Supabase.", "error");
+    } else {
+      toast("Erreur transfert : " + err.message, "error");
+    }
   }
 }
 
@@ -687,14 +712,11 @@ async function deleteEquipe(eq) {
       return;
     }
 
-    const cleanup = [
-      supabase.from(T.TRANSFERTS).delete().or(`ancienne_equipe_id.eq.${eq.id},nouvelle_equipe_id.eq.${eq.id}`),
-      supabase.from(T.TOURNOI_JOUEURS).delete().eq("equipe_id", eq.id),
-      supabase.from(T.TOURNOI_EQUIPES).delete().eq("equipe_id", eq.id),
-    ];
-    const cleanupResults = await Promise.all(cleanup);
-    const cleanupError = cleanupResults.find(result => result.error)?.error;
-    if (cleanupError) throw cleanupError;
+    await Promise.all([
+      optionalDelete(supabase.from(T.TRANSFERTS).delete().or(`ancienne_equipe_id.eq.${eq.id},nouvelle_equipe_id.eq.${eq.id}`)),
+      optionalDelete(supabase.from(T.TOURNOI_JOUEURS).delete().eq("equipe_id", eq.id)),
+      optionalDelete(supabase.from(T.TOURNOI_EQUIPES).delete().eq("equipe_id", eq.id)),
+    ]);
 
     const { error: detachPlayersError } = await supabase
       .from(T.JOUEURS)
@@ -837,13 +859,10 @@ async function deleteJoueur(joueur) {
       return;
     }
 
-    const cleanup = [
-      supabase.from(T.TRANSFERTS).delete().eq("joueur_id", joueur.id),
-      supabase.from(T.TOURNOI_JOUEURS).delete().eq("joueur_id", joueur.id),
-    ];
-    const cleanupResults = await Promise.all(cleanup);
-    const cleanupError = cleanupResults.find(result => result.error)?.error;
-    if (cleanupError) throw cleanupError;
+    await Promise.all([
+      optionalDelete(supabase.from(T.TRANSFERTS).delete().eq("joueur_id", joueur.id)),
+      optionalDelete(supabase.from(T.TOURNOI_JOUEURS).delete().eq("joueur_id", joueur.id)),
+    ]);
 
     const { error } = await supabase.from(T.JOUEURS).delete().eq("id", joueur.id);
     if (error) throw error;
@@ -1386,6 +1405,119 @@ async function saveRegles() {
   } finally {
     btn.disabled = false;
     btn.innerHTML = '<i class="ri-save-line"></i> Enregistrer';
+  }
+}
+
+function wireBlog() {
+  bind("btn-save-blog", "click", saveBlogArticle);
+}
+
+async function loadBlogArticles() {
+  const wrap = $("blog-list");
+  if (!wrap) return;
+  wrap.innerHTML = '<p class="text-muted text-center" style="padding:var(--space-5);">Chargement...</p>';
+  try {
+    allBlogArticles = await fetchRows(T.BLOG_ARTICLES, {
+      order: { column: "created_at", ascending: false },
+      limit: 40,
+    });
+    renderBlogArticles();
+  } catch (err) {
+    console.error(err);
+    if (isMissingTableError(err)) {
+      wrap.innerHTML = '<p class="text-muted text-center">Executez le script SQL repair-blog-and-competition-engine.sql.</p>';
+    } else {
+      wrap.innerHTML = '<p class="text-muted text-center">Erreur chargement blog.</p>';
+    }
+  }
+}
+
+function renderBlogArticles() {
+  const wrap = $("blog-list");
+  if (!wrap) return;
+  wrap.innerHTML = "";
+  if (!allBlogArticles.length) {
+    wrap.innerHTML = '<p class="text-muted text-center" style="padding:var(--space-5);">Aucun article.</p>';
+    return;
+  }
+
+  allBlogArticles.forEach(article => {
+    const card = document.createElement("div");
+    card.className = "entity-card";
+    card.innerHTML = `
+      <div class="entity-avatar"><i class="ri-article-line"></i></div>
+      <div class="entity-main">
+        <div class="entity-title"></div>
+        <div class="entity-meta"></div>
+      </div>
+      <span class="statut-badge ${article.statut === "published" ? "termine" : "planifie"}"></span>
+      <button class="btn btn-ghost btn-sm btn-icon delete-blog" title="Supprimer l'article">
+        <i class="ri-delete-bin-line" style="color:var(--red);"></i>
+      </button>`;
+    card.querySelector(".entity-title").textContent = article.titre || "-";
+    card.querySelector(".entity-meta").textContent = `${article.categorie || "Actualites"} - ${article.resume || "Sans resume"}`;
+    card.querySelector(".statut-badge").textContent = article.statut === "published" ? "Publie" : "Brouillon";
+    card.querySelector(".delete-blog").addEventListener("click", () => deleteBlogArticle(article));
+    wrap.appendChild(card);
+  });
+}
+
+async function saveBlogArticle() {
+  hideAlert("blog-alert");
+  const titre = $("blog-title")?.value.trim();
+  const categorie = $("blog-category")?.value.trim() || "Actualites";
+  const resume = $("blog-excerpt")?.value.trim();
+  const contenu = $("blog-content")?.value.trim();
+  const statut = $("blog-status")?.value || "published";
+
+  if (!titre) {
+    showAlert("blog-alert-msg", "blog-alert", "Titre requis.");
+    return;
+  }
+
+  const btn = $("btn-save-blog");
+  btn.disabled = true;
+  btn.innerHTML = '<i class="ri-loader-4-line spin"></i> Publication...';
+  try {
+    const { error } = await supabase.from(T.BLOG_ARTICLES).insert({
+      titre,
+      categorie,
+      resume,
+      contenu,
+      statut,
+      auteur_id: currentAdminUser?.id || null,
+      published_at: statut === "published" ? nowISO() : null,
+      created_at: nowISO(),
+      updated_at: nowISO(),
+    });
+    if (error) throw error;
+    toast(statut === "published" ? "Article publie." : "Brouillon enregistre.", "success");
+    ["blog-title", "blog-category", "blog-excerpt", "blog-content"].forEach(id => { const el = $(id); if (el) el.value = ""; });
+    if ($("blog-status")) $("blog-status").value = "published";
+    await loadBlogArticles();
+  } catch (err) {
+    console.error(err);
+    if (isMissingTableError(err)) {
+      showAlert("blog-alert-msg", "blog-alert", "Executez le script SQL repair-blog-and-competition-engine.sql dans Supabase.");
+    } else {
+      showAlert("blog-alert-msg", "blog-alert", "Erreur : " + err.message);
+    }
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="ri-send-plane-line"></i> Publier l\'article';
+  }
+}
+
+async function deleteBlogArticle(article) {
+  if (!confirm(`Supprimer l'article "${article.titre || "sans titre"}" ?`)) return;
+  try {
+    const { error } = await supabase.from(T.BLOG_ARTICLES).delete().eq("id", article.id);
+    if (error) throw error;
+    toast("Article supprime.", "success");
+    await loadBlogArticles();
+  } catch (err) {
+    console.error(err);
+    toast("Erreur suppression article : " + err.message, "error");
   }
 }
 

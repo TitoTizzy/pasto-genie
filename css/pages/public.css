@@ -1662,3 +1662,57 @@
   border-color: var(--border);
 }
 .nav-select:focus { border-color: var(--sky); }
+
+/* Readability skin: normal blue, high contrast */
+.public-page .navbar,
+.public-page .blog-zone,
+.public-page .home-module,
+.public-page .neo-card,
+.public-page .glass,
+.public-page .calendar-match,
+.public-page .pool-card,
+.public-page .cat-score-cell,
+.public-page .event-item,
+.public-page .nav-select {
+  background:
+    linear-gradient(145deg, rgba(255,255,255,0.90), rgba(225,243,251,0.72));
+  border-color: rgba(7,89,133,0.20);
+  box-shadow: 0 18px 50px rgba(7,89,133,0.15), inset 0 1px 0 rgba(255,255,255,0.76);
+}
+
+.public-page .blog-preview-item {
+  background: rgba(255,255,255,0.72);
+  border-color: rgba(7,89,133,0.18);
+}
+
+.public-page .brand-name,
+.public-page .module-title,
+.public-page .blog-zone h1,
+.public-page .team-label,
+.public-page .scoreboard-meta-name,
+.public-page .pool-title,
+.public-page .public-ranking-name,
+.public-page .blog-preview-item strong {
+  color: #0a2742;
+}
+
+.public-page .section-kicker,
+.public-page .blog-preview-item span,
+.public-page .module-title i,
+.public-page .chrono-time,
+.public-page .player-row-pts {
+  color: var(--sky);
+}
+
+.public-page p,
+.public-page .brand-sub,
+.public-page .public-ranking-meta,
+.public-page .text-muted {
+  color: rgba(10,39,66,0.66) !important;
+}
+
+.public-page .module-link,
+.public-page .btn-gold {
+  background: linear-gradient(135deg, #0ea5d8, #2563eb);
+  color: #fff;
+}
