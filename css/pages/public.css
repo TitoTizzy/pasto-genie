@@ -1,5 +1,5 @@
 /* ================================================================
-   PASTO GÉNIE — Public Scoreboard
+   PASTO GENIE - Public Scoreboard
    ================================================================ */
 .public-layout {
   max-width: 1280px;
@@ -28,15 +28,15 @@
 
 .blog-zone,
 .home-module {
-  border: 1px solid rgba(255,255,255,0.66);
+  border: 1px solid rgba(148,210,255,0.18);
   border-radius: var(--r-2xl);
   background:
-    linear-gradient(145deg, rgba(255,255,255,0.84), rgba(205,232,255,0.54)),
-    radial-gradient(circle at 8% 10%, rgba(14,165,233,0.20), transparent 38%),
-    radial-gradient(circle at 92% 12%, rgba(245,158,11,0.13), transparent 30%);
+    linear-gradient(145deg, rgba(17,45,73,0.86), rgba(5,18,34,0.70)),
+    radial-gradient(circle at 8% 10%, rgba(14,165,233,0.22), transparent 38%),
+    radial-gradient(circle at 92% 12%, rgba(29,78,216,0.16), transparent 32%);
   box-shadow:
-    0 28px 80px rgba(7,89,133,0.18),
-    inset 0 1px 0 rgba(255,255,255,0.82);
+    0 28px 80px rgba(0,0,0,0.34),
+    inset 0 1px 0 rgba(255,255,255,0.16);
 }
 
 .blog-zone {
@@ -106,14 +106,14 @@
   padding: var(--space-5);
   display: grid;
   gap: var(--space-2);
-  border: 1px solid rgba(7,89,133,0.14);
+  border: 1px solid rgba(148,210,255,0.14);
   border-radius: var(--r-xl);
-  background: rgba(255,255,255,0.58);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.72);
+  background: rgba(8,24,43,0.54);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.12);
 }
 
 .blog-preview-item span {
-  color: var(--sky-deep);
+  color: var(--sky-bright);
   font-size: 0.95rem;
   font-weight: 950;
   text-transform: uppercase;
@@ -151,7 +151,7 @@
   border: 1px solid rgba(7,89,133,0.22);
   border-radius: var(--r-full);
   color: #fff;
-  background: linear-gradient(135deg, var(--sky-deep), var(--indigo));
+  background: linear-gradient(135deg, var(--sky), var(--indigo));
   font-weight: 950;
   box-shadow: 0 16px 34px rgba(7,89,133,0.22);
 }
@@ -218,9 +218,10 @@
   grid-template-columns: 1fr;
   gap: var(--space-2);
   padding: var(--space-3);
-  border: 1px solid rgba(7,89,133,0.16);
+  border: 1px solid rgba(148,210,255,0.14);
   border-radius: var(--r-xl);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.66);
+  background: rgba(8,24,43,0.42);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.10);
 }
 
 .compact-calendar .calendar-teams,
@@ -266,10 +267,10 @@
   position: relative;
   z-index: 1;
   padding: var(--space-3);
-  border: 1px solid rgba(7,89,133,0.16);
+  border: 1px solid rgba(148,210,255,0.14);
   border-radius: var(--r-xl);
-  background: rgba(255,255,255,0.52);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.66);
+  background: rgba(8,24,43,0.48);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.10);
 }
 
 .calendar-module,
@@ -280,28 +281,28 @@
 
 .featured-module {
   background:
-    linear-gradient(145deg, rgba(255,255,255,0.88), rgba(192,226,255,0.62)),
-    radial-gradient(circle at 50% 0%, rgba(14,165,233,0.26), transparent 54%),
-    radial-gradient(circle at 88% 12%, rgba(245,158,11,0.18), transparent 32%);
+    linear-gradient(145deg, rgba(19,56,91,0.92), rgba(5,18,34,0.76)),
+    radial-gradient(circle at 50% 0%, rgba(14,165,233,0.30), transparent 54%),
+    radial-gradient(circle at 88% 12%, rgba(245,158,11,0.12), transparent 32%);
 }
 
 .calendar-module,
 .stats-module {
   background:
-    linear-gradient(145deg, rgba(255,255,255,0.82), rgba(205,232,255,0.50)),
-    radial-gradient(circle at 0% 0%, rgba(79,70,229,0.13), transparent 36%);
+    linear-gradient(145deg, rgba(17,45,73,0.86), rgba(5,18,34,0.68)),
+    radial-gradient(circle at 0% 0%, rgba(29,78,216,0.16), transparent 36%);
 }
 
 .tournament-module {
   background:
-    linear-gradient(145deg, rgba(255,255,255,0.86), rgba(207,238,255,0.56)),
-    radial-gradient(circle at 92% 10%, rgba(16,185,129,0.15), transparent 36%);
+    linear-gradient(145deg, rgba(17,45,73,0.88), rgba(5,18,34,0.70)),
+    radial-gradient(circle at 92% 10%, rgba(16,185,129,0.14), transparent 36%);
 }
 
 .module-footer .btn {
   border-color: rgba(7,89,133,0.24);
-  color: var(--sky-deep);
-  background: rgba(255,255,255,0.62);
+  color: var(--sky-bright);
+  background: rgba(8,24,43,0.54);
 }
 
 .home-dashboard .public-ranking-row {
@@ -1607,11 +1608,11 @@
   .today-match-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
-/* Sky glass refit */
+/* Deep professional skin */
 .scoreboard-hero::after {
   background:
-    radial-gradient(ellipse at center, rgba(56,189,248,0.18) 0%, transparent 62%),
-    linear-gradient(135deg, rgba(255,255,255,0.18), transparent);
+    radial-gradient(ellipse at center, rgba(14,165,233,0.20) 0%, transparent 62%),
+    linear-gradient(135deg, rgba(255,255,255,0.08), transparent);
 }
 .scoreboard-meta-title,
 .team-parish,
@@ -1624,39 +1625,39 @@
 .event-body strong { color: var(--text); }
 .team-crest {
   background: linear-gradient(135deg, var(--sky), var(--cyan));
-  border-color: rgba(255,255,255,0.76);
+  border-color: rgba(148,210,255,0.34);
   color: #fff;
   box-shadow: var(--glow-blue);
 }
 .cat-active-strip {
-  background: rgba(186,230,253,0.72);
+  background: rgba(14,165,233,0.16);
   border-color: var(--border-blue);
-  color: var(--sky-deep);
+  color: var(--sky-bright);
 }
 .cat-score-cell,
 .event-item {
-  background: rgba(255,255,255,0.46);
+  background: rgba(8,24,43,0.54);
   border-color: var(--border);
 }
 .cat-score-cell.active {
-  background: rgba(186,230,253,0.76);
+  background: rgba(14,165,233,0.16);
   border-color: var(--border-blue);
 }
 .cat-score-cell.done {
-  background: rgba(209,250,229,0.62);
+  background: rgba(16,185,129,0.16);
   border-color: var(--border-green);
 }
 .cat-score-vs span,
 .player-row-pts,
-.chrono-time { color: var(--sky-deep); }
+.chrono-time { color: var(--sky-bright); }
 .player-row:hover,
-.event-item:hover { background: rgba(255,255,255,0.64); }
+.event-item:hover { background: rgba(14,165,233,0.12); }
 .player-row-name { color: var(--text-dim); }
 .event-item.bonne { border-left: 3px solid var(--green); }
 .event-item.mauvaise { border-left: 3px solid var(--red); }
 .event-item.replique { border-left: 3px solid var(--orange); }
 .nav-select {
-  background: rgba(255,255,255,0.58);
+  background: rgba(8,24,43,0.58);
   color: var(--text);
   border-color: var(--border);
 }

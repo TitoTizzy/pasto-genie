@@ -1,5 +1,5 @@
 /* ================================================================
-   PASTO GÉNIE — Admin Panel
+   PASTO GENIE - Admin Panel
    ================================================================ */
 .admin-layout { min-height: calc(100vh - 62px); }
 
@@ -26,10 +26,10 @@
   flex-shrink: 0;
 }
 
-.dash-stat-icon.gold   { background: var(--glass-gold);  color: var(--gold);  box-shadow: var(--glow-gold); }
+.dash-stat-icon.gold   { background: var(--glass-blue);  color: var(--sky-bright);  box-shadow: var(--glow-blue); }
 .dash-stat-icon.green  { background: var(--glass-green); color: var(--green); box-shadow: var(--glow-green); }
 .dash-stat-icon.red    { background: var(--glass-red);   color: var(--red);   box-shadow: var(--glow-red); }
-.dash-stat-icon.blue   { background: rgba(74,144,226,0.1); color: var(--blue-accent); box-shadow: var(--glow-blue); }
+.dash-stat-icon.blue   { background: rgba(14,165,233,0.14); color: var(--sky-bright); box-shadow: var(--glow-blue); }
 
 .dash-stat-val {
   font-size: 2.35rem;
@@ -49,7 +49,7 @@
 
 /* ── Card row (tournoi / match cards) ───────────────────────────── */
 .item-card {
-  background: var(--glass-1);
+  background: rgba(8,24,43,0.58);
   border: 1px solid var(--border);
   border-radius: var(--r-md);
   padding: var(--space-4) var(--space-5);
@@ -170,7 +170,7 @@
   gap: var(--space-3);
   padding: var(--space-3) var(--space-4);
   border-radius: var(--r-md);
-  background: rgba(255,255,255,0.58);
+  background: rgba(8,24,43,0.54);
   border: 1px solid var(--border);
   color: var(--text);
   text-align: left;
@@ -184,7 +184,7 @@
 
 .entity-card-button:hover,
 .ranking-button:hover {
-  background: rgba(255,255,255,0.78);
+  background: rgba(14,165,233,0.14);
   border-color: var(--border-hover);
 }
 
@@ -197,7 +197,7 @@
   align-items: center;
   justify-content: center;
   background:
-    linear-gradient(135deg, color-mix(in srgb, var(--entity-color, var(--sky)) 82%, white), var(--cyan));
+    linear-gradient(135deg, color-mix(in srgb, var(--entity-color, var(--sky)) 78%, #082f49), var(--sky-bright));
   background-size: cover;
   background-position: center;
   color: #fff;
@@ -670,11 +670,13 @@
   .dash-stat-icon { width: 58px; height: 58px; font-size: 1.6rem; }
 }
 
-/* Sky glass refit */
+/* Deep professional skin */
 .dash-stat {
   border-radius: var(--r-xl);
   background:
-    linear-gradient(145deg, rgba(255,255,255,0.76), rgba(255,255,255,0.38));
+    linear-gradient(145deg, rgba(17,45,73,0.86), rgba(5,18,34,0.70));
+  border-color: rgba(148,210,255,0.16);
+  box-shadow: 0 18px 48px rgba(0,0,0,0.30), inset 0 1px 0 rgba(255,255,255,0.10);
 }
 .dash-stat-icon.gold {
   background: linear-gradient(135deg, var(--sky), var(--cyan));
@@ -708,13 +710,14 @@
 .player-list-row,
 .drag-item,
 .users-table-wrap {
-  background: rgba(255,255,255,0.48);
-  border-color: var(--border);
+  background: rgba(8,24,43,0.58);
+  border-color: rgba(148,210,255,0.16);
+  box-shadow: 0 14px 38px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,255,255,0.08);
 }
 .item-card:hover,
 .drag-item:hover {
-  background: rgba(255,255,255,0.68);
-  border-color: var(--border-hover);
+  background: rgba(14,165,233,0.14);
+  border-color: rgba(56,189,248,0.38);
 }
 .item-card-icon.gold,
 .avatar.sm {
@@ -733,8 +736,25 @@
   background: linear-gradient(135deg, var(--indigo), var(--violet));
   color: #fff;
 }
-.statut-badge.planifie { background: rgba(186,230,253,0.72); border: 1px solid var(--border-blue); color: var(--sky-deep); }
-.statut-badge.en_cours { background: rgba(255,228,230,0.86); border: 1px solid var(--border-red); color: var(--text-red); }
-.statut-badge.termine { background: rgba(209,250,229,0.82); border: 1px solid var(--border-green); color: var(--text-green); }
-.glass-table thead th { background: rgba(186,230,253,0.42); border-bottom-color: var(--border-blue); }
-.glass-table tbody tr:hover { background: rgba(255,255,255,0.44); }
+.statut-badge.planifie { background: rgba(14,165,233,0.16); border: 1px solid var(--border-blue); color: var(--sky-bright); }
+.statut-badge.en_cours { background: rgba(239,68,68,0.16); border: 1px solid var(--border-red); color: var(--text-red); }
+.statut-badge.termine { background: rgba(16,185,129,0.16); border: 1px solid var(--border-green); color: var(--text-green); }
+.glass-table thead th { background: rgba(14,165,233,0.12); border-bottom-color: var(--border-blue); }
+.glass-table tbody tr:hover { background: rgba(14,165,233,0.08); }
+.entity-card,
+.ranking-row,
+.match-card-admin,
+.player-card {
+  background:
+    linear-gradient(145deg, rgba(17,45,73,0.82), rgba(5,18,34,0.68));
+  border-color: rgba(148,210,255,0.16);
+  box-shadow: 0 14px 38px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,255,255,0.08);
+}
+.entity-card-button:hover,
+.ranking-button:hover,
+.match-card-admin:hover,
+.player-card:hover {
+  background:
+    linear-gradient(145deg, rgba(20,62,99,0.88), rgba(7,25,45,0.74));
+  border-color: rgba(56,189,248,0.36);
+}

@@ -1,6 +1,6 @@
 /* ================================================================
    PASTO GENIE - Design Tokens
-   Light Sky Glassmorphism
+   Deep Modern Glass
    ================================================================ */
 :root {
   --font: 'Outfit', system-ui, sans-serif;
@@ -12,74 +12,74 @@
   --fs-lg: 1.42rem;
   --fs-xl: 1.75rem;
 
-  --bg-base: #d9ecff;
-  --bg-surface: #eef7ff;
-  --bg-deep: #b7d9f4;
+  --bg-base: #071426;
+  --bg-surface: #0d2742;
+  --bg-deep: #04101f;
 
-  --sky: #0ea5e9;
+  --sky: #0284c7;
   --sky-bright: #38bdf8;
-  --sky-deep: #075985;
+  --sky-deep: #0c4a6e;
   --cyan: #22d3ee;
-  --indigo: #4f46e5;
-  --violet: #8b5cf6;
-  --coral: #ff5c8a;
+  --indigo: #1d4ed8;
+  --violet: #7c3aed;
+  --coral: #e11d48;
   --orange: #fb923c;
   --green: #10b981;
   --lime: #84cc16;
   --red: #ef4444;
   --gold: #f59e0b;
   --gold-bright: #fbbf24;
-  --blue-accent: #0b6fa4;
+  --blue-accent: #0369a1;
 
-  --glass-0: rgba(255, 255, 255, 0.30);
-  --glass-1: rgba(255, 255, 255, 0.46);
-  --glass-2: rgba(255, 255, 255, 0.62);
-  --glass-3: rgba(255, 255, 255, 0.78);
-  --glass-gold: rgba(255, 245, 190, 0.58);
-  --glass-green: rgba(209, 250, 229, 0.62);
-  --glass-red: rgba(255, 228, 230, 0.66);
-  --glass-blue: rgba(186, 230, 253, 0.68);
+  --glass-0: rgba(8, 24, 43, 0.42);
+  --glass-1: rgba(12, 36, 61, 0.58);
+  --glass-2: rgba(16, 52, 84, 0.68);
+  --glass-3: rgba(232, 246, 255, 0.92);
+  --glass-gold: rgba(245, 158, 11, 0.14);
+  --glass-green: rgba(16, 185, 129, 0.16);
+  --glass-red: rgba(239, 68, 68, 0.16);
+  --glass-blue: rgba(14, 165, 233, 0.18);
   --blur-sm: blur(12px) saturate(160%);
   --blur-md: blur(22px) saturate(180%);
   --blur-lg: blur(34px) saturate(200%);
 
-  --border: rgba(7, 89, 133, 0.20);
-  --border-hover: rgba(7, 89, 133, 0.42);
+  --border: rgba(148, 210, 255, 0.18);
+  --border-hover: rgba(56, 189, 248, 0.48);
   --border-gold: rgba(245, 158, 11, 0.34);
   --border-gold-2: rgba(245, 158, 11, 0.55);
   --border-green: rgba(16, 185, 129, 0.32);
   --border-red: rgba(239, 68, 68, 0.34);
   --border-blue: rgba(56, 189, 248, 0.42);
 
-  --text: #08233d;
-  --text-dim: rgba(15, 39, 66, 0.72);
-  --text-muted: rgba(15, 39, 66, 0.48);
+  --text: #eaf6ff;
+  --text-dim: rgba(219, 236, 255, 0.76);
+  --text-muted: rgba(188, 211, 232, 0.62);
   --text-inverse: #ffffff;
-  --text-gold: #b45309;
-  --text-green: #047857;
-  --text-red: #dc2626;
+  --text-gold: #fbbf24;
+  --text-green: #34d399;
+  --text-red: #fb7185;
 
-  --glow-blue: 0 18px 55px rgba(14, 116, 144, 0.34);
-  --glow-cyan: 0 18px 55px rgba(34, 211, 238, 0.24);
+  --glow-blue: 0 18px 55px rgba(14, 165, 233, 0.28);
+  --glow-cyan: 0 18px 55px rgba(34, 211, 238, 0.20);
   --glow-gold: 0 16px 42px rgba(245, 158, 11, 0.24);
   --glow-gold-2: 0 20px 70px rgba(245, 158, 11, 0.16);
   --glow-green: 0 18px 45px rgba(16, 185, 129, 0.24);
   --glow-red: 0 18px 45px rgba(239, 68, 68, 0.22);
 
-  --shadow-sm: 0 8px 22px rgba(14, 116, 144, 0.10);
-  --shadow-md: 0 16px 42px rgba(14, 116, 144, 0.15);
-  --shadow-lg: 0 24px 70px rgba(14, 116, 144, 0.20);
+  --shadow-sm: 0 8px 22px rgba(0, 0, 0, 0.22);
+  --shadow-md: 0 16px 42px rgba(0, 0, 0, 0.28);
+  --shadow-lg: 0 24px 70px rgba(0, 0, 0, 0.36);
   --shadow-card:
-    0 18px 55px rgba(14, 116, 144, 0.16),
-    inset 0 1px 0 rgba(255, 255, 255, 0.82),
-    inset 0 -1px 0 rgba(255, 255, 255, 0.30);
+    0 18px 55px rgba(0, 0, 0, 0.30),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.06);
 
   --r-xs: 6px;
   --r-sm: 10px;
-  --r-md: 16px;
-  --r-lg: 20px;
-  --r-xl: 28px;
-  --r-2xl: 36px;
+  --r-md: 14px;
+  --r-lg: 18px;
+  --r-xl: 22px;
+  --r-2xl: 28px;
   --r-full: 9999px;
 
   --space-1: 4px;

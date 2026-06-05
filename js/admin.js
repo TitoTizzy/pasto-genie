@@ -579,7 +579,10 @@ function renderEquipesList() {
         <div class="entity-title"></div>
         <div class="entity-meta"></div>
       </div>
-      <span class="color-swatch" style="background:${primary};"></span>`;
+      <span class="color-swatch" style="background:${primary};"></span>
+      <button class="btn btn-ghost btn-sm btn-icon delete-equipe" title="Supprimer l'equipe">
+        <i class="ri-delete-bin-line" style="color:var(--red);"></i>
+      </button>`;
     const avatar = card.querySelector(".entity-avatar");
     if (eq.embleme_url) {
       avatar.style.backgroundImage = `url("${eq.embleme_url}")`;
@@ -589,6 +592,7 @@ function renderEquipesList() {
     }
     card.querySelector(".entity-title").textContent = eq.nom || "-";
     card.querySelector(".entity-meta").textContent = `${eq.paroisse || "Sans paroisse"} - ${eq.poule || "Poule unique"}`;
+    card.querySelector(".delete-equipe").addEventListener("click", () => deleteEquipe(eq));
     wrap.appendChild(card);
   });
 }
@@ -667,6 +671,50 @@ async function saveEquipe() {
   }
 }
 
+async function deleteEquipe(eq) {
+  if (!confirm(`Supprimer definitivement l'equipe "${eq.nom || "sans nom"}" ?`)) return;
+
+  try {
+    const { data: matchRefs, error: matchError } = await supabase
+      .from(T.MATCHES)
+      .select("id")
+      .or(`equipe_a_id.eq.${eq.id},equipe_b_id.eq.${eq.id}`)
+      .limit(1);
+    if (matchError) throw matchError;
+
+    if ((matchRefs || []).length) {
+      toast("Impossible de supprimer : cette equipe est deja rattachee a un match. Supprimez d'abord le calendrier non joue du tournoi.", "error");
+      return;
+    }
+
+    const cleanup = [
+      supabase.from(T.TRANSFERTS).delete().or(`ancienne_equipe_id.eq.${eq.id},nouvelle_equipe_id.eq.${eq.id}`),
+      supabase.from(T.TOURNOI_JOUEURS).delete().eq("equipe_id", eq.id),
+      supabase.from(T.TOURNOI_EQUIPES).delete().eq("equipe_id", eq.id),
+    ];
+    const cleanupResults = await Promise.all(cleanup);
+    const cleanupError = cleanupResults.find(result => result.error)?.error;
+    if (cleanupError) throw cleanupError;
+
+    const { error: detachPlayersError } = await supabase
+      .from(T.JOUEURS)
+      .update({ equipe_id: null, updated_at: nowISO() })
+      .eq("equipe_id", eq.id);
+    if (detachPlayersError) throw detachPlayersError;
+
+    const { error } = await supabase.from(T.EQUIPES).delete().eq("id", eq.id);
+    if (error) throw error;
+
+    toast("Equipe supprimee.", "success");
+    await loadEquipes();
+    await loadJoueurs();
+    await renderCompetitionEngine();
+  } catch (err) {
+    console.error(err);
+    toast("Erreur suppression equipe : " + err.message, "error");
+  }
+}
+
 function wireJoueurs() {
   bind("btn-save-joueur", "click", saveJoueur);
   previewUpload("j-photo-file", "j-photo-preview");
@@ -694,8 +742,7 @@ function renderJoueursList() {
   }
   allJoueurs.forEach(j => {
     const eq = allEquipes.find(item => item.id === j.equipe_id);
-    const card = document.createElement("button");
-    card.type = "button";
+    const card = document.createElement("div");
     card.className = "entity-card entity-card-button";
     card.dataset.playerId = j.id;
     card.innerHTML = `
@@ -704,7 +751,9 @@ function renderJoueursList() {
         <div class="entity-title"></div>
         <div class="entity-meta"></div>
       </div>
-      <i class="ri-arrow-right-s-line text-muted"></i>`;
+      <button class="btn btn-ghost btn-sm btn-icon delete-joueur" title="Supprimer le joueur">
+        <i class="ri-delete-bin-line" style="color:var(--red);"></i>
+      </button>`;
     const avatar = card.querySelector(".entity-avatar");
     if (j.photo_url) {
       avatar.style.backgroundImage = `url("${j.photo_url}")`;
@@ -714,7 +763,14 @@ function renderJoueursList() {
     }
     card.querySelector(".entity-title").textContent = `${j.prenom || ""} ${j.nom || ""}`.trim();
     card.querySelector(".entity-meta").textContent = eq?.nom || "Sans equipe";
-    card.addEventListener("click", () => toast("Profil detaille public a venir dans la prochaine etape.", "info"));
+    card.addEventListener("click", event => {
+      if (event.target.closest(".delete-joueur")) return;
+      toast("Profil detaille public a venir dans la prochaine etape.", "info");
+    });
+    card.querySelector(".delete-joueur").addEventListener("click", event => {
+      event.stopPropagation();
+      deleteJoueur(j);
+    });
     wrap.appendChild(card);
   });
 }
@@ -760,6 +816,45 @@ async function saveJoueur() {
   } finally {
     btn.disabled = false;
     btn.innerHTML = '<i class="ri-user-add-line"></i> Enregistrer le joueur';
+  }
+}
+
+async function deleteJoueur(joueur) {
+  const fullName = `${joueur.prenom || ""} ${joueur.nom || ""}`.trim() || "sans nom";
+  if (!confirm(`Supprimer definitivement le joueur "${fullName}" ?`)) return;
+
+  try {
+    const checks = [
+      supabase.from(T.EVENEMENTS).select("id").eq("joueur_id", joueur.id).limit(1),
+      supabase.from(T.STATS_JOUEURS).select("id").eq("joueur_id", joueur.id).limit(1),
+    ];
+    const checkResults = await Promise.all(checks);
+    const checkError = checkResults.find(result => result.error)?.error;
+    if (checkError) throw checkError;
+
+    if (checkResults.some(result => (result.data || []).length)) {
+      toast("Impossible de supprimer : ce joueur a deja un historique de match.", "error");
+      return;
+    }
+
+    const cleanup = [
+      supabase.from(T.TRANSFERTS).delete().eq("joueur_id", joueur.id),
+      supabase.from(T.TOURNOI_JOUEURS).delete().eq("joueur_id", joueur.id),
+    ];
+    const cleanupResults = await Promise.all(cleanup);
+    const cleanupError = cleanupResults.find(result => result.error)?.error;
+    if (cleanupError) throw cleanupError;
+
+    const { error } = await supabase.from(T.JOUEURS).delete().eq("id", joueur.id);
+    if (error) throw error;
+
+    toast("Joueur supprime.", "success");
+    await loadJoueurs();
+    await loadEquipes();
+    await renderCompetitionEngine();
+  } catch (err) {
+    console.error(err);
+    toast("Erreur suppression joueur : " + err.message, "error");
   }
 }
 

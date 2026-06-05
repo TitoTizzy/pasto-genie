@@ -1,5 +1,5 @@
 /* ================================================================
-   PASTO GÉNIE — Jury Interface
+   PASTO GENIE - Jury Interface
    ================================================================ */
 
 /* ── Arena ───────────────────────────────────────────────────────── */
@@ -25,12 +25,12 @@
 .jury-vs-badge {
   width: 48px; height: 48px;
   border-radius: 50%;
-  background: var(--glass-gold);
-  border: 1.5px solid var(--border-gold);
+  background: var(--glass-blue);
+  border: 1.5px solid var(--border-blue);
   display: flex; align-items: center; justify-content: center;
   font-size: 0.95rem;
   font-weight: 900;
-  color: var(--gold);
+  color: var(--sky-bright);
   letter-spacing: 0.06em;
   flex-shrink: 0;
 }
@@ -53,10 +53,10 @@
 .jury-score-panel .score-big {
   font-size: 3.2rem;
   font-weight: 900;
-  color: var(--gold);
+  color: var(--sky-bright);
   font-variant-numeric: tabular-nums;
   line-height: 1;
-  text-shadow: var(--glow-gold);
+  text-shadow: var(--glow-blue);
 }
 
 .jury-sep { color: var(--text-muted); font-size: 0.8rem; font-weight: 300; margin: 2px 0; }
@@ -94,9 +94,9 @@
   font-size: 1.42rem;
   font-weight: 900;
   font-variant-numeric: tabular-nums;
-  color: var(--gold);
+  color: var(--sky-bright);
   background: var(--glass-1);
-  border: 1px solid var(--border-gold);
+  border: 1px solid var(--border-blue);
   border-radius: var(--r-sm);
   padding: 0.25rem 0.85rem;
   letter-spacing: 0.05em;
@@ -108,7 +108,7 @@
   gap: var(--space-2);
   font-size: 1.08rem;
   font-weight: 700;
-  color: var(--gold);
+  color: var(--sky-bright);
 }
 
 .cat-info-chip .cat-num {
@@ -135,8 +135,8 @@
   text-align: center;
   padding: var(--space-4) var(--space-6);
   border-radius: var(--r-md);
-  background: var(--glass-gold);
-  border: 1px solid var(--border-gold);
+  background: var(--glass-blue);
+  border: 1px solid var(--border-blue);
   margin-bottom: var(--space-5);
 }
 
@@ -152,17 +152,17 @@
 .replique-context .rc-team {
   font-size: 1.45rem;
   font-weight: 900;
-  color: var(--gold);
+  color: var(--sky-bright);
 }
 
 .replique-countdown {
   font-size: 4.6rem;
   font-weight: 900;
   font-variant-numeric: tabular-nums;
-  color: var(--gold);
+  color: var(--sky-bright);
   text-align: center;
   line-height: 1;
-  text-shadow: var(--glow-gold);
+  text-shadow: var(--glow-blue);
   transition: color 0.3s ease, text-shadow 0.3s ease;
   margin: var(--space-4) 0;
 }
@@ -208,9 +208,9 @@
 }
 
 .replique-player-btn:hover:not(:disabled) {
-  background: var(--glass-gold);
-  border-color: var(--border-gold);
-  box-shadow: var(--glow-gold-2);
+  background: var(--glass-blue);
+  border-color: var(--border-blue);
+  box-shadow: var(--glow-blue);
   transform: translateY(-2px);
 }
 
@@ -245,7 +245,7 @@
 
 .jury-start-icon {
   font-size: 4rem;
-  color: var(--gold-dim);
+  color: var(--sky-bright);
   animation: glowPulse 2.5s ease-in-out infinite;
 }
 
