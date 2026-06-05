@@ -200,9 +200,12 @@ function renderBlogPreview(articles = []) {
     const card = document.createElement("article");
     card.className = "blog-preview-item";
     card.innerHTML = `
+      ${article.image_url ? '<div class="blog-preview-image"></div>' : ''}
       <span></span>
       <strong></strong>
       <p></p>`;
+    const image = card.querySelector(".blog-preview-image");
+    if (image) image.style.backgroundImage = `url("${article.image_url}")`;
     card.querySelector("span").textContent = article.categorie || "Actualites";
     card.querySelector("strong").textContent = article.titre || "Article";
     card.querySelector("p").textContent = article.resume || article.contenu || "";

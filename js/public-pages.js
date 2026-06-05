@@ -207,7 +207,9 @@ async function initBlogPage() {
     articles.forEach(article => {
       const card = document.createElement("article");
       card.className = "blog-preview-item blog-full-item";
-      card.innerHTML = `<span></span><strong></strong><p></p><div class="blog-content"></div>`;
+      card.innerHTML = `${article.image_url ? '<div class="blog-preview-image"></div>' : ''}<span></span><strong></strong><p></p><div class="blog-content"></div>`;
+      const image = card.querySelector(".blog-preview-image");
+      if (image) image.style.backgroundImage = `url("${article.image_url}")`;
       card.querySelector("span").textContent = article.categorie || "Actualites";
       card.querySelector("strong").textContent = article.titre || "Article";
       card.querySelector("p").textContent = article.resume || "";

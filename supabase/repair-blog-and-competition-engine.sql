@@ -11,12 +11,16 @@ create table if not exists public.blog_articles (
   categorie text default 'Actualites',
   resume text,
   contenu text,
+  image_url text,
   statut text not null default 'published' check (statut in ('draft', 'published')),
   auteur_id uuid references public.users(id) on delete set null,
   published_at timestamptz,
   created_at timestamptz default now(),
   updated_at timestamptz
 );
+
+alter table public.blog_articles
+  add column if not exists image_url text;
 
 alter table public.blog_articles enable row level security;
 

@@ -1410,6 +1410,7 @@ async function saveRegles() {
 
 function wireBlog() {
   bind("btn-save-blog", "click", saveBlogArticle);
+  previewUpload("blog-image-file", "blog-image-preview");
 }
 
 async function loadBlogArticles() {
@@ -1457,6 +1458,11 @@ function renderBlogArticles() {
     card.querySelector(".entity-title").textContent = article.titre || "-";
     card.querySelector(".entity-meta").textContent = `${article.categorie || "Actualites"} - ${article.resume || "Sans resume"}`;
     card.querySelector(".statut-badge").textContent = article.statut === "published" ? "Publie" : "Brouillon";
+    const avatar = card.querySelector(".entity-avatar");
+    if (article.image_url && avatar) {
+      avatar.style.backgroundImage = `url("${article.image_url}")`;
+      avatar.innerHTML = "";
+    }
     card.querySelector(".delete-blog").addEventListener("click", () => deleteBlogArticle(article));
     wrap.appendChild(card);
   });
@@ -1479,11 +1485,13 @@ async function saveBlogArticle() {
   btn.disabled = true;
   btn.innerHTML = '<i class="ri-loader-4-line spin"></i> Publication...';
   try {
+    const imageUrl = await uploadImage("blog-image-file", "blog");
     const { error } = await supabase.from(T.BLOG_ARTICLES).insert({
       titre,
       categorie,
       resume,
       contenu,
+      image_url: imageUrl || null,
       statut,
       auteur_id: currentAdminUser?.id || null,
       published_at: statut === "published" ? nowISO() : null,
@@ -1494,6 +1502,11 @@ async function saveBlogArticle() {
     toast(statut === "published" ? "Article publie." : "Brouillon enregistre.", "success");
     ["blog-title", "blog-category", "blog-excerpt", "blog-content"].forEach(id => { const el = $(id); if (el) el.value = ""; });
     if ($("blog-status")) $("blog-status").value = "published";
+    if ($("blog-image-file")) $("blog-image-file").value = "";
+    if ($("blog-image-preview")) {
+      $("blog-image-preview").style.backgroundImage = "";
+      $("blog-image-preview").innerHTML = '<i class="ri-image-add-line"></i>';
+    }
     await loadBlogArticles();
   } catch (err) {
     console.error(err);

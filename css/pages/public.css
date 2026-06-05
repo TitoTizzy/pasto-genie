@@ -125,6 +125,21 @@
   font-size: clamp(1.15rem, 2vw, 1.5rem);
 }
 
+.blog-preview-image {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: var(--r-lg);
+  border: 1px solid rgba(7,89,133,0.18);
+  background-size: cover;
+  background-position: center;
+  box-shadow: 0 18px 42px rgba(7,89,133,0.14);
+}
+
+.blog-full-item .blog-preview-image {
+  aspect-ratio: 21 / 9;
+  margin-bottom: var(--space-2);
+}
+
 .module-footer {
   position: relative;
   z-index: 1;
