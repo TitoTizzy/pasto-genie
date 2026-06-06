@@ -11,7 +11,7 @@ export const getCurrentUser = () => _user;
 export const getCurrentRole = () => _role;
 export const getCurrentProfile = () => _profile;
 export const isSuperAdmin = () => _role === ROLES.SUPERADMIN;
-export const isJuryOrAdmin = () => [ROLES.JURY, ROLES.SUPERADMIN].includes(_role);
+export const isJuryOrAdmin = () => [ROLES.JURY, ROLES.ADMIN, ROLES.SUPERADMIN].includes(_role);
 
 async function loadProfile(userId) {
   const { data, error } = await supabase
@@ -72,8 +72,8 @@ export async function logout(redirectTo = "login.html") {
 export function redirectByRole(role) {
   const map = {
     [ROLES.SUPERADMIN]: "admin.html",
+    [ROLES.ADMIN]: "admin.html",
     [ROLES.JURY]: "jury.html",
-    [ROLES.MEMBRE]: "index.html",
     [ROLES.PUBLIC]: "index.html",
   };
   window.location.href = map[role] || "index.html";

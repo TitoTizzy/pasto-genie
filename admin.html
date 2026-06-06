@@ -703,7 +703,7 @@
                 <tr>
                   <th>E-mail</th>
                   <th>Nom</th>
-                  <th>Rôle</th>
+                  <th>Profil</th>
                   <th style="text-align:right;">Actions</th>
                 </tr>
               </thead>
@@ -712,6 +712,24 @@
               </tbody>
             </table>
           </div>
+        </div>
+        <div id="permissions-panel" class="glass glass-md permissions-panel hidden">
+          <div class="card-header">
+            <div>
+              <div class="card-label"><i class="ri-shield-keyhole-line"></i> Permissions du profil</div>
+              <p id="permissions-user-label" class="text-muted"></p>
+            </div>
+            <button id="btn-close-permissions" class="btn btn-ghost btn-sm">
+              <i class="ri-close-line"></i> Fermer
+            </button>
+          </div>
+          <div id="permissions-grid" class="permissions-grid"></div>
+          <div id="permissions-alert" class="alert alert-red hidden">
+            <i class="ri-error-warning-line"></i><span id="permissions-alert-msg"></span>
+          </div>
+          <button id="btn-save-permissions" class="btn btn-gold">
+            <i class="ri-save-line"></i> Enregistrer les permissions
+          </button>
         </div>
       </section>
 
@@ -743,12 +761,11 @@
             <input id="nu-password" type="text" class="form-input" placeholder="Min. 6 caractères"/>
           </div>
           <div class="form-group">
-            <label class="form-label"><i class="ri-shield-line"></i> Rôle</label>
+            <label class="form-label"><i class="ri-shield-line"></i> Profil</label>
             <select id="nu-role" class="form-select">
-              <option value="public">👁 Public</option>
-              <option value="membre">👤 Membre</option>
-              <option value="jury" selected>⚖️ Jury</option>
-              <option value="superadmin">🔑 Superadmin</option>
+              <option value="jury" selected>Jury</option>
+              <option value="admin">Admin</option>
+              <option value="superadmin">Superadmin</option>
             </select>
           </div>
           <div id="nu-alert" class="alert alert-red hidden">

@@ -1,7 +1,7 @@
 // ================================================================
 //  PASTO GENIE - Admin panel Supabase
 // ================================================================
-import { supabase, T, ROLES, CATEGORIES, BAREME_DEFAULT, STORAGE_BUCKET } from "./supabase-config.js";
+import { supabase, T, ROLES, MANAGED_ROLES, CATEGORIES, BAREME_DEFAULT, STORAGE_BUCKET } from "./supabase-config.js";
 import { initAuth, logout } from "./auth.js";
 import { toast, showSection, showAlert, hideAlert, nextPlayerId, openOverlay, closeOverlay } from "./utils.js";
 
@@ -17,10 +17,48 @@ let catOrder = CATEGORIES.map(c => c.id);
 let allBlogArticles = [];
 let editingBlogArticle = null;
 let currentAdminUser = null;
+let currentAdminProfile = null;
+let editingPermissionsUser = null;
+
+const PERMISSION_DEFINITIONS = [
+  { key: "manage_tournaments", label: "Gerer les tournois", icon: "ri-trophy-line" },
+  { key: "manage_teams", label: "Gerer les equipes et joueurs", icon: "ri-shield-user-line" },
+  { key: "manage_matches", label: "Gerer les matchs", icon: "ri-pulse-line" },
+  { key: "score_matches", label: "Arbitrer / saisir les scores", icon: "ri-scales-3-line" },
+  { key: "manage_blog", label: "Creer et modifier les articles", icon: "ri-newspaper-line" },
+  { key: "manage_rules", label: "Modifier bareme et regles", icon: "ri-settings-4-line" },
+  { key: "view_stats", label: "Consulter les statistiques", icon: "ri-bar-chart-box-line" },
+  { key: "manage_users", label: "Gerer utilisateurs et permissions", icon: "ri-user-settings-line" },
+];
+
+const ROLE_PERMISSION_PRESETS = {
+  [ROLES.SUPERADMIN]: Object.fromEntries(PERMISSION_DEFINITIONS.map(p => [p.key, true])),
+  [ROLES.ADMIN]: {
+    manage_tournaments: true,
+    manage_teams: true,
+    manage_matches: true,
+    score_matches: false,
+    manage_blog: true,
+    manage_rules: false,
+    view_stats: true,
+    manage_users: false,
+  },
+  [ROLES.JURY]: {
+    manage_tournaments: false,
+    manage_teams: false,
+    manage_matches: false,
+    score_matches: true,
+    manage_blog: false,
+    manage_rules: false,
+    view_stats: true,
+    manage_users: false,
+  },
+};
 
 (async () => {
-  const { user } = await initAuth({ allowedRoles: [ROLES.SUPERADMIN], redirectTo: "login.html" });
+  const { user, profile } = await initAuth({ allowedRoles: [ROLES.SUPERADMIN, ROLES.ADMIN], redirectTo: "login.html" });
   currentAdminUser = user;
+  currentAdminProfile = profile;
   $("admin-email").textContent = user.email;
   bootstrap();
 })();
@@ -1416,6 +1454,10 @@ function wireBlog() {
   wireBlogEditor();
 }
 
+function canManageUsers() {
+  return currentAdminProfile?.role === ROLES.SUPERADMIN;
+}
+
 function wireBlogEditor() {
   const editor = $("blog-editor");
   const hidden = $("blog-content");
@@ -1567,8 +1609,8 @@ function renderBlogArticles() {
         <div class="entity-meta"></div>
       </div>
       <span class="statut-badge ${article.statut === "published" ? "termine" : "planifie"}"></span>
-      <button class="btn btn-ghost btn-sm btn-icon edit-blog" title="Modifier l'article">
-        <i class="ri-edit-2-line"></i>
+      <button class="btn btn-outline btn-sm edit-blog" title="Modifier l'article">
+        <i class="ri-edit-2-line"></i> Modifier
       </button>
       <button class="btn btn-ghost btn-sm btn-icon delete-blog" title="Supprimer l'article">
         <i class="ri-delete-bin-line" style="color:var(--red);"></i>
@@ -1663,6 +1705,8 @@ async function deleteBlogArticle(article) {
 
 function wireUsers() {
   bind("users-search", "input", () => renderUsersTable($("users-search").value.trim().toLowerCase()));
+  bind("btn-close-permissions", "click", closePermissionsPanel);
+  bind("btn-save-permissions", "click", saveUserPermissions);
 }
 
 async function loadUsers() {
@@ -1678,6 +1722,7 @@ async function loadUsers() {
 
 function renderUsersTable(filter) {
   const tbody = $("users-tbody");
+  const canManage = canManageUsers();
   tbody.innerHTML = "";
   const filtered = filter
     ? allUsers.filter(u => (u.email || "").toLowerCase().includes(filter) || (u.display_name || "").toLowerCase().includes(filter))
@@ -1693,27 +1738,110 @@ function renderUsersTable(filter) {
       <td><span class="text-sm user-email"></span></td>
       <td><span class="text-sm user-name"></span></td>
       <td><select class="form-select form-select-sm role-select"></select></td>
-      <td style="text-align:right;"><button class="btn btn-ghost btn-sm btn-icon btn-delete-user" title="Supprimer"><i class="ri-delete-bin-line" style="color:var(--red);"></i></button></td>`;
+      <td style="text-align:right;">
+        <div class="table-actions">
+          <button class="btn btn-outline btn-sm btn-permissions-user" title="Permissions"><i class="ri-shield-keyhole-line"></i> Permissions</button>
+          <button class="btn btn-ghost btn-sm btn-icon btn-delete-user" title="Supprimer"><i class="ri-delete-bin-line" style="color:var(--red);"></i></button>
+        </div>
+      </td>`;
     tr.querySelector(".user-email").textContent = u.email || "-";
     tr.querySelector(".user-name").textContent = u.display_name || "-";
     const select = tr.querySelector(".role-select");
-    Object.values(ROLES).forEach(role => select.appendChild(new Option(role, role, role === u.role, role === u.role)));
+    MANAGED_ROLES.forEach(role => select.appendChild(new Option(role, role, role === u.role, role === u.role)));
+    if (!MANAGED_ROLES.includes(u.role)) select.appendChild(new Option(`ancien: ${u.role}`, u.role, true, true));
+    select.disabled = !canManage || u.id === currentAdminUser?.id;
     select.addEventListener("change", async e => {
       const newRole = e.target.value;
       try {
-        const { error } = await supabase.from(T.USERS).update({ role: newRole }).eq("id", u.id);
+        const nextPermissions = ROLE_PERMISSION_PRESETS[newRole] || {};
+        const { error } = await supabase.from(T.USERS).update({ role: newRole, permissions: nextPermissions }).eq("id", u.id);
         if (error) throw error;
         u.role = newRole;
-        toast(`Role de ${u.email} mis a jour : ${newRole}`, "success");
+        u.permissions = nextPermissions;
+        toast(`Profil de ${u.email} mis a jour : ${newRole}`, "success");
+        if (editingPermissionsUser?.id === u.id) openPermissionsPanel(u);
       } catch (err) {
         console.error(err);
-        toast("Erreur mise a jour role.", "error");
+        toast("Erreur mise a jour profil.", "error");
         e.target.value = u.role;
       }
     });
-    tr.querySelector(".btn-delete-user").addEventListener("click", () => deleteUser(u.id, u.email));
+    const permissionsBtn = tr.querySelector(".btn-permissions-user");
+    permissionsBtn.disabled = !canManage;
+    permissionsBtn.addEventListener("click", () => openPermissionsPanel(u));
+    const deleteBtn = tr.querySelector(".btn-delete-user");
+    deleteBtn.disabled = !canManage || u.id === currentAdminUser?.id;
+    deleteBtn.addEventListener("click", () => deleteUser(u.id, u.email));
     tbody.appendChild(tr);
   });
+}
+
+function getEffectivePermissions(user) {
+  return {
+    ...(ROLE_PERMISSION_PRESETS[user.role] || {}),
+    ...(user.permissions || {}),
+  };
+}
+
+function openPermissionsPanel(user) {
+  if (!canManageUsers()) {
+    toast("Reserve au superadmin.", "error");
+    return;
+  }
+  editingPermissionsUser = user;
+  $("permissions-panel")?.classList.remove("hidden");
+  $("permissions-user-label").textContent = `${user.email || "-"} - profil ${user.role || "-"}`;
+  const grid = $("permissions-grid");
+  const permissions = getEffectivePermissions(user);
+  grid.innerHTML = "";
+  PERMISSION_DEFINITIONS.forEach(permission => {
+    const row = document.createElement("label");
+    row.className = "permission-toggle";
+    const locked = user.role === ROLES.SUPERADMIN;
+    row.innerHTML = `
+      <span><i class="${permission.icon}"></i> ${permission.label}</span>
+      <input type="checkbox" data-permission-key="${permission.key}" ${permissions[permission.key] ? "checked" : ""} ${locked ? "disabled" : ""}/>`;
+    grid.appendChild(row);
+  });
+  $("permissions-panel")?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+}
+
+function closePermissionsPanel() {
+  editingPermissionsUser = null;
+  $("permissions-panel")?.classList.add("hidden");
+  hideAlert("permissions-alert");
+}
+
+async function saveUserPermissions() {
+  hideAlert("permissions-alert");
+  if (!editingPermissionsUser) return;
+  if (editingPermissionsUser.role === ROLES.SUPERADMIN) {
+    toast("Le superadmin garde toutes les permissions.", "success");
+    closePermissionsPanel();
+    return;
+  }
+  const permissions = {};
+  document.querySelectorAll("[data-permission-key]").forEach(input => {
+    permissions[input.dataset.permissionKey] = input.checked;
+  });
+  const btn = $("btn-save-permissions");
+  btn.disabled = true;
+  btn.innerHTML = '<i class="ri-loader-4-line spin"></i> Enregistrement...';
+  try {
+    const { error } = await supabase.from(T.USERS).update({ permissions }).eq("id", editingPermissionsUser.id);
+    if (error) throw error;
+    editingPermissionsUser.permissions = permissions;
+    const existing = allUsers.find(u => u.id === editingPermissionsUser.id);
+    if (existing) existing.permissions = permissions;
+    toast("Permissions enregistrees.", "success");
+    renderUsersTable($("users-search").value.trim().toLowerCase());
+  } catch (err) {
+    console.error(err);
+    showAlert("permissions-alert-msg", "permissions-alert", "Erreur permissions : " + err.message);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="ri-save-line"></i> Enregistrer les permissions';
+  }
 }
 
 async function deleteUser(uid, email) {
@@ -1749,13 +1877,17 @@ async function creerUser() {
     showAlert("nu-alert-msg", "nu-alert", "Mot de passe min. 6 caracteres.");
     return;
   }
+  if (!MANAGED_ROLES.includes(role)) {
+    showAlert("nu-alert-msg", "nu-alert", "Profil invalide. Choisissez Superadmin, Admin ou Jury.");
+    return;
+  }
 
   const btn = $("btn-creer-user");
   btn.disabled = true;
   btn.innerHTML = '<i class="ri-loader-4-line spin"></i> Creation...';
   try {
     const { data, error } = await supabase.functions.invoke("admin-create-user", {
-      body: { email, password, display_name: displayName, role },
+      body: { email, password, display_name: displayName, role, permissions: ROLE_PERMISSION_PRESETS[role] || {} },
     });
     if (error) {
       let functionMessage = "";

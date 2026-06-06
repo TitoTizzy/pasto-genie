@@ -36,10 +36,12 @@ export const T = {
 
 export const ROLES = {
   PUBLIC: "public",
-  MEMBRE: "membre",
+  ADMIN: "admin",
   JURY: "jury",
   SUPERADMIN: "superadmin",
 };
+
+export const MANAGED_ROLES = [ROLES.SUPERADMIN, ROLES.ADMIN, ROLES.JURY];
 
 export const CATEGORIES = [
   { id: "francais", label: "Francais", icon: "ri-book-3-line", emoji: "FR" },

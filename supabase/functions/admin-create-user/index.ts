@@ -7,6 +7,40 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+const managedRoles = new Set(["superadmin", "admin", "jury"]);
+const permissionPresets: Record<string, Record<string, boolean>> = {
+  superadmin: {
+    manage_tournaments: true,
+    manage_teams: true,
+    manage_matches: true,
+    score_matches: true,
+    manage_blog: true,
+    manage_rules: true,
+    view_stats: true,
+    manage_users: true,
+  },
+  admin: {
+    manage_tournaments: true,
+    manage_teams: true,
+    manage_matches: true,
+    score_matches: false,
+    manage_blog: true,
+    manage_rules: false,
+    view_stats: true,
+    manage_users: false,
+  },
+  jury: {
+    manage_tournaments: false,
+    manage_teams: false,
+    manage_matches: false,
+    score_matches: true,
+    manage_blog: false,
+    manage_rules: false,
+    view_stats: true,
+    manage_users: false,
+  },
+};
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -34,8 +68,9 @@ Deno.serve(async (req) => {
     if (profileError) throw profileError;
     if (callerProfile.role !== "superadmin") throw new Error("Reserve au superadmin.");
 
-    const { email, password, display_name, role } = await req.json();
+    const { email, password, display_name, role, permissions } = await req.json();
     if (!email || !password || !role) throw new Error("email, password et role sont requis.");
+    if (!managedRoles.has(role)) throw new Error("Profil invalide. Utilisez superadmin, admin ou jury.");
 
     const { data: created, error: createError } = await adminClient.auth.admin.createUser({
       email,
@@ -50,6 +85,7 @@ Deno.serve(async (req) => {
       email,
       display_name,
       role,
+      permissions: permissions || permissionPresets[role] || {},
     });
     if (insertError) throw insertError;
 
