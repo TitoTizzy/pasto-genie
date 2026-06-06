@@ -5,6 +5,25 @@
 
 create extension if not exists pgcrypto;
 
+create or replace function public.is_admin_or_superadmin()
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select coalesce(
+    (
+      select role in ('admin', 'superadmin')
+      from public.users
+      where id = auth.uid()
+    ),
+    false
+  );
+$$;
+
+grant execute on function public.is_admin_or_superadmin() to anon, authenticated, service_role;
+
 create table if not exists public.blog_articles (
   id uuid primary key default gen_random_uuid(),
   titre text not null,
@@ -95,20 +114,22 @@ drop policy if exists "tournoi_equipes_public_read" on public.tournoi_equipes;
 create policy "tournoi_equipes_public_read" on public.tournoi_equipes for select using (true);
 drop policy if exists "tournoi_equipes_admin_write" on public.tournoi_equipes;
 create policy "tournoi_equipes_admin_write" on public.tournoi_equipes for all
-using (public.is_superadmin())
-with check (public.is_superadmin());
+using (public.is_admin_or_superadmin())
+with check (public.is_admin_or_superadmin());
 
 drop policy if exists "tournoi_joueurs_public_read" on public.tournoi_joueurs;
 create policy "tournoi_joueurs_public_read" on public.tournoi_joueurs for select using (true);
 drop policy if exists "tournoi_joueurs_admin_write" on public.tournoi_joueurs;
 create policy "tournoi_joueurs_admin_write" on public.tournoi_joueurs for all
-using (public.is_superadmin())
-with check (public.is_superadmin());
+using (public.is_admin_or_superadmin())
+with check (public.is_admin_or_superadmin());
 
 drop policy if exists "transferts_admin_read" on public.transferts_joueurs;
 create policy "transferts_admin_read" on public.transferts_joueurs for select
-using (public.is_superadmin());
+using (public.is_admin_or_superadmin());
 drop policy if exists "transferts_admin_write" on public.transferts_joueurs;
 create policy "transferts_admin_write" on public.transferts_joueurs for all
-using (public.is_superadmin())
-with check (public.is_superadmin());
+using (public.is_admin_or_superadmin())
+with check (public.is_admin_or_superadmin());
+
+notify pgrst, 'reload schema';

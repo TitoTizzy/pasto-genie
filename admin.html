@@ -168,7 +168,7 @@
           <div class="card-header">
             <div>
               <div class="card-label"><i class="ri-node-tree"></i> Moteur de competition</div>
-              <p class="text-muted text-sm mt-1">Inscrivez les equipes dans un tournoi, organisez les poules et gerez les transferts.</p>
+              <p class="text-muted text-sm mt-1">Inscrivez les equipes dans un tournoi et organisez les poules avant la generation du calendrier.</p>
             </div>
           </div>
           <div class="grid-3 mt-4">
@@ -193,29 +193,6 @@
             <i class="ri-shield-star-line"></i> Inscrire l'equipe au tournoi
           </button>
           <div id="engine-teams-list" class="entity-list mt-4"></div>
-
-          <div class="divider" style="margin:var(--space-5) 0;"></div>
-          <div class="grid-3">
-            <div class="form-group">
-              <label class="form-label">Joueur a transferer</label>
-              <select id="transfer-joueur" class="form-select">
-                <option value="">Choisir un joueur</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label class="form-label">Nouvelle equipe</label>
-              <select id="transfer-equipe" class="form-select">
-                <option value="">Choisir une equipe</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label class="form-label">Motif</label>
-              <input id="transfer-note" type="text" class="form-input" placeholder="Ex. remplacement, transfert..."/>
-            </div>
-          </div>
-          <button id="btn-transfer-player" class="btn btn-outline mt-2">
-            <i class="ri-user-shared-line"></i> Enregistrer le transfert
-          </button>
         </div>
       </section>
 
@@ -784,7 +761,7 @@
   <div id="tournoi-overlay" class="overlay">
     <div class="modal tournament-modal">
       <div class="modal-header">
-        <div class="modal-title"><i class="ri-trophy-line"></i> Nouveau tournoi</div>
+        <div id="t-modal-title" class="modal-title"><i class="ri-trophy-line"></i> Nouveau tournoi</div>
         <button class="modal-close" id="close-tournoi-modal"><i class="ri-close-line"></i></button>
       </div>
       <div class="form-group">
@@ -844,6 +821,44 @@
       <button id="btn-creer-tournoi" class="btn btn-gold btn-block btn-lg mt-2">
         <i class="ri-add-circle-line"></i> Créer
       </button>
+    </div>
+  </div>
+
+  <!-- Player admin modal -->
+  <div id="player-admin-overlay" class="overlay">
+    <div class="modal tournament-modal player-admin-modal">
+      <div class="modal-header">
+        <div class="modal-title"><i class="ri-user-star-line"></i> Profil joueur</div>
+        <button class="modal-close" id="close-player-admin-modal"><i class="ri-close-line"></i></button>
+      </div>
+      <div id="player-admin-summary" class="player-admin-summary"></div>
+      <div class="divider" style="margin:var(--space-5) 0;"></div>
+      <button id="btn-open-player-transfer" class="btn btn-outline btn-block">
+        <i class="ri-user-shared-line"></i> Transferer ce joueur
+      </button>
+      <div id="player-transfer-form" class="hidden mt-4">
+        <div class="grid-3">
+          <div class="form-group">
+            <label class="form-label">Tournoi concerne</label>
+            <select id="player-transfer-tournoi" class="form-select">
+              <option value="">Choisir un tournoi</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Nouvelle equipe</label>
+            <select id="player-transfer-equipe" class="form-select">
+              <option value="">Choisir une equipe</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Motif</label>
+            <input id="player-transfer-note" type="text" class="form-input" placeholder="Ex. remplacement, force majeure"/>
+          </div>
+        </div>
+        <button id="btn-confirm-player-transfer" class="btn btn-gold btn-block mt-2">
+          <i class="ri-check-line"></i> Confirmer le transfert
+        </button>
+      </div>
     </div>
   </div>
 

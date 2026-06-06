@@ -3,6 +3,25 @@
 -- A coller dans Supabase > SQL Editor > Run
 -- ================================================================
 
+create or replace function public.is_admin_or_superadmin()
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select coalesce(
+    (
+      select role in ('admin', 'superadmin')
+      from public.users
+      where id = auth.uid()
+    ),
+    false
+  );
+$$;
+
+grant execute on function public.is_admin_or_superadmin() to anon, authenticated, service_role;
+
 alter table public.tournois
   add column if not exists format_type text default 'Poules',
   add column if not exists regles jsonb default '{}'::jsonb;
@@ -59,23 +78,23 @@ drop policy if exists "tournoi_equipes_public_read" on public.tournoi_equipes;
 create policy "tournoi_equipes_public_read" on public.tournoi_equipes for select using (true);
 drop policy if exists "tournoi_equipes_admin_write" on public.tournoi_equipes;
 create policy "tournoi_equipes_admin_write" on public.tournoi_equipes for all
-using (public.is_superadmin())
-with check (public.is_superadmin());
+using (public.is_admin_or_superadmin())
+with check (public.is_admin_or_superadmin());
 
 drop policy if exists "tournoi_joueurs_public_read" on public.tournoi_joueurs;
 create policy "tournoi_joueurs_public_read" on public.tournoi_joueurs for select using (true);
 drop policy if exists "tournoi_joueurs_admin_write" on public.tournoi_joueurs;
 create policy "tournoi_joueurs_admin_write" on public.tournoi_joueurs for all
-using (public.is_superadmin())
-with check (public.is_superadmin());
+using (public.is_admin_or_superadmin())
+with check (public.is_admin_or_superadmin());
 
 drop policy if exists "transferts_admin_read" on public.transferts_joueurs;
 create policy "transferts_admin_read" on public.transferts_joueurs for select
-using (public.is_superadmin());
+using (public.is_admin_or_superadmin());
 drop policy if exists "transferts_admin_write" on public.transferts_joueurs;
 create policy "transferts_admin_write" on public.transferts_joueurs for all
-using (public.is_superadmin())
-with check (public.is_superadmin());
+using (public.is_admin_or_superadmin())
+with check (public.is_admin_or_superadmin());
 
 create or replace function public.player_snapshot_for_team(p_equipe_id uuid)
 returns jsonb
@@ -278,3 +297,5 @@ end;
 $$;
 
 grant execute on function public.generer_matchs_competition(uuid, timestamptz, int) to authenticated;
+
+notify pgrst, 'reload schema';

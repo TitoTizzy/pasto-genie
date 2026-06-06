@@ -16,6 +16,8 @@ let teamB = { titulaires: [], remplacants: [] };
 let catOrder = CATEGORIES.map(c => c.id);
 let allBlogArticles = [];
 let editingBlogArticle = null;
+let editingTournoi = null;
+let selectedAdminPlayer = null;
 let currentAdminUser = null;
 let currentAdminProfile = null;
 let editingPermissionsUser = null;
@@ -197,12 +199,53 @@ async function loadDashboard() {
 }
 
 function wireTournois() {
-  bind("btn-new-tournoi", "click", () => openOverlay("tournoi-overlay"));
-  bind("close-tournoi-modal", "click", () => closeOverlay("tournoi-overlay"));
-  bind("btn-creer-tournoi", "click", creerTournoi);
+  bind("btn-new-tournoi", "click", () => openTournoiModal());
+  bind("close-tournoi-modal", "click", closeTournoiModal);
+  bind("btn-creer-tournoi", "click", saveTournoi);
   bind("engine-tournoi", "change", renderCompetitionEngine);
   bind("btn-register-team", "click", registerTeamToTournament);
-  bind("btn-transfer-player", "click", transferPlayerInTournament);
+}
+
+function setInputValue(id, value) {
+  const el = $(id);
+  if (el) el.value = value ?? "";
+}
+
+function readTournoiRules(t = {}) {
+  const rules = t.regles && typeof t.regles === "object" ? t.regles : {};
+  return {
+    nombre_equipes: rules.nombre_equipes ?? "",
+    nombre_poules: rules.nombre_poules ?? "",
+    matchs_poule_par_equipe: rules.matchs_poule_par_equipe ?? "",
+    points_victoire: rules.points_victoire ?? 3,
+    points_nul: rules.points_nul ?? 1,
+    points_defaite: rules.points_defaite ?? 0,
+  };
+}
+
+function openTournoiModal(tournoi = null) {
+  editingTournoi = tournoi;
+  hideAlert("t-alert");
+  const isEdit = Boolean(tournoi?.id);
+  const rules = readTournoiRules(tournoi || {});
+  $("t-modal-title").innerHTML = `<i class="ri-trophy-line"></i> ${isEdit ? "Modifier le tournoi" : "Nouveau tournoi"}`;
+  setInputValue("t-nom", tournoi?.nom || "");
+  setInputValue("t-annee", tournoi?.annee || new Date().getFullYear());
+  setInputValue("t-desc", tournoi?.description || "");
+  setInputValue("t-format", tournoi?.format_type || "Poules");
+  setInputValue("t-nb-equipes", rules.nombre_equipes);
+  setInputValue("t-nb-poules", rules.nombre_poules);
+  setInputValue("t-matchs-poule", rules.matchs_poule_par_equipe);
+  setInputValue("t-pts-victoire", rules.points_victoire);
+  setInputValue("t-pts-nul", rules.points_nul);
+  setInputValue("t-pts-defaite", rules.points_defaite);
+  $("btn-creer-tournoi").innerHTML = `<i class="${isEdit ? "ri-save-line" : "ri-add-circle-line"}"></i> ${isEdit ? "Enregistrer" : "Creer"}`;
+  openOverlay("tournoi-overlay");
+}
+
+function closeTournoiModal() {
+  editingTournoi = null;
+  closeOverlay("tournoi-overlay");
 }
 
 async function loadTournoisList() {
@@ -233,27 +276,19 @@ async function populateCompetitionEngine(tournois = null) {
     const rows = tournois || await fetchRows(T.TOURNOIS, { order: { column: "annee", ascending: false } });
     const tSel = $("engine-tournoi");
     const eSel = $("engine-equipe");
-    const teSel = $("transfer-equipe");
-    const jSel = $("transfer-joueur");
     if (tSel) {
       const current = tSel.value;
       while (tSel.options.length > 1) tSel.remove(1);
       rows.forEach(t => tSel.appendChild(new Option(t.nom, t.id)));
       tSel.value = current || rows.find(t => t.actif)?.id || rows[0]?.id || "";
     }
-    [eSel, teSel].forEach(sel => {
+    [eSel].forEach(sel => {
       if (!sel) return;
       const current = sel.value;
       while (sel.options.length > 1) sel.remove(1);
       allEquipes.forEach(eq => sel.appendChild(new Option(eq.nom, eq.id)));
       sel.value = current;
     });
-    if (jSel) {
-      const current = jSel.value;
-      while (jSel.options.length > 1) jSel.remove(1);
-      allJoueurs.forEach(j => jSel.appendChild(new Option(`${j.prenom || ""} ${j.nom || ""}`.trim(), j.id)));
-      jSel.value = current;
-    }
     await renderCompetitionEngine();
   } catch (err) {
     console.error(err);
@@ -272,6 +307,7 @@ async function renderCompetitionEngine() {
       .eq("tournoi_id", tournoiId)
       .order("poule", { ascending: true });
     if (error) throw error;
+    const locked = await isTournamentLocked(tournoiId);
     wrap.innerHTML = "";
     if (!data?.length) {
       wrap.innerHTML = '<p class="text-muted text-center">Aucune equipe inscrite dans ce tournoi.</p>';
@@ -287,7 +323,10 @@ async function renderCompetitionEngine() {
           <div class="entity-title"></div>
           <div class="entity-meta"></div>
         </div>
-        <span class="statut-badge en_cours">${row.poule || "Poule unique"}</span>`;
+        <span class="statut-badge en_cours">${row.poule || "Poule unique"}</span>
+        <button class="btn btn-ghost btn-sm btn-icon unregister-team" title="Retirer l'equipe du tournoi" ${locked ? "disabled" : ""}>
+          <i class="ri-close-circle-line" style="color:var(--red);"></i>
+        </button>`;
       const avatar = card.querySelector(".entity-avatar");
       if (eq?.embleme_url) {
         avatar.style.backgroundImage = `url("${eq.embleme_url}")`;
@@ -297,11 +336,32 @@ async function renderCompetitionEngine() {
       }
       card.querySelector(".entity-title").textContent = eq?.nom || "Equipe inconnue";
       card.querySelector(".entity-meta").textContent = `${eq?.paroisse || "Sans paroisse"} - inscrite au tournoi`;
+      card.querySelector(".unregister-team").addEventListener("click", () => unregisterTeamFromTournament(row));
       wrap.appendChild(card);
     });
   } catch (err) {
     console.error(err);
-    wrap.innerHTML = '<p class="text-muted text-center">Executez le script SQL du moteur de competition.</p>';
+    wrap.innerHTML = '<p class="text-muted text-center">Moteur competition incomplet. Executez le script SQL repair-blog-and-competition-engine.sql.</p>';
+  }
+}
+
+async function unregisterTeamFromTournament(row) {
+  const eq = allEquipes.find(item => item.id === row.equipe_id);
+  const name = eq?.nom || "cette equipe";
+  if (!confirm(`Retirer "${name}" de ce tournoi ?`)) return;
+  try {
+    if (await isTournamentLocked(row.tournoi_id)) {
+      toast("Tournoi verrouille : impossible de retirer une equipe apres le premier match.", "error");
+      return;
+    }
+    await optionalDelete(supabase.from(T.TOURNOI_JOUEURS).delete().eq("tournoi_id", row.tournoi_id).eq("equipe_id", row.equipe_id));
+    const { error } = await supabase.from(T.TOURNOI_EQUIPES).delete().eq("id", row.id);
+    if (error) throw error;
+    toast("Equipe retiree du tournoi.", "success");
+    await renderCompetitionEngine();
+  } catch (err) {
+    console.error(err);
+    toast("Erreur retrait equipe : " + err.message, "error");
   }
 }
 
@@ -339,57 +399,15 @@ async function registerTeamToTournament() {
       if (joueursError) throw joueursError;
     }
     toast("Equipe inscrite au tournoi.", "success");
+    setInputValue("engine-equipe", "");
+    setInputValue("engine-poule", "");
     await renderCompetitionEngine();
   } catch (err) {
     console.error(err);
     if (isMissingTableError(err)) {
-      toast("Moteur competition incomplet : executez le script SQL repair-blog-and-competition-engine.sql dans Supabase.", "error");
+      toast("Moteur competition incomplet : executez repair-blog-and-competition-engine.sql puis rechargez la page.", "error");
     } else {
       toast("Erreur inscription : " + err.message, "error");
-    }
-  }
-}
-
-async function transferPlayerInTournament() {
-  const tournoiId = $("engine-tournoi")?.value;
-  const joueurId = $("transfer-joueur")?.value;
-  const toEquipeId = $("transfer-equipe")?.value;
-  const note = $("transfer-note")?.value.trim() || "";
-  if (!tournoiId || !joueurId || !toEquipeId) {
-    toast("Choisissez un tournoi, un joueur et une equipe.", "error");
-    return;
-  }
-  const current = allJoueurs.find(j => j.id === joueurId);
-  try {
-    if (await isTournamentLocked(tournoiId)) {
-      toast("Tournoi verrouille : transfert interdit apres le premier match.", "error");
-      return;
-    }
-    const { error: transferError } = await supabase.from(T.TRANSFERTS).insert({
-      tournoi_id: tournoiId,
-      joueur_id: joueurId,
-      ancienne_equipe_id: current?.equipe_id || null,
-      nouvelle_equipe_id: toEquipeId,
-      note,
-      created_at: nowISO(),
-    });
-    if (transferError) throw transferError;
-    const { error: rosterError } = await supabase.from(T.TOURNOI_JOUEURS).upsert({
-      tournoi_id: tournoiId,
-      joueur_id: joueurId,
-      equipe_id: toEquipeId,
-      statut: "active",
-      date_debut: nowISO(),
-      updated_at: nowISO(),
-    }, { onConflict: "tournoi_id,joueur_id" });
-    if (rosterError) throw rosterError;
-    toast("Transfert enregistre pour ce tournoi.", "success");
-  } catch (err) {
-    console.error(err);
-    if (isMissingTableError(err)) {
-      toast("Moteur competition incomplet : executez le script SQL repair-blog-and-competition-engine.sql dans Supabase.", "error");
-    } else {
-      toast("Erreur transfert : " + err.message, "error");
     }
   }
 }
@@ -435,6 +453,9 @@ function buildTournoiCard(id, t) {
       <button class="btn btn-ghost btn-sm generate-tournoi-matches" title="Generer les matchs">
         <i class="ri-calendar-schedule-line"></i> Generer
       </button>
+      <button class="btn btn-ghost btn-sm btn-icon edit-tournoi" title="Modifier le tournoi">
+        <i class="ri-edit-2-line"></i>
+      </button>
       <button class="btn btn-ghost btn-sm btn-icon toggle-tournoi" title="${t.actif ? "Cloturer" : "Activer"}">
         <i class="${t.actif ? "ri-stop-circle-line" : "ri-play-circle-line"}"></i>
       </button>
@@ -444,6 +465,7 @@ function buildTournoiCard(id, t) {
     </div>`;
   card.querySelector(".item-card-title").textContent = t.nom || "";
   card.querySelector(".meta").textContent = `${t.annee || ""} - ${t.description || "Pas de description"}`;
+  card.querySelector(".edit-tournoi").addEventListener("click", () => openTournoiModal(t));
   card.querySelector(".toggle-tournoi").addEventListener("click", () => toggleTournoi(id, t.actif));
   card.querySelector(".generate-tournoi-matches").addEventListener("click", () => generateTournoiMatches(id, t.nom));
   card.querySelector(".delete-tournoi").addEventListener("click", () => deleteTournoi(id, t.nom));
@@ -506,15 +528,12 @@ async function deleteTournoi(id, nom) {
     }
 
     if (matchIds.length) {
-      const deletes = [
-        supabase.from(T.MATCH_EN_COURS).delete().in("id", matchIds),
-        supabase.from(T.EVENEMENTS).delete().in("match_id", matchIds),
-        supabase.from(T.STATS_EQUIPES).delete().in("match_id", matchIds),
-        supabase.from(T.STATS_JOUEURS).delete().in("match_id", matchIds),
-      ];
-      const deleteResults = await Promise.all(deletes);
-      const deleteError = deleteResults.find(result => result.error)?.error;
-      if (deleteError) throw deleteError;
+      await Promise.all([
+        optionalDelete(supabase.from(T.MATCH_EN_COURS).delete().in("id", matchIds)),
+        optionalDelete(supabase.from(T.EVENEMENTS).delete().in("match_id", matchIds)),
+        optionalDelete(supabase.from(T.STATS_EQUIPES).delete().in("match_id", matchIds)),
+        optionalDelete(supabase.from(T.STATS_JOUEURS).delete().in("match_id", matchIds)),
+      ]);
 
       const { error: matchesError } = await supabase.from(T.MATCHES).delete().eq("tournoi_id", id);
       if (matchesError) throw matchesError;
@@ -522,8 +541,7 @@ async function deleteTournoi(id, nom) {
 
     const cleanupTables = [T.TRANSFERTS, T.TOURNOI_JOUEURS, T.TOURNOI_EQUIPES].filter(Boolean);
     for (const table of cleanupTables) {
-      const { error } = await supabase.from(table).delete().eq("tournoi_id", id);
-      if (error) throw error;
+      await optionalDelete(supabase.from(table).delete().eq("tournoi_id", id));
     }
 
     const { error } = await supabase.from(T.TOURNOIS).delete().eq("id", id);
@@ -540,7 +558,7 @@ async function deleteTournoi(id, nom) {
   }
 }
 
-async function creerTournoi() {
+async function saveTournoi() {
   hideAlert("t-alert");
   const nom = $("t-nom").value.trim();
   const annee = parseInt($("t-annee").value, 10) || new Date().getFullYear();
@@ -559,31 +577,42 @@ async function creerTournoi() {
   }
 
   const btn = $("btn-creer-tournoi");
+  const isEdit = Boolean(editingTournoi?.id);
   btn.disabled = true;
-  btn.innerHTML = '<i class="ri-loader-4-line spin"></i> Creation...';
+  btn.innerHTML = `<i class="ri-loader-4-line spin"></i> ${isEdit ? "Enregistrement..." : "Creation..."}`;
   try {
-    const { error } = await supabase.from(T.TOURNOIS).insert({
+    if (isEdit && await isTournamentLocked(editingTournoi.id)) {
+      showAlert("t-alert-msg", "t-alert", "Tournoi verrouille : les parametres ne peuvent plus etre modifies apres le premier match.");
+      return;
+    }
+
+    const payload = {
       nom,
       annee,
       description,
       format_type: $("t-format")?.value || "Poules",
       regles: rules,
-      actif: true,
-      created_at: nowISO(),
-    });
+      actif: isEdit ? editingTournoi.actif : true,
+      updated_at: nowISO(),
+    };
+
+    const { error } = isEdit
+      ? await supabase.from(T.TOURNOIS).update(payload).eq("id", editingTournoi.id)
+      : await supabase.from(T.TOURNOIS).insert({ ...payload, created_at: nowISO() });
     if (error) throw error;
-    toast("Tournoi cree !", "success");
-    closeOverlay("tournoi-overlay");
-    $("t-nom").value = "";
-    $("t-desc").value = "";
+    toast(isEdit ? "Tournoi modifie." : "Tournoi cree !", "success");
+    closeTournoiModal();
+    setInputValue("t-nom", "");
+    setInputValue("t-desc", "");
     ["t-nb-equipes", "t-nb-poules", "t-matchs-poule"].forEach(id => { if ($(id)) $(id).value = ""; });
-    loadTournoisSelects();
+    await loadTournoisList();
+    await loadTournoisSelects();
   } catch (err) {
     console.error(err);
     showAlert("t-alert-msg", "t-alert", "Erreur : " + err.message);
   } finally {
     btn.disabled = false;
-    btn.innerHTML = '<i class="ri-add-circle-line"></i> Creer';
+    btn.innerHTML = `<i class="${isEdit ? "ri-save-line" : "ri-add-circle-line"}"></i> ${isEdit ? "Enregistrer" : "Creer"}`;
   }
 }
 
@@ -779,6 +808,9 @@ async function deleteEquipe(eq) {
 function wireJoueurs() {
   bind("btn-save-joueur", "click", saveJoueur);
   previewUpload("j-photo-file", "j-photo-preview");
+  bind("close-player-admin-modal", "click", closePlayerAdminModal);
+  bind("btn-open-player-transfer", "click", () => $("player-transfer-form")?.classList.toggle("hidden"));
+  bind("btn-confirm-player-transfer", "click", transferSelectedPlayer);
 }
 
 async function loadJoueurs() {
@@ -826,7 +858,7 @@ function renderJoueursList() {
     card.querySelector(".entity-meta").textContent = eq?.nom || "Sans equipe";
     card.addEventListener("click", event => {
       if (event.target.closest(".delete-joueur")) return;
-      toast("Profil detaille public a venir dans la prochaine etape.", "info");
+      openPlayerAdminProfile(j);
     });
     card.querySelector(".delete-joueur").addEventListener("click", event => {
       event.stopPropagation();
@@ -834,6 +866,115 @@ function renderJoueursList() {
     });
     wrap.appendChild(card);
   });
+}
+
+async function openPlayerAdminProfile(joueur) {
+  selectedAdminPlayer = joueur;
+  const eq = allEquipes.find(item => item.id === joueur.equipe_id);
+  const fullName = `${joueur.prenom || ""} ${joueur.nom || ""}`.trim() || "Joueur sans nom";
+  const summary = $("player-admin-summary");
+  if (summary) {
+    summary.innerHTML = `
+      <div class="player-admin-card">
+        <div class="entity-avatar player-admin-photo"></div>
+        <div>
+          <div class="player-admin-name"></div>
+          <div class="player-admin-meta"></div>
+          <div class="player-admin-note"></div>
+        </div>
+      </div>`;
+    const avatar = summary.querySelector(".player-admin-photo");
+    if (joueur.photo_url) {
+      avatar.style.backgroundImage = `url("${joueur.photo_url}")`;
+      avatar.textContent = "";
+    } else {
+      avatar.textContent = (joueur.prenom || joueur.nom || "?")[0].toUpperCase();
+    }
+    summary.querySelector(".player-admin-name").textContent = fullName;
+    summary.querySelector(".player-admin-meta").textContent = `${eq?.nom || "Sans equipe"}${joueur.date_naissance ? " - Ne le " + joueur.date_naissance : ""}`;
+    summary.querySelector(".player-admin-note").textContent = joueur.note || "Aucune note.";
+  }
+  $("player-transfer-form")?.classList.add("hidden");
+  setInputValue("player-transfer-note", "");
+  await populatePlayerTransferOptions();
+  openOverlay("player-admin-overlay");
+}
+
+function closePlayerAdminModal() {
+  selectedAdminPlayer = null;
+  closeOverlay("player-admin-overlay");
+}
+
+async function populatePlayerTransferOptions() {
+  const tournoiSel = $("player-transfer-tournoi");
+  const equipeSel = $("player-transfer-equipe");
+  if (!tournoiSel || !equipeSel) return;
+  const [tournois, equipes] = await Promise.all([
+    fetchRows(T.TOURNOIS, { order: { column: "annee", ascending: false } }),
+    allEquipes.length ? Promise.resolve(allEquipes) : fetchRows(T.EQUIPES, { order: { column: "nom", ascending: true } }),
+  ]);
+  allEquipes = equipes;
+  while (tournoiSel.options.length > 1) tournoiSel.remove(1);
+  while (equipeSel.options.length > 1) equipeSel.remove(1);
+  tournois.forEach(t => tournoiSel.appendChild(new Option(`${t.nom} (${t.annee || ""})`, t.id)));
+  equipes
+    .filter(eq => eq.id !== selectedAdminPlayer?.equipe_id)
+    .forEach(eq => equipeSel.appendChild(new Option(eq.nom, eq.id)));
+}
+
+async function transferSelectedPlayer() {
+  const tournoiId = $("player-transfer-tournoi")?.value;
+  const toEquipeId = $("player-transfer-equipe")?.value;
+  const note = $("player-transfer-note")?.value.trim() || "";
+  const joueur = selectedAdminPlayer;
+  if (!joueur || !tournoiId || !toEquipeId) {
+    toast("Choisissez un tournoi et une nouvelle equipe.", "error");
+    return;
+  }
+  try {
+    if (await isTournamentLocked(tournoiId)) {
+      toast("Tournoi verrouille : transfert interdit apres le premier match.", "error");
+      return;
+    }
+    const { error: transferError } = await supabase.from(T.TRANSFERTS).insert({
+      tournoi_id: tournoiId,
+      joueur_id: joueur.id,
+      ancienne_equipe_id: joueur.equipe_id || null,
+      nouvelle_equipe_id: toEquipeId,
+      note,
+      created_at: nowISO(),
+    });
+    if (transferError) throw transferError;
+
+    const { error: rosterError } = await supabase.from(T.TOURNOI_JOUEURS).upsert({
+      tournoi_id: tournoiId,
+      joueur_id: joueur.id,
+      equipe_id: toEquipeId,
+      statut: "active",
+      date_debut: nowISO(),
+      updated_at: nowISO(),
+    }, { onConflict: "tournoi_id,joueur_id" });
+    if (rosterError) throw rosterError;
+
+    const { error: playerError } = await supabase
+      .from(T.JOUEURS)
+      .update({ equipe_id: toEquipeId, updated_at: nowISO() })
+      .eq("id", joueur.id);
+    if (playerError) throw playerError;
+
+    toast("Transfert enregistre.", "success");
+    closePlayerAdminModal();
+    await loadEquipes();
+    await loadJoueurs();
+    await renderCompetitionEngine();
+  } catch (err) {
+    console.error(err);
+    if (isMissingTableError(err)) {
+      toast("Moteur competition incomplet : executez repair-blog-and-competition-engine.sql puis rechargez.", "error");
+    } else {
+      toast("Erreur transfert : " + err.message, "error");
+    }
+  }
 }
 
 async function saveJoueur() {
