@@ -171,6 +171,13 @@ async function optionalDelete(query) {
   if (error && !isMissingTableError(error)) throw error;
 }
 
+async function optionalInsert(table, payload) {
+  if (!table) return null;
+  const { data, error } = await supabase.from(table).insert(payload).select("*").maybeSingle();
+  if (error && !isMissingTableError(error)) throw error;
+  return data || null;
+}
+
 async function loadDashboard() {
   try {
     const [tournois, matches, users] = await Promise.all([
@@ -1109,55 +1116,40 @@ function closePlayerAdminModal() {
 }
 
 async function populatePlayerTransferOptions() {
-  const tournoiSel = $("player-transfer-tournoi");
   const equipeSel = $("player-transfer-equipe");
-  if (!tournoiSel || !equipeSel) return;
-  const [tournois, equipes] = await Promise.all([
-    fetchRows(T.TOURNOIS, { order: { column: "annee", ascending: false } }),
-    allEquipes.length ? Promise.resolve(allEquipes) : fetchRows(T.EQUIPES, { order: { column: "nom", ascending: true } }),
-  ]);
+  if (!equipeSel) return;
+  const equipes = allEquipes.length ? allEquipes : await fetchRows(T.EQUIPES, { order: { column: "nom", ascending: true } });
   allEquipes = equipes;
-  while (tournoiSel.options.length > 1) tournoiSel.remove(1);
   while (equipeSel.options.length > 1) equipeSel.remove(1);
-  tournois.forEach(t => tournoiSel.appendChild(new Option(`${t.nom} (${t.annee || ""})`, t.id)));
   equipes
     .filter(eq => eq.id !== selectedAdminPlayer?.equipe_id)
     .forEach(eq => equipeSel.appendChild(new Option(eq.nom, eq.id)));
 }
 
 async function transferSelectedPlayer() {
-  const tournoiId = $("player-transfer-tournoi")?.value;
   const toEquipeId = $("player-transfer-equipe")?.value;
   const note = $("player-transfer-note")?.value.trim() || "";
   const joueur = selectedAdminPlayer;
-  if (!joueur || !tournoiId || !toEquipeId) {
-    toast("Choisissez un tournoi et une nouvelle equipe.", "error");
+  if (!joueur || !toEquipeId) {
+    toast("Choisissez la nouvelle equipe.", "error");
+    return;
+  }
+  if (joueur.equipe_id === toEquipeId) {
+    toast("Le joueur est deja dans cette equipe.", "error");
     return;
   }
   try {
-    if (await isTournamentLocked(tournoiId)) {
-      toast("Tournoi verrouille : transfert interdit apres le premier match.", "error");
-      return;
+    try {
+      await optionalInsert(T.TRANSFERTS, {
+        joueur_id: joueur.id,
+        ancienne_equipe_id: joueur.equipe_id || null,
+        nouvelle_equipe_id: toEquipeId,
+        note,
+        created_at: nowISO(),
+      });
+    } catch (historyError) {
+      console.warn("Historique transfert non enregistre, transfert joueur maintenu.", historyError);
     }
-    const { error: transferError } = await supabase.from(T.TRANSFERTS).insert({
-      tournoi_id: tournoiId,
-      joueur_id: joueur.id,
-      ancienne_equipe_id: joueur.equipe_id || null,
-      nouvelle_equipe_id: toEquipeId,
-      note,
-      created_at: nowISO(),
-    });
-    if (transferError) throw transferError;
-
-    const { error: rosterError } = await supabase.from(T.TOURNOI_JOUEURS).upsert({
-      tournoi_id: tournoiId,
-      joueur_id: joueur.id,
-      equipe_id: toEquipeId,
-      statut: "active",
-      date_debut: nowISO(),
-      updated_at: nowISO(),
-    }, { onConflict: "tournoi_id,joueur_id" });
-    if (rosterError) throw rosterError;
 
     const { error: playerError } = await supabase
       .from(T.JOUEURS)
@@ -1172,11 +1164,7 @@ async function transferSelectedPlayer() {
     await renderCompetitionEngine();
   } catch (err) {
     console.error(err);
-    if (isMissingTableError(err)) {
-      toast("Moteur competition incomplet : executez repair-blog-and-competition-engine.sql puis rechargez.", "error");
-    } else {
-      toast("Erreur transfert : " + err.message, "error");
-    }
+    toast("Erreur transfert : " + err.message, "error");
   }
 }
 
