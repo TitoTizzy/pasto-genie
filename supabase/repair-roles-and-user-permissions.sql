@@ -78,3 +78,53 @@ as $$
 $$;
 
 grant execute on function public.is_jury_or_admin() to anon, authenticated, service_role;
+
+create or replace function public.update_user_profile_permissions(
+  p_user_id uuid,
+  p_role text default null,
+  p_permissions jsonb default null
+)
+returns public.users
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_user public.users%rowtype;
+  v_role text;
+  v_permissions jsonb;
+begin
+  if not public.is_superadmin() then
+    raise exception 'Reserve au superadmin';
+  end if;
+
+  if p_role is not null and p_role not in ('superadmin', 'admin', 'jury') then
+    raise exception 'Profil invalide';
+  end if;
+
+  select * into v_user
+  from public.users
+  where id = p_user_id;
+
+  if not found then
+    raise exception 'Utilisateur introuvable';
+  end if;
+
+  v_role := coalesce(p_role, v_user.role);
+  v_permissions := coalesce(p_permissions, v_user.permissions, '{}'::jsonb);
+
+  update public.users
+  set
+    role = v_role,
+    permissions = v_permissions,
+    updated_at = now()
+  where id = p_user_id
+  returning * into v_user;
+
+  return v_user;
+end;
+$$;
+
+grant execute on function public.update_user_profile_permissions(uuid, text, jsonb) to authenticated, service_role;
+
+notify pgrst, 'reload schema';

@@ -1754,15 +1754,14 @@ function renderUsersTable(filter) {
       const newRole = e.target.value;
       try {
         const nextPermissions = ROLE_PERMISSION_PRESETS[newRole] || {};
-        const { error } = await supabase.from(T.USERS).update({ role: newRole, permissions: nextPermissions }).eq("id", u.id);
-        if (error) throw error;
-        u.role = newRole;
-        u.permissions = nextPermissions;
+        const updated = await updateUserProfilePermissions(u, { role: newRole, permissions: nextPermissions });
+        u.role = updated?.role || newRole;
+        u.permissions = updated?.permissions || nextPermissions;
         toast(`Profil de ${u.email} mis a jour : ${newRole}`, "success");
         if (editingPermissionsUser?.id === u.id) openPermissionsPanel(u);
       } catch (err) {
         console.error(err);
-        toast("Erreur mise a jour profil.", "error");
+        toast("Erreur mise a jour profil : " + err.message, "error");
         e.target.value = u.role;
       }
     });
@@ -1781,6 +1780,26 @@ function getEffectivePermissions(user) {
     ...(ROLE_PERMISSION_PRESETS[user.role] || {}),
     ...(user.permissions || {}),
   };
+}
+
+function isPermissionsSchemaError(err) {
+  const msg = `${err?.message || ""} ${err?.details || ""} ${err?.hint || ""}`.toLowerCase();
+  return msg.includes("permissions") && (msg.includes("schema cache") || msg.includes("column") || msg.includes("function"));
+}
+
+async function updateUserProfilePermissions(user, { role = user.role, permissions = getEffectivePermissions(user) } = {}) {
+  const { data, error } = await supabase.rpc("update_user_profile_permissions", {
+    p_user_id: user.id,
+    p_role: role,
+    p_permissions: permissions,
+  });
+  if (error) {
+    if (isPermissionsSchemaError(error)) {
+      throw new Error("Base non configuree: executez supabase/repair-roles-and-user-permissions.sql dans Supabase SQL Editor, puis rechargez la page.");
+    }
+    throw error;
+  }
+  return Array.isArray(data) ? data[0] : data;
 }
 
 function openPermissionsPanel(user) {
@@ -1825,11 +1844,14 @@ async function saveUserPermissions() {
   btn.disabled = true;
   btn.innerHTML = '<i class="ri-loader-4-line spin"></i> Enregistrement...';
   try {
-    const { error } = await supabase.from(T.USERS).update({ permissions }).eq("id", editingPermissionsUser.id);
-    if (error) throw error;
-    editingPermissionsUser.permissions = permissions;
+    const updated = await updateUserProfilePermissions(editingPermissionsUser, { permissions });
+    editingPermissionsUser.role = updated?.role || editingPermissionsUser.role;
+    editingPermissionsUser.permissions = updated?.permissions || permissions;
     const existing = allUsers.find(u => u.id === editingPermissionsUser.id);
-    if (existing) existing.permissions = permissions;
+    if (existing) {
+      existing.role = editingPermissionsUser.role;
+      existing.permissions = editingPermissionsUser.permissions;
+    }
     toast("Permissions enregistrees.", "success");
     renderUsersTable($("users-search").value.trim().toLowerCase());
   } catch (err) {
