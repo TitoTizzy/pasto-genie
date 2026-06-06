@@ -353,6 +353,12 @@ async function renderCompetitionEngine() {
       wrap.innerHTML = '<p class="text-muted text-center">Aucune equipe inscrite dans ce tournoi.</p>';
       return;
     }
+    const capacity = getPoolCapacity(tournoiId);
+    const poolCounts = data.reduce((acc, row) => {
+      const key = row.poule || "Poule unique";
+      acc.set(key, (acc.get(key) || 0) + 1);
+      return acc;
+    }, new Map());
     data.forEach(row => {
       const eq = allEquipes.find(item => item.id === row.equipe_id);
       const card = document.createElement("div");
@@ -375,7 +381,8 @@ async function renderCompetitionEngine() {
         avatar.textContent = (eq?.nom || "?")[0].toUpperCase();
       }
       card.querySelector(".entity-title").textContent = eq?.nom || "Equipe inconnue";
-      card.querySelector(".entity-meta").textContent = `${eq?.paroisse || "Sans paroisse"} - inscrite au tournoi`;
+      const pool = row.poule || "Poule unique";
+      card.querySelector(".entity-meta").textContent = `${eq?.paroisse || "Sans paroisse"} - ${poolCounts.get(pool) || 0}/${capacity} dans ${pool}`;
       card.querySelector(".unregister-team").addEventListener("click", () => unregisterTeamFromTournament(row));
       wrap.appendChild(card);
     });
@@ -424,6 +431,7 @@ async function registerTeamToTournament() {
       return;
     }
     if (!poule) poule = pools[0] || "Poule unique";
+    await assertPoolHasCapacity(tournoiId, equipeId, poule);
     const { error } = await supabase.from(T.TOURNOI_EQUIPES).upsert({
       tournoi_id: tournoiId,
       equipe_id: equipeId,
@@ -455,6 +463,29 @@ async function registerTeamToTournament() {
     } else {
       toast("Erreur inscription : " + err.message, "error");
     }
+  }
+}
+
+function getPoolCapacity(tournoiId) {
+  const tournoi = tournoisMap[tournoiId] || {};
+  const rules = tournoi.regles || {};
+  const teamCount = Math.max(parseInt(rules.nombre_equipes, 10) || allEquipes.length || 1, 1);
+  const poolCount = Math.max(parseInt(rules.nombre_poules, 10) || 1, 1);
+  return Math.max(Math.ceil(teamCount / poolCount), 1);
+}
+
+async function assertPoolHasCapacity(tournoiId, equipeId, poule) {
+  const capacity = getPoolCapacity(tournoiId);
+  const { data, error } = await supabase
+    .from(T.TOURNOI_EQUIPES)
+    .select("id,equipe_id")
+    .eq("tournoi_id", tournoiId)
+    .eq("poule", poule)
+    .eq("statut", "active");
+  if (error) throw error;
+  const used = (data || []).filter(row => row.equipe_id !== equipeId).length;
+  if (used >= capacity) {
+    throw new Error(`${poule} est complete (${capacity} equipe(s) maximum).`);
   }
 }
 
@@ -534,13 +565,9 @@ async function generateTournoiMatches(id, nom) {
       toast("Tournoi verrouille : un match a deja demarre.", "error");
       return;
     }
-    const { data, error } = await supabase.rpc("generer_matchs_competition", {
-      p_tournoi_id: id,
-      p_start_at: startAt,
-      p_interval_minutes: intervalMinutes,
-    });
-    if (error) throw error;
-    toast(`${data || 0} match(s) genere(s).`, "success");
+    const payload = await buildTournamentMatchPayloads(id, startAt, intervalMinutes);
+    await replaceTournamentMatches(id, payload);
+    toast(`${payload.length} match(s) genere(s).`, "success");
     await renderCompetitionEngine();
     await loadMatchesList();
     await loadDashboard();
@@ -548,6 +575,125 @@ async function generateTournoiMatches(id, nom) {
     console.error(err);
     toast("Erreur generation calendrier : " + err.message, "error");
   }
+}
+
+async function buildTournamentMatchPayloads(tournoiId, startAt, intervalMinutes) {
+  const tournoi = tournoisMap[tournoiId] || {};
+  const rows = await fetchTournamentTeamRows(tournoiId);
+  const poolCount = poolNamesForTournament(tournoiId).length;
+  const capacity = getPoolCapacity(tournoiId);
+  const groups = new Map();
+
+  rows.forEach(row => {
+    const pool = (row.poule || "").trim() || "Poule unique";
+    if (poolCount > 1 && pool === "Poule unique") {
+      throw new Error("Chaque equipe doit etre placee dans une vraie poule avant de generer les matchs.");
+    }
+    if (!groups.has(pool)) groups.set(pool, []);
+    groups.get(pool).push(row);
+  });
+
+  if (rows.length < 2) {
+    throw new Error("Ajoutez au moins deux equipes au tournoi avant de generer les matchs.");
+  }
+
+  for (const [pool, teams] of groups.entries()) {
+    if (teams.length > capacity) {
+      throw new Error(`${pool} contient ${teams.length} equipes alors que la limite est ${capacity}. Retirez une equipe ou changez les regles du tournoi.`);
+    }
+  }
+
+  if (poolCount > 1 && groups.size < poolCount) {
+    throw new Error("Toutes les poules du tournoi doivent recevoir au moins une equipe avant la generation.");
+  }
+
+  const matches = [];
+  Array.from(groups.entries())
+    .sort(([a], [b]) => a.localeCompare(b, "fr"))
+    .forEach(([pool, teams]) => {
+      const sortedTeams = [...teams].sort((a, b) => getTeamName(a.equipe_id).localeCompare(getTeamName(b.equipe_id), "fr"));
+      for (let i = 0; i < sortedTeams.length; i += 1) {
+        for (let j = i + 1; j < sortedTeams.length; j += 1) {
+          const scheduledAt = new Date(new Date(startAt).getTime() + matches.length * Math.max(intervalMinutes, 1) * 60000).toISOString();
+          matches.push({
+            equipe_a_id: sortedTeams[i].equipe_id,
+            equipe_b_id: sortedTeams[j].equipe_id,
+            equipe_a: buildTeamSnapshot(sortedTeams[i].equipe_id, pool),
+            equipe_b: buildTeamSnapshot(sortedTeams[j].equipe_id, pool),
+            categories_ordre: CATEGORIES.map(c => c.id),
+            categorie_actuelle: 0,
+            statut: "planifie",
+            tournoi_id: tournoiId,
+            tournament_name: tournoi.nom || "Tournoi",
+            scheduled_at: scheduledAt,
+            created_at: nowISO(),
+            updated_at: nowISO(),
+          });
+        }
+      }
+    });
+
+  if (!matches.length) {
+    throw new Error("Aucun match a generer. Verifiez le nombre d'equipes dans les poules.");
+  }
+  return matches;
+}
+
+async function fetchTournamentTeamRows(tournoiId) {
+  const { data, error } = await supabase
+    .from(T.TOURNOI_EQUIPES)
+    .select("*")
+    .eq("tournoi_id", tournoiId)
+    .eq("statut", "active");
+  if (error) throw error;
+  return data || [];
+}
+
+function getTeamName(equipeId) {
+  return allEquipes.find(eq => eq.id === equipeId)?.nom || "Equipe";
+}
+
+function buildTeamSnapshot(equipeId, poule) {
+  const equipe = allEquipes.find(eq => eq.id === equipeId) || {};
+  const joueurs = allJoueurs
+    .filter(j => j.equipe_id === equipeId && (j.actif ?? true))
+    .sort((a, b) => `${a.nom || ""} ${a.prenom || ""}`.localeCompare(`${b.nom || ""} ${b.prenom || ""}`, "fr"))
+    .map(j => ({
+      id: j.id,
+      prenom: j.prenom || "",
+      nom: j.nom || "",
+      photo_url: j.photo_url || "",
+      type: "titulaire",
+    }));
+
+  return {
+    id: equipe.id || equipeId,
+    nom: equipe.nom || "Equipe",
+    paroisse: equipe.paroisse || "",
+    embleme_url: equipe.embleme_url || "",
+    couleur_primaire: equipe.couleur_primaire || "#38bdf8",
+    couleur_secondaire: equipe.couleur_secondaire || "#f59e0b",
+    poule,
+    titulaires: joueurs,
+    remplacants: [],
+  };
+}
+
+async function replaceTournamentMatches(tournoiId, payload) {
+  const matchIds = await getTournamentMatchIds(tournoiId);
+  if (matchIds.length) {
+    await Promise.all([
+      optionalDelete(supabase.from(T.MATCH_EN_COURS).delete().in("id", matchIds)),
+      optionalDelete(supabase.from(T.EVENEMENTS).delete().in("match_id", matchIds)),
+      optionalDelete(supabase.from(T.STATS_EQUIPES).delete().in("match_id", matchIds)),
+      optionalDelete(supabase.from(T.STATS_JOUEURS).delete().in("match_id", matchIds)),
+    ]);
+    const { error: deleteError } = await supabase.from(T.MATCHES).delete().eq("tournoi_id", tournoiId);
+    if (deleteError) throw deleteError;
+  }
+
+  const { error } = await supabase.from(T.MATCHES).insert(payload);
+  if (error) throw error;
 }
 
 async function isTournamentLocked(tournoiId) {
