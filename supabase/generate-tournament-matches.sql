@@ -24,7 +24,8 @@ grant execute on function public.is_admin_or_superadmin() to anon, authenticated
 
 alter table public.tournois
   add column if not exists format_type text default 'Poules',
-  add column if not exists regles jsonb default '{}'::jsonb;
+  add column if not exists regles jsonb default '{}'::jsonb,
+  add column if not exists updated_at timestamptz;
 
 alter table public.equipes
   add column if not exists poule text default 'Poule unique';

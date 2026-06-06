@@ -60,7 +60,8 @@ with check (public.is_superadmin());
 
 alter table public.tournois
   add column if not exists format_type text default 'Poules',
-  add column if not exists regles jsonb default '{}'::jsonb;
+  add column if not exists regles jsonb default '{}'::jsonb,
+  add column if not exists updated_at timestamptz;
 
 create table if not exists public.tournoi_equipes (
   id uuid primary key default gen_random_uuid(),
