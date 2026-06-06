@@ -1790,14 +1790,14 @@ function openPermissionsPanel(user) {
   }
   editingPermissionsUser = user;
   $("permissions-panel")?.classList.remove("hidden");
-  $("permissions-user-label").textContent = `${user.email || "-"} - profil ${user.role || "-"}`;
+  $("permissions-user-label").textContent = `${user.email || "-"} - profil ${user.role || "-"}${user.id === currentAdminUser?.id ? " - compte courant protege" : ""}`;
   const grid = $("permissions-grid");
   const permissions = getEffectivePermissions(user);
   grid.innerHTML = "";
   PERMISSION_DEFINITIONS.forEach(permission => {
     const row = document.createElement("label");
     row.className = "permission-toggle";
-    const locked = user.role === ROLES.SUPERADMIN;
+    const locked = user.id === currentAdminUser?.id;
     row.innerHTML = `
       <span><i class="${permission.icon}"></i> ${permission.label}</span>
       <input type="checkbox" data-permission-key="${permission.key}" ${permissions[permission.key] ? "checked" : ""} ${locked ? "disabled" : ""}/>`;
@@ -1815,8 +1815,8 @@ function closePermissionsPanel() {
 async function saveUserPermissions() {
   hideAlert("permissions-alert");
   if (!editingPermissionsUser) return;
-  if (editingPermissionsUser.role === ROLES.SUPERADMIN) {
-    toast("Le superadmin garde toutes les permissions.", "success");
+  if (editingPermissionsUser.id === currentAdminUser?.id) {
+    toast("Vous ne pouvez pas modifier vos propres permissions pendant votre session.", "error");
     closePermissionsPanel();
     return;
   }
