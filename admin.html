@@ -815,6 +815,16 @@
           <input id="t-pts-defaite" type="number" class="form-input" value="0"/>
         </div>
       </div>
+      <div class="grid-2">
+        <div class="form-group">
+          <label class="form-label">Debut du calendrier</label>
+          <input id="t-start-at" type="datetime-local" class="form-input"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Intervalle entre matchs</label>
+          <input id="t-interval-minutes" type="number" min="5" step="5" class="form-input" value="60"/>
+        </div>
+      </div>
       <div id="t-alert" class="alert alert-red hidden">
         <i class="ri-error-warning-line"></i><span id="t-alert-msg"></span>
       </div>

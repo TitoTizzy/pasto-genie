@@ -220,7 +220,23 @@ function readTournoiRules(t = {}) {
     points_victoire: rules.points_victoire ?? 3,
     points_nul: rules.points_nul ?? 1,
     points_defaite: rules.points_defaite ?? 0,
+    calendrier_debut: rules.calendrier_debut ?? "",
+    interval_minutes: rules.interval_minutes ?? 60,
   };
+}
+
+function toDatetimeLocalValue(value) {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  const local = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+  return local.toISOString().slice(0, 16);
+}
+
+function fromDatetimeLocalValue(value) {
+  if (!value) return null;
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date.toISOString();
 }
 
 function openTournoiModal(tournoi = null) {
@@ -239,6 +255,8 @@ function openTournoiModal(tournoi = null) {
   setInputValue("t-pts-victoire", rules.points_victoire);
   setInputValue("t-pts-nul", rules.points_nul);
   setInputValue("t-pts-defaite", rules.points_defaite);
+  setInputValue("t-start-at", toDatetimeLocalValue(rules.calendrier_debut));
+  setInputValue("t-interval-minutes", rules.interval_minutes);
   $("btn-creer-tournoi").innerHTML = `<i class="${isEdit ? "ri-save-line" : "ri-add-circle-line"}"></i> ${isEdit ? "Enregistrer" : "Creer"}`;
   openOverlay("tournoi-overlay");
 }
@@ -368,7 +386,7 @@ async function unregisterTeamFromTournament(row) {
 async function registerTeamToTournament() {
   const tournoiId = $("engine-tournoi")?.value;
   const equipeId = $("engine-equipe")?.value;
-  const poule = $("engine-poule")?.value.trim() || "Poule unique";
+  let poule = $("engine-poule")?.value.trim() || "";
   if (!tournoiId || !equipeId) {
     toast("Choisissez un tournoi et une equipe.", "error");
     return;
@@ -378,6 +396,7 @@ async function registerTeamToTournament() {
       toast("Tournoi verrouille : impossible d'inscrire une equipe apres le premier match.", "error");
       return;
     }
+    if (!poule) poule = await getNextTournamentPoolName(tournoiId);
     const { error } = await supabase.from(T.TOURNOI_EQUIPES).upsert({
       tournoi_id: tournoiId,
       equipe_id: equipeId,
@@ -410,6 +429,25 @@ async function registerTeamToTournament() {
       toast("Erreur inscription : " + err.message, "error");
     }
   }
+}
+
+async function getNextTournamentPoolName(tournoiId) {
+  const tournoi = tournoisMap[tournoiId] || {};
+  const rules = tournoi.regles || {};
+  const poolCount = Math.max(parseInt(rules.nombre_poules, 10) || 1, 1);
+  if (poolCount <= 1) return "Poule unique";
+
+  const { data, error } = await supabase
+    .from(T.TOURNOI_EQUIPES)
+    .select("id,poule")
+    .eq("tournoi_id", tournoiId)
+    .eq("statut", "active");
+  if (error) throw error;
+
+  const maxTeams = Math.max(parseInt(rules.nombre_equipes, 10) || ((data || []).length + 1), 1);
+  const targetSize = Math.max(Math.ceil(maxTeams / poolCount), 1);
+  const nextIndex = Math.min(poolCount - 1, Math.floor((data || []).length / targetSize));
+  return `Poule ${String.fromCharCode(65 + nextIndex)}`;
 }
 
 async function loadTournoisSelects() {
@@ -473,7 +511,16 @@ function buildTournoiCard(id, t) {
 }
 
 async function generateTournoiMatches(id, nom) {
-  if (!confirm(`Generer automatiquement les matchs de poule pour "${nom}" ? Les doublons existants ne seront pas recrees.`)) return;
+  const tournoi = tournoisMap[id] || {};
+  const rules = tournoi.regles || {};
+  const startAt = rules.calendrier_debut || null;
+  const intervalMinutes = parseInt(rules.interval_minutes, 10) || 60;
+  if (!startAt) {
+    toast("Ajoutez d'abord la date de debut du calendrier dans les parametres du tournoi.", "error");
+    openTournoiModal(tournoi);
+    return;
+  }
+  if (!confirm(`Regenerer automatiquement le calendrier de "${nom}" ? Les matchs non demarres seront remplaces.`)) return;
   try {
     if (await isTournamentLocked(id)) {
       toast("Tournoi verrouille : un match a deja demarre.", "error");
@@ -481,12 +528,14 @@ async function generateTournoiMatches(id, nom) {
     }
     const { data, error } = await supabase.rpc("generer_matchs_competition", {
       p_tournoi_id: id,
-      p_start_at: null,
-      p_interval_minutes: 60,
+      p_start_at: startAt,
+      p_interval_minutes: intervalMinutes,
     });
     if (error) throw error;
     toast(`${data || 0} match(s) genere(s).`, "success");
+    await renderCompetitionEngine();
     await loadMatchesList();
+    await loadDashboard();
   } catch (err) {
     console.error(err);
     toast("Erreur generation calendrier : " + err.message, "error");
@@ -570,6 +619,8 @@ async function saveTournoi() {
     points_victoire: parseInt($("t-pts-victoire")?.value, 10) || 3,
     points_nul: parseInt($("t-pts-nul")?.value, 10) || 1,
     points_defaite: parseInt($("t-pts-defaite")?.value, 10) || 0,
+    calendrier_debut: fromDatetimeLocalValue($("t-start-at")?.value),
+    interval_minutes: parseInt($("t-interval-minutes")?.value, 10) || 60,
   };
   if (!nom) {
     showAlert("t-alert-msg", "t-alert", "Nom requis.");
@@ -604,7 +655,8 @@ async function saveTournoi() {
     closeTournoiModal();
     setInputValue("t-nom", "");
     setInputValue("t-desc", "");
-    ["t-nb-equipes", "t-nb-poules", "t-matchs-poule"].forEach(id => { if ($(id)) $(id).value = ""; });
+    ["t-nb-equipes", "t-nb-poules", "t-matchs-poule", "t-start-at"].forEach(id => { if ($(id)) $(id).value = ""; });
+    setInputValue("t-interval-minutes", 60);
     await loadTournoisList();
     await loadTournoisSelects();
   } catch (err) {

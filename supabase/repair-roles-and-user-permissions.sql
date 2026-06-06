@@ -4,7 +4,8 @@
 -- ================================================================
 
 alter table public.users
-  add column if not exists permissions jsonb not null default '{}'::jsonb;
+  add column if not exists permissions jsonb not null default '{}'::jsonb,
+  add column if not exists updated_at timestamptz;
 
 do $$
 declare

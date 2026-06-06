@@ -74,6 +74,20 @@ grant select on public.tournoi_joueurs to anon, authenticated;
 grant insert, update, delete on public.tournoi_joueurs to authenticated;
 grant select on public.transferts_joueurs to authenticated;
 grant insert, update, delete on public.transferts_joueurs to authenticated;
+grant select on public.matches to anon, authenticated;
+grant insert, update, delete on public.matches to authenticated;
+grant select on public.match_en_cours to anon, authenticated;
+grant insert, update, delete on public.match_en_cours to authenticated;
+
+drop policy if exists "matches_public_read" on public.matches;
+create policy "matches_public_read" on public.matches for select using (true);
+drop policy if exists "matches_admin_write" on public.matches;
+create policy "matches_admin_write" on public.matches for all
+using (public.is_admin_or_superadmin())
+with check (public.is_admin_or_superadmin());
+
+drop policy if exists "live_public_read" on public.match_en_cours;
+create policy "live_public_read" on public.match_en_cours for select using (true);
 
 drop policy if exists "tournoi_equipes_public_read" on public.tournoi_equipes;
 create policy "tournoi_equipes_public_read" on public.tournoi_equipes for select using (true);
@@ -210,10 +224,14 @@ declare
   v_tournoi public.tournois%rowtype;
   v_match_count int := 0;
   v_slot int := 0;
+  v_pool_count int := 1;
+  v_team_count int := 0;
+  v_distinct_pools int := 0;
+  v_pool_size int := 0;
   r record;
 begin
-  if not public.is_superadmin() then
-    raise exception 'Seul un superadmin peut generer le calendrier';
+  if not public.is_admin_or_superadmin() then
+    raise exception 'Seul un admin ou superadmin peut generer le calendrier';
   end if;
 
   select * into v_tournoi
@@ -224,12 +242,66 @@ begin
     raise exception 'Competition introuvable';
   end if;
 
+  if exists (
+    select 1
+    from public.matches m
+    where m.tournoi_id = p_tournoi_id
+      and (m.statut in ('en_cours', 'pause', 'termine') or m.started_at is not null)
+  ) then
+    raise exception 'Tournoi verrouille: un match a deja demarre';
+  end if;
+
+  select count(*)::int, count(distinct coalesce(nullif(trim(poule), ''), 'Poule unique'))::int
+  into v_team_count, v_distinct_pools
+  from public.tournoi_equipes
+  where tournoi_id = p_tournoi_id
+    and statut = 'active';
+
+  v_pool_count := greatest(coalesce((v_tournoi.regles->>'nombre_poules')::int, 1), 1);
+
+  if v_team_count < 2 then
+    raise exception 'Ajoutez au moins deux equipes au tournoi avant de generer les matchs';
+  end if;
+
+  if v_pool_count > 1 and v_distinct_pools <= 1 then
+    v_pool_size := ceil(v_team_count::numeric / v_pool_count)::int;
+
+    with ranked as (
+      select
+        te.id,
+        row_number() over (order by te.created_at, e.nom, te.id) as rn
+      from public.tournoi_equipes te
+      join public.equipes e on e.id = te.equipe_id
+      where te.tournoi_id = p_tournoi_id
+        and te.statut = 'active'
+    )
+    update public.tournoi_equipes te
+    set
+      poule = 'Poule ' || chr(64 + least(v_pool_count, ceil(r.rn::numeric / greatest(v_pool_size, 1))::int)),
+      updated_at = now()
+    from ranked r
+    where te.id = r.id;
+  end if;
+
+  delete from public.match_en_cours
+  where id in (
+    select id from public.matches where tournoi_id = p_tournoi_id
+  );
+
+  delete from public.match_evenements
+  where match_id in (
+    select id from public.matches where tournoi_id = p_tournoi_id
+  );
+
+  delete from public.matches
+  where tournoi_id = p_tournoi_id;
+
   for r in
     with ranked as (
       select
         e.id,
-        coalesce(te.poule, e.poule, 'Poule unique') as poule,
-        row_number() over (partition by coalesce(te.poule, e.poule, 'Poule unique') order by e.nom) as rn
+        coalesce(nullif(trim(te.poule), ''), 'Poule unique') as poule,
+        row_number() over (partition by coalesce(nullif(trim(te.poule), ''), 'Poule unique') order by e.nom) as rn
       from public.tournoi_equipes te
       join public.equipes e on e.id = te.equipe_id
       where te.tournoi_id = p_tournoi_id
@@ -246,17 +318,7 @@ begin
      and b.rn > a.rn
     order by a.poule, a.rn, b.rn
   loop
-    if not exists (
-      select 1
-      from public.matches m
-      where m.tournoi_id = p_tournoi_id
-        and (
-          (m.equipe_a_id = r.equipe_a_id and m.equipe_b_id = r.equipe_b_id)
-          or
-          (m.equipe_a_id = r.equipe_b_id and m.equipe_b_id = r.equipe_a_id)
-        )
-    ) then
-      insert into public.matches (
+    insert into public.matches (
         equipe_a_id,
         equipe_b_id,
         equipe_a,
@@ -286,11 +348,10 @@ begin
         end,
         now(),
         now()
-      );
+    );
 
-      v_match_count := v_match_count + 1;
-      v_slot := v_slot + 1;
-    end if;
+    v_match_count := v_match_count + 1;
+    v_slot := v_slot + 1;
   end loop;
 
   return v_match_count;
