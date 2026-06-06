@@ -272,6 +272,28 @@
   margin-bottom: var(--space-2);
 }
 
+.blog-read-more {
+  width: fit-content;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: 42px;
+  margin-top: var(--space-3);
+  padding: 0.55rem 1rem;
+  border-radius: var(--r-full);
+  background: linear-gradient(135deg, var(--sky), var(--indigo));
+  color: #ffffff;
+  font-weight: 950;
+  text-decoration: none;
+  box-shadow: 0 14px 30px rgba(7,89,133,0.18);
+}
+
+.blog-read-more:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 18px 38px rgba(7,89,133,0.25);
+}
+
 .module-footer {
   position: relative;
   z-index: 1;
