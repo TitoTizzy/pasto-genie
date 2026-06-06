@@ -227,7 +227,7 @@ declare
   v_pool_count int := 1;
   v_team_count int := 0;
   v_distinct_pools int := 0;
-  v_pool_size int := 0;
+  v_unassigned_count int := 0;
   r record;
 begin
   if not public.is_admin_or_superadmin() then
@@ -251,8 +251,11 @@ begin
     raise exception 'Tournoi verrouille: un match a deja demarre';
   end if;
 
-  select count(*)::int, count(distinct coalesce(nullif(trim(poule), ''), 'Poule unique'))::int
-  into v_team_count, v_distinct_pools
+  select
+    count(*)::int,
+    count(distinct coalesce(nullif(trim(poule), ''), 'Poule unique'))::int,
+    count(*) filter (where coalesce(nullif(trim(poule), ''), 'Poule unique') = 'Poule unique')::int
+  into v_team_count, v_distinct_pools, v_unassigned_count
   from public.tournoi_equipes
   where tournoi_id = p_tournoi_id
     and statut = 'active';
@@ -263,24 +266,8 @@ begin
     raise exception 'Ajoutez au moins deux equipes au tournoi avant de generer les matchs';
   end if;
 
-  if v_pool_count > 1 and v_distinct_pools <= 1 then
-    v_pool_size := ceil(v_team_count::numeric / v_pool_count)::int;
-
-    with ranked as (
-      select
-        te.id,
-        row_number() over (order by te.created_at, e.nom, te.id) as rn
-      from public.tournoi_equipes te
-      join public.equipes e on e.id = te.equipe_id
-      where te.tournoi_id = p_tournoi_id
-        and te.statut = 'active'
-    )
-    update public.tournoi_equipes te
-    set
-      poule = 'Poule ' || chr(64 + least(v_pool_count, ceil(r.rn::numeric / greatest(v_pool_size, 1))::int)),
-      updated_at = now()
-    from ranked r
-    where te.id = r.id;
+  if v_pool_count > 1 and (v_unassigned_count > 0 or v_distinct_pools < v_pool_count) then
+    raise exception 'Affectez manuellement chaque equipe dans ses poules avant de generer le calendrier';
   end if;
 
   delete from public.match_en_cours

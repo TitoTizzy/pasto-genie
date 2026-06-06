@@ -184,7 +184,7 @@ async function loadDashboard() {
     $("stat-users").textContent = users.length;
     $("stat-live").textContent = matches.filter(m => m.statut === "en_cours").length;
 
-    const recent = await fetchRows(T.MATCHES, { order: { column: "created_at", ascending: false }, limit: 5 });
+    const recent = await fetchRows(T.MATCHES, { order: { column: "scheduled_at", ascending: true }, limit: 5 });
     const wrap = $("dash-recent-matches");
     wrap.innerHTML = "";
     if (!recent.length) {
@@ -202,7 +202,10 @@ function wireTournois() {
   bind("btn-new-tournoi", "click", () => openTournoiModal());
   bind("close-tournoi-modal", "click", closeTournoiModal);
   bind("btn-creer-tournoi", "click", saveTournoi);
-  bind("engine-tournoi", "change", renderCompetitionEngine);
+  bind("engine-tournoi", "change", () => {
+    populatePoolSelect();
+    renderCompetitionEngine();
+  });
   bind("btn-register-team", "click", registerTeamToTournament);
 }
 
@@ -307,10 +310,29 @@ async function populateCompetitionEngine(tournois = null) {
       allEquipes.forEach(eq => sel.appendChild(new Option(eq.nom, eq.id)));
       sel.value = current;
     });
+    populatePoolSelect();
     await renderCompetitionEngine();
   } catch (err) {
     console.error(err);
   }
+}
+
+function poolNamesForTournament(tournoiId) {
+  const tournoi = tournoisMap[tournoiId] || {};
+  const rules = tournoi.regles || {};
+  const count = Math.max(parseInt(rules.nombre_poules, 10) || 1, 1);
+  if (count <= 1) return ["Poule unique"];
+  return Array.from({ length: count }, (_, index) => `Poule ${String.fromCharCode(65 + index)}`);
+}
+
+function populatePoolSelect() {
+  const sel = $("engine-poule");
+  const tournoiId = $("engine-tournoi")?.value;
+  if (!sel || !tournoiId) return;
+  const current = sel.value;
+  while (sel.options.length > 1) sel.remove(1);
+  poolNamesForTournament(tournoiId).forEach(name => sel.appendChild(new Option(name, name)));
+  sel.value = poolNamesForTournament(tournoiId).includes(current) ? current : "";
 }
 
 async function renderCompetitionEngine() {
@@ -396,7 +418,12 @@ async function registerTeamToTournament() {
       toast("Tournoi verrouille : impossible d'inscrire une equipe apres le premier match.", "error");
       return;
     }
-    if (!poule) poule = await getNextTournamentPoolName(tournoiId);
+    const pools = poolNamesForTournament(tournoiId);
+    if (!poule && pools.length > 1) {
+      toast("Choisissez la poule de cette equipe.", "error");
+      return;
+    }
+    if (!poule) poule = pools[0] || "Poule unique";
     const { error } = await supabase.from(T.TOURNOI_EQUIPES).upsert({
       tournoi_id: tournoiId,
       equipe_id: equipeId,
@@ -429,25 +456,6 @@ async function registerTeamToTournament() {
       toast("Erreur inscription : " + err.message, "error");
     }
   }
-}
-
-async function getNextTournamentPoolName(tournoiId) {
-  const tournoi = tournoisMap[tournoiId] || {};
-  const rules = tournoi.regles || {};
-  const poolCount = Math.max(parseInt(rules.nombre_poules, 10) || 1, 1);
-  if (poolCount <= 1) return "Poule unique";
-
-  const { data, error } = await supabase
-    .from(T.TOURNOI_EQUIPES)
-    .select("id,poule")
-    .eq("tournoi_id", tournoiId)
-    .eq("statut", "active");
-  if (error) throw error;
-
-  const maxTeams = Math.max(parseInt(rules.nombre_equipes, 10) || ((data || []).length + 1), 1);
-  const targetSize = Math.max(Math.ceil(maxTeams / poolCount), 1);
-  const nextIndex = Math.min(poolCount - 1, Math.floor((data || []).length / targetSize));
-  return `Poule ${String.fromCharCode(65 + nextIndex)}`;
 }
 
 async function loadTournoisSelects() {
@@ -1244,7 +1252,7 @@ async function loadMatchesList() {
   const wrap = $("matches-list");
   wrap.innerHTML = '<div class="skeleton" style="height:60px;border-radius:var(--r-sm);"></div>';
   try {
-    const rows = await fetchRows(T.MATCHES, { order: { column: "created_at", ascending: false } });
+    const rows = await fetchRows(T.MATCHES, { order: { column: "scheduled_at", ascending: true } });
     wrap.innerHTML = "";
     if (!rows.length) {
       wrap.innerHTML = '<p class="text-muted text-sm text-center" style="padding:var(--space-6);">Aucun match.</p>';
@@ -1272,6 +1280,7 @@ function buildMatchCard(id, m, compact) {
     </div>
     <div class="item-card-actions">
       <span class="statut-badge ${statutCls}">${labels[m.statut] || m.statut}</span>
+      ${!compact ? buildMatchScheduleEditor(m) : ""}
       ${!compact ? buildMatchActions(m) : ""}
     </div>`;
   card.querySelector(".item-card-title").textContent = `${m.equipe_a?.nom || "A"} vs ${m.equipe_b?.nom || "B"}`;
@@ -1280,8 +1289,18 @@ function buildMatchCard(id, m, compact) {
   if (!compact) {
     card.querySelector(".btn-start-match")?.addEventListener("click", () => startMatch(id));
     card.querySelector(".btn-end-match")?.addEventListener("click", () => endMatch(id));
+    card.querySelector(".btn-save-match-date")?.addEventListener("click", () => saveMatchSchedule(id, card));
   }
   return card;
+}
+
+function buildMatchScheduleEditor(m) {
+  if (m.statut !== "planifie") return "";
+  return `
+    <input class="form-input form-input-sm match-date-input" type="datetime-local" value="${toDatetimeLocalValue(m.scheduled_at)}" title="Date et heure du match"/>
+    <button class="btn btn-outline btn-sm btn-save-match-date" title="Enregistrer la date">
+      <i class="ri-calendar-check-line"></i> Date
+    </button>`;
 }
 
 function buildMatchActions(m) {
@@ -1304,6 +1323,28 @@ async function startMatch(id) {
   } catch (err) {
     console.error(err);
     toast("Erreur demarrage.", "error");
+  }
+}
+
+async function saveMatchSchedule(id, card) {
+  const input = card.querySelector(".match-date-input");
+  const scheduledAt = fromDatetimeLocalValue(input?.value);
+  if (!scheduledAt) {
+    toast("Choisissez une date et une heure.", "error");
+    return;
+  }
+  try {
+    const { error } = await supabase
+      .from(T.MATCHES)
+      .update({ scheduled_at: scheduledAt, updated_at: nowISO() })
+      .eq("id", id);
+    if (error) throw error;
+    toast("Date du match enregistree.", "success");
+    await loadMatchesList();
+    await loadDashboard();
+  } catch (err) {
+    console.error(err);
+    toast("Erreur date match : " + err.message, "error");
   }
 }
 
