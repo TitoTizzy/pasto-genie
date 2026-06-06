@@ -688,6 +688,13 @@ function buildTeamSnapshot(equipeId, poule) {
 }
 
 async function replaceTournamentMatches(tournoiId, payload) {
+  await deleteTournamentMatches(tournoiId);
+
+  const { error } = await supabase.from(T.MATCHES).insert(payload);
+  if (error) throw error;
+}
+
+async function deleteTournamentMatches(tournoiId) {
   const matchIds = await getTournamentMatchIds(tournoiId);
   if (matchIds.length) {
     await Promise.all([
@@ -699,9 +706,6 @@ async function replaceTournamentMatches(tournoiId, payload) {
     const { error: deleteError } = await supabase.from(T.MATCHES).delete().eq("tournoi_id", tournoiId);
     if (deleteError) throw deleteError;
   }
-
-  const { error } = await supabase.from(T.MATCHES).insert(payload);
-  if (error) throw error;
 }
 
 async function isTournamentLocked(tournoiId) {
@@ -725,30 +729,13 @@ async function getTournamentMatchIds(tournoiId) {
 }
 
 async function deleteTournoi(id, nom) {
-  if (!confirm(`Supprimer definitivement le tournoi "${nom || "sans nom"}" ?`)) return;
+  if (!confirm(`Supprimer definitivement le tournoi "${nom || "sans nom"}" et tous ses matchs ?`)) return;
 
+  let matchCount = 0;
   try {
-    if (await isTournamentLocked(id)) {
-      toast("Impossible de supprimer : un match de ce tournoi a deja commence. L'historique est protege.", "error");
-      return;
-    }
-
     const matchIds = await getTournamentMatchIds(id);
-    if (matchIds.length && !confirm(`Ce tournoi contient ${matchIds.length} match(s) non joues. Supprimer aussi ce calendrier ?`)) {
-      return;
-    }
-
-    if (matchIds.length) {
-      await Promise.all([
-        optionalDelete(supabase.from(T.MATCH_EN_COURS).delete().in("id", matchIds)),
-        optionalDelete(supabase.from(T.EVENEMENTS).delete().in("match_id", matchIds)),
-        optionalDelete(supabase.from(T.STATS_EQUIPES).delete().in("match_id", matchIds)),
-        optionalDelete(supabase.from(T.STATS_JOUEURS).delete().in("match_id", matchIds)),
-      ]);
-
-      const { error: matchesError } = await supabase.from(T.MATCHES).delete().eq("tournoi_id", id);
-      if (matchesError) throw matchesError;
-    }
+    matchCount = matchIds.length;
+    await deleteTournamentMatches(id);
 
     const cleanupTables = [T.TRANSFERTS, T.TOURNOI_JOUEURS, T.TOURNOI_EQUIPES].filter(Boolean);
     for (const table of cleanupTables) {
@@ -760,12 +747,14 @@ async function deleteTournoi(id, nom) {
 
     toast("Tournoi supprime.", "success");
     delete tournoisMap[id];
+    if ($("matches-tournoi-filter")?.value === id) setInputValue("matches-tournoi-filter", "");
     await loadTournoisList();
     await loadTournoisSelects();
+    await loadMatchesList();
     await populateStatsTournois();
   } catch (err) {
     console.error(err);
-    toast("Erreur suppression tournoi : " + err.message, "error");
+    toast(`Erreur suppression tournoi (${matchCount} match(s) lies) : ${err.message}`, "error");
   }
 }
 
