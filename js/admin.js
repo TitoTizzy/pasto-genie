@@ -1797,10 +1797,9 @@ function openPermissionsPanel(user) {
   PERMISSION_DEFINITIONS.forEach(permission => {
     const row = document.createElement("label");
     row.className = "permission-toggle";
-    const locked = user.id === currentAdminUser?.id;
     row.innerHTML = `
       <span><i class="${permission.icon}"></i> ${permission.label}</span>
-      <input type="checkbox" data-permission-key="${permission.key}" ${permissions[permission.key] ? "checked" : ""} ${locked ? "disabled" : ""}/>`;
+      <input type="checkbox" data-permission-key="${permission.key}" ${permissions[permission.key] ? "checked" : ""}/>`;
     grid.appendChild(row);
   });
   $("permissions-panel")?.scrollIntoView({ behavior: "smooth", block: "nearest" });
@@ -1815,15 +1814,13 @@ function closePermissionsPanel() {
 async function saveUserPermissions() {
   hideAlert("permissions-alert");
   if (!editingPermissionsUser) return;
-  if (editingPermissionsUser.id === currentAdminUser?.id) {
-    toast("Vous ne pouvez pas modifier vos propres permissions pendant votre session.", "error");
-    closePermissionsPanel();
-    return;
-  }
   const permissions = {};
   document.querySelectorAll("[data-permission-key]").forEach(input => {
     permissions[input.dataset.permissionKey] = input.checked;
   });
+  if (editingPermissionsUser.id === currentAdminUser?.id) {
+    permissions.manage_users = true;
+  }
   const btn = $("btn-save-permissions");
   btn.disabled = true;
   btn.innerHTML = '<i class="ri-loader-4-line spin"></i> Enregistrement...';
