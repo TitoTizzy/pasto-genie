@@ -207,6 +207,7 @@ function wireTournois() {
     renderCompetitionEngine();
   });
   bind("btn-register-team", "click", registerTeamToTournament);
+  bind("matches-tournoi-filter", "change", loadMatchesList);
 }
 
 function setInputValue(id, value) {
@@ -493,11 +494,17 @@ async function loadTournoisSelects() {
   try {
     const rows = await fetchRows(T.TOURNOIS, { order: { column: "annee", ascending: false } });
     const sel = $("match-tournoi");
-    while (sel.options.length > 1) sel.remove(1);
+    const matchFilter = $("matches-tournoi-filter");
+    if (sel) while (sel.options.length > 1) sel.remove(1);
+    if (matchFilter) while (matchFilter.options.length > 1) matchFilter.remove(1);
     rows.forEach(t => {
       tournoisMap[t.id] = t;
-      sel.appendChild(new Option(t.nom, t.id));
+      if (sel) sel.appendChild(new Option(t.nom, t.id));
+      if (matchFilter) matchFilter.appendChild(new Option(`${t.nom} ${t.annee || ""}`.trim(), t.id));
     });
+    if (matchFilter && !matchFilter.value) {
+      matchFilter.value = rows.find(t => t.actif)?.id || rows[0]?.id || "";
+    }
   } catch (err) {
     console.error(err);
   }
@@ -569,6 +576,7 @@ async function generateTournoiMatches(id, nom) {
     await replaceTournamentMatches(id, payload);
     toast(`${payload.length} match(s) genere(s).`, "success");
     await renderCompetitionEngine();
+    setInputValue("matches-tournoi-filter", id);
     await loadMatchesList();
     await loadDashboard();
   } catch (err) {
@@ -1398,10 +1406,18 @@ async function loadMatchesList() {
   const wrap = $("matches-list");
   wrap.innerHTML = '<div class="skeleton" style="height:60px;border-radius:var(--r-sm);"></div>';
   try {
-    const rows = await fetchRows(T.MATCHES, { order: { column: "scheduled_at", ascending: true } });
+    const selectedTournoi = $("matches-tournoi-filter")?.value || "";
+    let query = supabase.from(T.MATCHES).select("*");
+    if (selectedTournoi) query = query.eq("tournoi_id", selectedTournoi);
+    query = query.order("scheduled_at", { ascending: true, nullsFirst: false }).order("created_at", { ascending: true });
+    const { data, error } = await query;
+    if (error) throw error;
+    const rows = data || [];
     wrap.innerHTML = "";
+    const count = $("matches-count");
+    if (count) count.textContent = `${rows.length} match${rows.length > 1 ? "s" : ""}`;
     if (!rows.length) {
-      wrap.innerHTML = '<p class="text-muted text-sm text-center" style="padding:var(--space-6);">Aucun match.</p>';
+      wrap.innerHTML = '<p class="text-muted text-sm text-center" style="padding:var(--space-6);">Aucun match pour ce filtre.</p>';
       return;
     }
     rows.forEach(m => wrap.appendChild(buildMatchCard(m.id, m, false)));

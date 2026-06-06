@@ -203,11 +203,25 @@
         <div class="page-header">
           <div>
             <h2 class="section-title">Matchs</h2>
-            <p class="section-subtitle">Tous les matchs du tournoi</p>
+            <p class="section-subtitle">Calendrier du tournoi selectionne</p>
           </div>
           <button class="btn btn-ghost" data-goto="s-tournois">
             <i class="ri-node-tree"></i> Generer depuis Tournoi
           </button>
+        </div>
+        <div class="glass glass-sm mb-4">
+          <div class="grid-2">
+            <div class="form-group">
+              <label class="form-label">Tournoi a afficher</label>
+              <select id="matches-tournoi-filter" class="form-select">
+                <option value="">Tous les tournois</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Lecture</label>
+              <div id="matches-count" class="form-input readonly-field">0 match</div>
+            </div>
+          </div>
         </div>
         <div id="matches-list" style="display:flex;flex-direction:column;gap:var(--space-3);"></div>
       </section>
