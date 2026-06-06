@@ -402,6 +402,12 @@ function setupAdminControls() {
       toast("Erreur validation finale : " + error.message, "error");
       return;
     }
+    const endedAt = nowISO();
+    await supabase.from(T.MATCHES).update({ statut: "termine", ended_at: endedAt, updated_at: endedAt }).eq("id", matchId);
+    await supabase.from(T.MATCH_EN_COURS).delete().eq("id", matchId);
+    matchData = { ...matchData, statut: "termine", endedAt: new Date(endedAt) };
+    clearInterval(chronoInt);
+    renderMatchState();
     toast("Match termine et statistiques figees.", "success");
   });
 }

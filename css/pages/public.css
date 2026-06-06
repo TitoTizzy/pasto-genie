@@ -779,6 +779,19 @@
   min-width: 0;
 }
 
+.public-page,
+.public-page * {
+  max-width: 100%;
+}
+
+.public-page {
+  overflow-x: hidden;
+}
+
+.live-anchor {
+  scroll-margin-top: 96px;
+}
+
 .public-page .brand > div:last-child,
 .public-page .nav-actions,
 .public-page .match-select-wrap,
@@ -1505,6 +1518,30 @@
   .today-teams {
     grid-template-columns: 1fr;
   }
+  .featured-module .today-teams {
+    grid-template-columns: 1fr;
+    gap: var(--space-2);
+  }
+  .featured-module .mini-team {
+    min-width: 0;
+    width: 100%;
+    justify-content: center;
+    padding: var(--space-2);
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    background: rgba(255,255,255,0.08);
+  }
+  .featured-module .mini-team strong {
+    white-space: normal;
+    overflow-wrap: anywhere;
+    text-align: center;
+  }
+  .featured-module .featured-watch-btn,
+  .module-link,
+  .module-footer .btn {
+    width: 100%;
+    min-width: 0;
+  }
   .versus-3d {
     width: 64px;
     height: 64px;
@@ -1599,6 +1636,12 @@
   .public-page .match-select-wrap {
     max-width: 100%;
   }
+  .home-module,
+  .blog-zone,
+  .neo-card,
+  .glass {
+    min-width: 0;
+  }
 }
 
 @media (max-width: 600px) {
@@ -1648,6 +1691,13 @@
     gap: var(--space-3);
     padding: var(--space-2) 0;
   }
+  .scoreboard-hero,
+  .scoreboard-inner {
+    min-width: 0;
+  }
+  .scoreboard-meta-name {
+    overflow-wrap: anywhere;
+  }
   .team-side {
     display: grid;
     grid-template-columns: 1fr;
@@ -1684,6 +1734,13 @@
     gap: var(--space-3);
     justify-content: center;
     width: 100%;
+  }
+  .score-hero {
+    font-size: clamp(3.2rem, 20vw, 5rem);
+    line-height: 0.9;
+  }
+  .score-sep {
+    font-size: clamp(1.6rem, 8vw, 2.2rem);
   }
   .cat-active-strip {
     width: 100%;
@@ -1730,6 +1787,17 @@
   .countdown-box strong {
     font-size: 2rem;
   }
+  .module-title {
+    font-size: 1.35rem;
+    line-height: 1.1;
+    overflow-wrap: anywhere;
+  }
+  .blog-preview-item strong,
+  .calendar-date strong,
+  .public-ranking-name,
+  .player-row-name {
+    overflow-wrap: anywhere;
+  }
   .scoreboard-hero,
   .right-col > .glass,
   .public-ranking-grid > .glass {
@@ -1740,6 +1808,12 @@
   }
   .score-row {
     gap: var(--space-2);
+  }
+  .score-numbers {
+    gap: var(--space-2);
+  }
+  .score-hero {
+    font-size: clamp(2.75rem, 18vw, 4.2rem);
   }
   .team-side {
     padding: var(--space-2);

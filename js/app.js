@@ -21,11 +21,18 @@ let playersById = new Map();
 let tournamentTeamsByEquipe = new Map();
 let allTeamStats = [];
 let allPlayerStats = [];
+let currentPublicMatch = null;
 
 function showMain() {
   $("loading-screen")?.classList.add("hidden");
   $("main-content")?.classList.remove("hidden");
   $("empty-state")?.classList.add("hidden");
+}
+
+function hideMain() {
+  $("main-content")?.classList.add("hidden");
+  $("live-badge")?.classList.add("hidden");
+  clearInterval(chronoInterval);
 }
 
 function showEmpty() {
@@ -256,9 +263,9 @@ function renderTodayMatches() {
         <span>Compte a rebours</span>
         <strong data-countdown="${match.id}">${countdownText(date, match.statut)}</strong>
       </div>
-      <button class="btn btn-gold watch-match-btn featured-watch-btn" data-watch-match="${match.id}">
+      <a class="btn btn-gold watch-match-btn featured-watch-btn" href="index.html?match=${encodeURIComponent(match.id)}#live" data-watch-match="${match.id}">
         <i class="ri-broadcast-line"></i> Suivre en direct
-      </button>`;
+      </a>`;
     const teamA = teamRefFromMatch(match, "A");
     const teamB = teamRefFromMatch(match, "B");
     const a = card.querySelector('[data-side="A"]');
@@ -317,9 +324,9 @@ function renderCalendar() {
         <strong>${teamName(match, "equipeB")}</strong>
       </div>
       <span class="status-pill ${match.statut === "en_cours" ? "is-live" : ""}">${statusLabel(match.statut)}</span>
-      <button class="btn btn-outline btn-sm watch-match-btn" data-watch-match="${match.id}">
+      <a class="btn btn-outline btn-sm watch-match-btn" href="index.html?match=${encodeURIComponent(match.id)}#live" data-watch-match="${match.id}">
         <i class="ri-broadcast-line"></i> Suivre
-      </button>`;
+      </a>`;
     wrap.appendChild(row);
   });
 }
@@ -517,10 +524,18 @@ async function subscribeMatch(matchId, scrollIntoView = true) {
   $("pub-feed").innerHTML = '<p class="text-muted text-xs text-center" style="padding:var(--space-4);">Chargement...</p>';
 
   const { data: match, error: matchError } = await supabase.from(T.MATCHES).select("*").eq("id", matchId).single();
-  if (!matchError && match) renderMatchInfo(normalizeMatch(match));
+  let normalizedMatch = null;
+  if (!matchError && match) {
+    normalizedMatch = normalizeMatch(match);
+    currentPublicMatch = normalizedMatch;
+    renderMatchInfo(normalizedMatch);
+  }
 
   const { data: score, error: scoreError } = await supabase.from(T.MATCH_EN_COURS).select("*").eq("id", matchId).maybeSingle();
-  if (!scoreError && score) {
+  if (normalizedMatch?.statut === "termine") {
+    renderScores({ scoreA: score?.score_a ?? 0, scoreB: score?.score_b ?? 0 });
+    renderCatScores(normalizeScore(score || { score_par_categorie: {} }));
+  } else if (!scoreError && score) {
     const normalized = normalizeScore(score);
     renderScores(normalized);
     renderPlayerScores(normalized);
@@ -545,13 +560,17 @@ async function subscribeMatch(matchId, scrollIntoView = true) {
   const matchChannel = supabase
     .channel(`public-match-${matchId}`)
     .on("postgres_changes", { event: "*", schema: "public", table: T.MATCHES, filter: `id=eq.${matchId}` }, payload => {
-      renderMatchInfo(normalizeMatch(payload.new));
+      const updated = normalizeMatch(payload.new);
+      currentPublicMatch = updated;
+      renderMatchInfo(updated);
       loadPublicHome();
     })
     .subscribe();
   const scoreChannel = supabase
     .channel(`public-score-${matchId}`)
     .on("postgres_changes", { event: "*", schema: "public", table: T.MATCH_EN_COURS, filter: `id=eq.${matchId}` }, payload => {
+      if (currentPublicMatch?.id === matchId && currentPublicMatch?.statut === "termine") return;
+      if (!payload.new) return;
       const data = normalizeScore(payload.new);
       renderScores(data);
       renderPlayerScores(data);
@@ -729,6 +748,7 @@ function createPlayerRankingRow(player, index) {
 }
 
 function renderMatchInfo(m) {
+  currentPublicMatch = m;
   $("pub-match-title").textContent = `${teamName(m, "equipeA")} - ${teamName(m, "equipeB")}`;
   $("pub-tournoi-label").textContent = m.tournamentName || activeTournament?.nom || "Tournoi PASTO GENIE";
   $("pub-name-a").textContent = teamName(m, "equipeA");
@@ -751,10 +771,12 @@ function renderMatchInfo(m) {
     badge.innerHTML = '<i class="ri-check-line"></i> Termine';
     $("live-badge").classList.add("hidden");
     clearInterval(chronoInterval);
+    $("pub-chrono-cat").textContent = "Match termine";
   } else {
     badge.className = "badge badge-gold";
     badge.textContent = statusLabel(m.statut);
     $("live-badge").classList.add("hidden");
+    clearInterval(chronoInterval);
   }
 
   renderCatTrack("pub-cat-track", m.categoriesOrdre || [], m.categorieActuelle ?? 0, CATEGORIES);
@@ -966,7 +988,12 @@ function wireEvents() {
   });
   document.addEventListener("click", e => {
     const watch = e.target.closest("[data-watch-match]");
-    if (watch?.dataset.watchMatch) subscribeMatch(watch.dataset.watchMatch);
+    if (watch?.dataset.watchMatch) {
+      e.preventDefault();
+      const targetUrl = `index.html?match=${encodeURIComponent(watch.dataset.watchMatch)}#live`;
+      history.pushState({}, "", targetUrl);
+      subscribeMatch(watch.dataset.watchMatch);
+    }
   });
   $("close-player-profile")?.addEventListener("click", () => $("player-profile-overlay")?.classList.add("hidden"));
   $("player-profile-overlay")?.addEventListener("click", e => {

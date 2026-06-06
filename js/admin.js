@@ -1492,6 +1492,8 @@ async function endMatch(id) {
   try {
     const { error } = await supabase.rpc("finalize_match_stats", { p_match_id: id });
     if (error) throw error;
+    await supabase.from(T.MATCHES).update({ statut: "termine", ended_at: nowISO(), updated_at: nowISO() }).eq("id", id);
+    await optionalDelete(supabase.from(T.MATCH_EN_COURS).delete().eq("id", id));
     toast("Match termine et statistiques figees.", "success");
     loadMatchesList();
     loadDashboard();
