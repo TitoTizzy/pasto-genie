@@ -396,7 +396,7 @@ async function renderCompetitionEngine() {
     });
   } catch (err) {
     console.error(err);
-    wrap.innerHTML = '<p class="text-muted text-center">Moteur competition incomplet. Executez le script SQL repair-blog-and-competition-engine.sql.</p>';
+    wrap.innerHTML = '<p class="text-muted text-center">Moteur competition incomplet. Executez le script SQL 010-repair-blog-and-competition-engine.sql.</p>';
   }
 }
 
@@ -467,7 +467,7 @@ async function registerTeamToTournament() {
   } catch (err) {
     console.error(err);
     if (isMissingTableError(err)) {
-      toast("Moteur competition incomplet : executez repair-blog-and-competition-engine.sql puis rechargez la page.", "error");
+      toast("Moteur competition incomplet : executez 010-repair-blog-and-competition-engine.sql puis rechargez la page.", "error");
     } else {
       toast("Erreur inscription : " + err.message, "error");
     }
@@ -2015,7 +2015,7 @@ async function loadBlogArticles() {
   } catch (err) {
     console.error(err);
     if (isMissingTableError(err)) {
-      wrap.innerHTML = '<p class="text-muted text-center">Executez le script SQL repair-blog-and-competition-engine.sql.</p>';
+      wrap.innerHTML = '<p class="text-muted text-center">Executez le script SQL 010-repair-blog-and-competition-engine.sql.</p>';
     } else {
       wrap.innerHTML = '<p class="text-muted text-center">Erreur chargement blog.</p>';
     }
@@ -2109,7 +2109,7 @@ async function saveBlogArticle() {
   } catch (err) {
     console.error(err);
     if (isMissingTableError(err)) {
-      showAlert("blog-alert-msg", "blog-alert", "Executez le script SQL repair-blog-and-competition-engine.sql dans Supabase.");
+      showAlert("blog-alert-msg", "blog-alert", "Executez le script SQL 010-repair-blog-and-competition-engine.sql dans Supabase.");
     } else {
       showAlert("blog-alert-msg", "blog-alert", "Erreur : " + err.message);
     }
@@ -2227,7 +2227,7 @@ async function updateUserProfilePermissions(user, { role = user.role, permission
   });
   if (error) {
     if (isPermissionsSchemaError(error)) {
-      throw new Error("Base non configuree: executez supabase/repair-roles-and-user-permissions.sql dans Supabase SQL Editor, puis rechargez la page.");
+      throw new Error("Base non configuree: executez supabase/011-repair-roles-and-user-permissions.sql dans Supabase SQL Editor, puis rechargez la page.");
     }
     throw error;
   }

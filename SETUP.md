@@ -131,7 +131,7 @@ Ensuite rechargez `admin.html` avec `Ctrl + F5` et recreez le compte depuis la c
 Si la console affiche `permission denied for table users`, executez aussi:
 
 ```text
-supabase/repair-service-role-grants.sql
+supabase/003-repair-service-role-grants.sql
 ```
 
 ## 5. Calcul du score
@@ -156,8 +156,8 @@ Le bareme contient maintenant:
 Apres le schema principal, executez aussi:
 
 ```text
-supabase/league-platform-upgrade.sql
-supabase/storage-media-bucket.sql
+supabase/005-league-platform-upgrade.sql
+supabase/006-storage-media-bucket.sql
 ```
 
 Ce script ajoute:
@@ -170,4 +170,4 @@ Ce script ajoute:
 
 Important: les nouveaux matchs doivent appartenir a un tournoi. Pour conserver un historique joueur, ajoutez les joueurs dans l'onglet `Joueurs`, puis selectionnez-les dans la creation du match.
 
-Le script `storage-media-bucket.sql` cree le bucket public `pasto-media` pour uploader les emblemes d'equipes et les photos des joueurs depuis l'admin.
+Le script `006-storage-media-bucket.sql` cree le bucket public `pasto-media` pour uploader les emblemes d'equipes et les photos des joueurs depuis l'admin.
