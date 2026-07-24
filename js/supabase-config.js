@@ -43,20 +43,50 @@ export const ROLES = {
 
 export const MANAGED_ROLES = [ROLES.SUPERADMIN, ROLES.ADMIN, ROLES.JURY];
 
+// ----------------------------------------------------------------
+//  Phases d'un match.
+//
+//  Une phase porte UNE valeur de question. Tout le reste s'en deduit :
+//  une bonne reponse vaut `points`, une mauvaise vaut 0, et une replique
+//  vaut la moitie de `points` en positif si elle est bonne, en negatif si
+//  elle est mauvaise. Les valeurs doivent donc rester paires : le jeu ne
+//  connait pas les demi-points.
+//
+//  `questions`  : nombre de questions posees a chaque equipe.
+//  `cible`      : a qui la question est posee.
+// ----------------------------------------------------------------
 export const CATEGORIES = [
-  { id: "francais", label: "Francais", icon: "ri-book-3-line", emoji: "FR" },
-  { id: "religion", label: "Religion", icon: "ri-heart-3-line", emoji: "RL" },
-  { id: "culture", label: "Culture Generale", icon: "ri-earth-line", emoji: "CG" },
-  { id: "maths", label: "Mathematiques", icon: "ri-calculator-line", emoji: "MA" },
-  { id: "sport", label: "Sport", icon: "ri-football-line", emoji: "SP" },
-  { id: "eclair", label: "Questions Eclair", icon: "ri-flashlight-line", emoji: "QE" },
+  { id: "francais", label: "Francais", icon: "ri-book-3-line", emoji: "FR", points: 10, questions: 6, cible: "joueur" },
+  { id: "religion", label: "Religion", icon: "ri-heart-3-line", emoji: "RL", points: 10, questions: 6, cible: "joueur" },
+  { id: "culture", label: "Culture Generale", icon: "ri-earth-line", emoji: "CG", points: 10, questions: 6, cible: "joueur" },
+  { id: "maths", label: "Mathematiques", icon: "ri-calculator-line", emoji: "MA", points: 10, questions: 6, cible: "joueur" },
+  { id: "sport", label: "Sport", icon: "ri-football-line", emoji: "SP", points: 10, questions: 6, cible: "joueur" },
+  { id: "eclair", label: "Questions Eclair", icon: "ri-flashlight-line", emoji: "QE", points: 50, questions: 3, cible: "titulaire" },
+  { id: "bonus", label: "Question Bonus", icon: "ri-star-smile-line", emoji: "QB", points: 100, questions: 1, cible: "equipe" },
 ];
 
-export const BAREME_DEFAULT = {
-  francais: { bonne: 3, mauvaise: 0, replique: 1, replique_penalite: 0 },
-  religion: { bonne: 3, mauvaise: 0, replique: 1, replique_penalite: 0 },
-  culture: { bonne: 3, mauvaise: 0, replique: 1, replique_penalite: 0 },
-  maths: { bonne: 4, mauvaise: 0, replique: 2, replique_penalite: 0 },
-  sport: { bonne: 3, mauvaise: 0, replique: 1, replique_penalite: 0 },
-  eclair: { bonne: 2, mauvaise: 0, replique: 0, replique_penalite: 0 },
-};
+export const PHASE_BY_ID = Object.fromEntries(CATEGORIES.map(p => [p.id, p]));
+
+/** Une replique vaut la moitie de la question, en + si bonne, en - si mauvaise. */
+export function pointsReplique(points) {
+  return Math.trunc((Number(points) || 0) / 2);
+}
+
+/** Points marques par une action, selon la valeur de question de la phase. */
+export function pointsPourAction(action, pointsQuestion) {
+  const base = Number(pointsQuestion) || 0;
+  switch (action) {
+    case "bonne_reponse": return base;
+    case "mauvaise_reponse": return 0;
+    case "replique_bonne": return pointsReplique(base);
+    case "replique_mauvaise": return -pointsReplique(base);
+    default: return 0;
+  }
+}
+
+export const BAREME_DEFAULT = Object.fromEntries(
+  CATEGORIES.map(p => [p.id, { points: p.points, questions: p.questions }])
+);
+
+/** Duree par defaut, en secondes, du compte a rebours de reponse. */
+export const CHRONO_REPONSE_SECONDES = 20;

@@ -1,7 +1,7 @@
 // ================================================================
 //  PASTO GENIE - Public tournament hub + live scoreboard
 // ================================================================
-import { supabase, T, CATEGORIES, BAREME_DEFAULT } from "./supabase-config.js";
+import { supabase, T, CATEGORIES, BAREME_DEFAULT, pointsPourAction } from "./supabase-config.js";
 import { formatTime, pulsify, renderCatTrack } from "./utils.js";
 
 const $ = id => document.getElementById(id);
@@ -673,19 +673,12 @@ async function loadCategoryPlayerRanking(category) {
       repliques_bonnes: 0,
       repliques_mauvaises: 0,
     };
-    if (ev.action === "bonne_reponse") {
-      item.bonnes += 1;
-      item.points += rule.bonne || 0;
-    } else if (ev.action === "mauvaise_reponse") {
-      item.mauvaises += 1;
-      item.points += rule.mauvaise || 0;
-    } else if (ev.action === "replique_bonne") {
-      item.repliques_bonnes += 1;
-      item.points += rule.replique || 0;
-    } else if (ev.action === "replique_mauvaise") {
-      item.repliques_mauvaises += 1;
-      item.points -= rule.replique_penalite || 0;
-    }
+    const valeurQuestion = rule.points ?? rule.bonne ?? 0;
+    item.points += pointsPourAction(ev.action, valeurQuestion);
+    if (ev.action === "bonne_reponse") item.bonnes += 1;
+    else if (ev.action === "mauvaise_reponse") item.mauvaises += 1;
+    else if (ev.action === "replique_bonne") item.repliques_bonnes += 1;
+    else if (ev.action === "replique_mauvaise") item.repliques_mauvaises += 1;
     map.set(ev.joueur_id, item);
   });
   return [...map.values()].sort(sortPlayers);

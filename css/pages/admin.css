@@ -498,7 +498,7 @@
 
 .bareme-header {
   display: grid;
-  grid-template-columns: minmax(190px, 1.5fr) repeat(4, minmax(112px, 1fr));
+  grid-template-columns: minmax(190px, 1.5fr) repeat(3, minmax(112px, 1fr));
   gap: var(--space-3);
   padding-bottom: var(--space-2);
   border-bottom: 1px solid var(--border-gold);
@@ -649,7 +649,7 @@
 /* ── Barème rows ────────────────────────────────────────────────── */
 .bareme-row {
   display: grid;
-  grid-template-columns: minmax(190px, 1.5fr) repeat(4, minmax(112px, 1fr));
+  grid-template-columns: minmax(190px, 1.5fr) repeat(3, minmax(112px, 1fr));
   gap: var(--space-3);
   align-items: center;
   padding: var(--space-2) 0;
@@ -671,6 +671,18 @@
   width: 100% !important;
   text-align: center;
   padding: var(--space-2) !important;
+}
+
+/* Valeur de replique, calculee et non saisissable */
+.bareme-derive {
+  text-align: center;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+}
+
+.bareme-derive-impair {
+  color: var(--red);
 }
 
 /* ── Item card body / icon / meta ──────────────────────────────── */

@@ -1,7 +1,7 @@
 // ================================================================
 //  PASTO GENIE - Admin panel Supabase
 // ================================================================
-import { supabase, T, ROLES, MANAGED_ROLES, CATEGORIES, BAREME_DEFAULT, STORAGE_BUCKET } from "./supabase-config.js";
+import { supabase, T, ROLES, MANAGED_ROLES, CATEGORIES, BAREME_DEFAULT, STORAGE_BUCKET, pointsReplique } from "./supabase-config.js";
 import { initAuth, logout } from "./auth.js";
 import { toast, showSection, showAlert, hideAlert, nextPlayerId, openOverlay, closeOverlay } from "./utils.js";
 
@@ -1774,20 +1774,34 @@ async function loadBareme() {
 function renderBaremeRows(data) {
   const wrap = $("bareme-rows");
   wrap.innerHTML = "";
-  CATEGORIES.forEach(cat => {
-    const pts = data[cat.id] || { bonne: 0, mauvaise: 0, replique: 0, replique_penalite: 0 };
+  CATEGORIES.forEach(phase => {
+    const conf = data[phase.id] || {};
+    // "points" est le nouveau format ; "bonne" celui de l'ancien bareme.
+    const points = Number(conf.points ?? conf.bonne ?? phase.points) || 0;
+    const questions = Number(conf.questions ?? phase.questions) || 0;
+
     const row = document.createElement("div");
     row.className = "bareme-row";
     row.innerHTML = `
-      <div class="bareme-cat"><i class="${cat.icon}"></i><span>${cat.label}</span></div>
-      <input type="number" class="form-input bareme-input" min="0" max="20" step="1" data-cat="${cat.id}" data-field="bonne"/>
-      <input type="number" class="form-input bareme-input" min="0" max="20" step="1" data-cat="${cat.id}" data-field="mauvaise"/>
-      <input type="number" class="form-input bareme-input" min="0" max="20" step="1" data-cat="${cat.id}" data-field="replique" ${cat.id === "eclair" ? 'disabled title="Pas de replique pour les Questions Eclair"' : ""}/>
-      <input type="number" class="form-input bareme-input" min="0" max="20" step="1" data-cat="${cat.id}" data-field="replique_penalite" ${cat.id === "eclair" ? 'disabled title="Pas de replique pour les Questions Eclair"' : ""}/>`;
-    row.querySelector('[data-field="bonne"]').value = pts.bonne;
-    row.querySelector('[data-field="mauvaise"]').value = pts.mauvaise;
-    row.querySelector('[data-field="replique"]').value = pts.replique;
-    row.querySelector('[data-field="replique_penalite"]').value = pts.replique_penalite ?? 0;
+      <div class="bareme-cat"><i class="${phase.icon}"></i><span></span></div>
+      <input type="number" class="form-input bareme-input" min="0" max="500" step="2" data-cat="${phase.id}" data-field="points"/>
+      <input type="number" class="form-input bareme-input" min="1" max="20" step="1" data-cat="${phase.id}" data-field="questions"/>
+      <div class="bareme-derive" data-replique-for="${phase.id}"></div>`;
+
+    row.querySelector(".bareme-cat span").textContent = phase.label;
+    const inputPoints = row.querySelector('[data-field="points"]');
+    inputPoints.value = points;
+    row.querySelector('[data-field="questions"]').value = questions;
+
+    const derive = row.querySelector(".bareme-derive");
+    const majDerive = () => {
+      const v = pointsReplique(inputPoints.value);
+      derive.textContent = `+${v} / -${v}`;
+      derive.classList.toggle("bareme-derive-impair", Number(inputPoints.value) % 2 !== 0);
+    };
+    inputPoints.addEventListener("input", majDerive);
+    majDerive();
+
     wrap.appendChild(row);
   });
 }
@@ -1799,9 +1813,17 @@ async function saveBareme() {
     bareme[inp.dataset.cat] ||= {};
     bareme[inp.dataset.cat][inp.dataset.field] = parseInt(inp.value, 10) || 0;
   });
-  if (bareme.eclair) {
-    bareme.eclair.replique = 0;
-    bareme.eclair.replique_penalite = 0;
+
+  const impaires = Object.entries(bareme)
+    .filter(([, conf]) => conf.points % 2 !== 0)
+    .map(([id]) => CATEGORIES.find(p => p.id === id)?.label || id);
+  if (impaires.length) {
+    showAlert(
+      "bareme-alert-msg",
+      "bareme-alert",
+      `Valeur impaire : ${impaires.join(", ")}. La replique vaut la moitie, or le jeu n'a pas de demi-point.`
+    );
+    return;
   }
 
   const btn = $("btn-save-bareme");

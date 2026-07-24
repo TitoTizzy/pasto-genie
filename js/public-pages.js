@@ -1,4 +1,4 @@
-import { supabase, T, CATEGORIES, BAREME_DEFAULT } from "./supabase-config.js";
+import { supabase, T, CATEGORIES, BAREME_DEFAULT, pointsPourAction } from "./supabase-config.js";
 
 const $ = id => document.getElementById(id);
 const page = document.body.dataset.publicPage;
@@ -366,9 +366,9 @@ async function categoryPlayers(category) {
   const map = new Map();
   (data || []).forEach(ev => {
     const cur = map.get(ev.joueur_id) || { prenom: "", nom: ev.joueur_nom || "Joueur", equipe_nom: `Equipe ${ev.equipe}`, matchs: 0, points: 0, bonnes: 0, repliques_bonnes: 0 };
-    if (ev.action === "bonne_reponse") { cur.bonnes += 1; cur.points += rule.bonne || 0; }
-    if (ev.action === "replique_bonne") { cur.repliques_bonnes += 1; cur.points += rule.replique || 0; }
-    if (ev.action === "replique_mauvaise") cur.points -= rule.replique_penalite || 0;
+    cur.points += pointsPourAction(ev.action, rule.points ?? rule.bonne ?? 0);
+    if (ev.action === "bonne_reponse") cur.bonnes += 1;
+    if (ev.action === "replique_bonne") cur.repliques_bonnes += 1;
     map.set(ev.joueur_id, cur);
   });
   return [...map.values()].sort((a, b) => (b.points || 0) - (a.points || 0));

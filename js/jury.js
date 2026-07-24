@@ -1,7 +1,7 @@
 // ================================================================
 //  PASTO GENIE - Jury interface Supabase
 // ================================================================
-import { supabase, T, CATEGORIES, ROLES } from "./supabase-config.js";
+import { supabase, T, CATEGORIES, ROLES, pointsReplique } from "./supabase-config.js";
 import { initAuth, logout, isSuperAdmin, getCurrentUser } from "./auth.js";
 import { toast, formatTime, openOverlay, closeOverlay, getActiveCat } from "./utils.js";
 
@@ -155,8 +155,10 @@ function renderMatchState() {
     const total = (matchData.categoriesOrdre || []).length;
     const cur = (matchData.categorieActuelle ?? 0) + 1;
     $("jury-cat-num").textContent = `${cur}/${total}`;
-    const b = bareme[cat.id] || { bonne: "?", replique: "?", replique_penalite: "?" };
-    $("jury-bareme-chip").textContent = `Bonne : ${b.bonne} pts - Replique : ${b.replique} pts - Penalite replique : ${b.replique_penalite} pts`;
+    const conf = bareme[cat.id] || {};
+    const points = Number(conf.points ?? conf.bonne ?? cat.points) || 0;
+    const moitie = pointsReplique(points);
+    $("jury-bareme-chip").textContent = `Bonne : ${points} pts - Mauvaise : 0 - Replique : +${moitie} / -${moitie}`;
   }
 
   if (matchData.statut === "en_cours" && matchData.startedAt) startChrono(matchData.startedAt);

@@ -545,7 +545,7 @@
         <div class="page-header">
           <div>
             <h2 class="section-title">Barème des points</h2>
-            <p class="section-subtitle">Points par catégorie, source de vérité de l'anti-triche</p>
+            <p class="section-subtitle">Une valeur par phase — la réplique vaut toujours la moitié</p>
           </div>
           <button id="btn-save-bareme" class="btn btn-gold">
             <i class="ri-save-line"></i> Enregistrer
@@ -553,11 +553,10 @@
         </div>
         <div class="glass glass-md bareme-card">
           <div class="bareme-header">
-            <div class="bareme-col-lbl">Catégorie</div>
-            <div class="bareme-col-lbl">Bonne</div>
-            <div class="bareme-col-lbl">Mauvaise</div>
+            <div class="bareme-col-lbl">Phase</div>
+            <div class="bareme-col-lbl">Bonne réponse</div>
+            <div class="bareme-col-lbl">Questions</div>
             <div class="bareme-col-lbl">Réplique</div>
-            <div class="bareme-col-lbl">Pénalité réplique</div>
           </div>
           <div id="bareme-rows"></div>
           <div id="bareme-alert" class="alert alert-red hidden mt-4">
@@ -566,7 +565,7 @@
         </div>
         <div class="alert alert-gold mt-4 bareme-note">
           <i class="ri-information-line"></i>
-          <span>La modification du barème s'applique aux <strong>nouveaux événements uniquement</strong>. Les points déjà enregistrés ne sont pas recalculés rétroactivement.</span>
+          <span>Une bonne réponse vaut la valeur de la phase, une mauvaise vaut <strong>0</strong>, et une réplique vaut <strong>la moitié</strong> — en positif si elle est bonne, en négatif si elle est mauvaise. Gardez des valeurs <strong>paires</strong> : le jeu ne connaît pas les demi-points.</span>
         </div>
       </section>
 
