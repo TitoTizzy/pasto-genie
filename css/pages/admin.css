@@ -160,6 +160,7 @@
 .statut-badge.planifie { background: rgba(212,175,55,0.1);  border: 1px solid var(--border-gold); color: var(--gold); }
 .statut-badge.en_cours { background: rgba(224,92,92,0.12); border: 1px solid var(--border-red);  color: var(--red);
   animation: pulseBadge 1.5s ease-in-out infinite; }
+.statut-badge.pause    { background: rgba(212,175,55,0.16); border: 1px solid var(--border-gold); color: var(--gold); }
 .statut-badge.termine  { background: rgba(139,171,60,0.1); border: 1px solid var(--border-green); color: var(--green); }
 
 /* ── Match creation grid ────────────────────────────────────────── */
@@ -943,6 +944,7 @@
 }
 .statut-badge.planifie { background: rgba(210,240,252,0.78); border: 1px solid var(--border-blue); color: var(--sky-deep); }
 .statut-badge.en_cours { background: rgba(239,68,68,0.16); border: 1px solid var(--border-red); color: var(--text-red); }
+.statut-badge.pause { background: rgba(245,158,11,0.18); border: 1px solid var(--border-gold); color: var(--gold); }
 .statut-badge.termine { background: rgba(16,185,129,0.16); border: 1px solid var(--border-green); color: var(--text-green); }
 .glass-table thead th { background: rgba(14,165,233,0.12); border-bottom-color: var(--border-blue); }
 .glass-table tbody tr:hover { background: rgba(14,165,233,0.08); }

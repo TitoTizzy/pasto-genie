@@ -1408,7 +1408,7 @@ function buildMatchCard(id, m, compact) {
   const card = document.createElement("div");
   card.className = "glass item-card";
   const labels = { planifie: "Planifie", en_cours: "En direct", pause: "Pause", termine: "Termine" };
-  const statutCls = ["planifie", "en_cours", "termine"].includes(m.statut) ? m.statut : "planifie";
+  const statutCls = ["planifie", "en_cours", "pause", "termine"].includes(m.statut) ? m.statut : "planifie";
   card.innerHTML = `
     <div class="item-card-icon ${m.statut === "en_cours" ? "red" : "green"}">
       <i class="${m.statut === "en_cours" ? "ri-live-line" : "ri-football-line"}"></i>
@@ -1427,6 +1427,7 @@ function buildMatchCard(id, m, compact) {
 
   if (!compact) {
     card.querySelector(".btn-start-match")?.addEventListener("click", () => startMatch(id));
+    card.querySelector(".btn-resume-match")?.addEventListener("click", () => resumeMatch(id));
     card.querySelector(".btn-end-match")?.addEventListener("click", () => endMatch(id));
     card.querySelector(".btn-save-match-date")?.addEventListener("click", () => saveMatchSchedule(id, card));
   }
@@ -1446,22 +1447,56 @@ function buildMatchActions(m) {
   if (m.statut === "planifie") {
     return '<button class="btn btn-green btn-sm btn-start-match"><i class="ri-play-fill"></i> Demarrer</button>';
   }
-  if (m.statut === "en_cours") {
-    return '<button class="btn btn-red btn-sm btn-end-match"><i class="ri-stop-fill"></i> Terminer</button>';
+  if (m.statut === "en_cours" || m.statut === "pause") {
+    const reprendre = m.statut === "pause"
+      ? '<button class="btn btn-green btn-sm btn-resume-match"><i class="ri-play-fill"></i> Reprendre</button>'
+      : "";
+    return `${reprendre}<button class="btn btn-red btn-sm btn-end-match"><i class="ri-stop-fill"></i> Terminer</button>`;
   }
   return '<span class="text-muted text-xs">Termine</span>';
+}
+
+// Les matchs generes par le moteur de tournoi n'ont pas de ligne match_en_cours :
+// elle n'apparait qu'au premier evenement marque par le jury. On la cree au
+// demarrage pour que le scoreboard public et la validation finale fonctionnent
+// meme si aucune action n'est saisie.
+async function ensureLiveScoreRow(id) {
+  const { error } = await supabase.from(T.MATCH_EN_COURS).upsert({
+    id,
+    score_a: 0,
+    score_b: 0,
+    points_joueurs: {},
+    score_par_categorie: Object.fromEntries(CATEGORIES.map(c => [c.id, { A: 0, B: 0 }])),
+    updated_at: nowISO(),
+  }, { onConflict: "id", ignoreDuplicates: true });
+  if (error && !isMissingTableError(error)) throw error;
 }
 
 async function startMatch(id) {
   try {
     const { error } = await supabase.from(T.MATCHES).update({ statut: "en_cours", started_at: nowISO(), updated_at: nowISO() }).eq("id", id);
     if (error) throw error;
+    await ensureLiveScoreRow(id);
     toast("Match demarre !", "success");
     loadMatchesList();
     loadDashboard();
   } catch (err) {
     console.error(err);
-    toast("Erreur demarrage.", "error");
+    toast("Erreur demarrage : " + (err.message || err), "error");
+  }
+}
+
+async function resumeMatch(id) {
+  try {
+    const { error } = await supabase.from(T.MATCHES).update({ statut: "en_cours", updated_at: nowISO() }).eq("id", id);
+    if (error) throw error;
+    await ensureLiveScoreRow(id);
+    toast("Match repris.", "success");
+    loadMatchesList();
+    loadDashboard();
+  } catch (err) {
+    console.error(err);
+    toast("Erreur reprise : " + (err.message || err), "error");
   }
 }
 
@@ -1499,7 +1534,7 @@ async function endMatch(id) {
     loadDashboard();
   } catch (err) {
     console.error(err);
-    toast("Erreur.", "error");
+    toast("Erreur fin de match : " + (err.message || err), "error");
   }
 }
 
