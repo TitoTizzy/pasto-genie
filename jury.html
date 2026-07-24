@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Jury — PASTO GÉNIE</title>
+  <title>PASTO GÉNIE — Pupitre des juges</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
@@ -15,194 +15,146 @@
   <link rel="stylesheet" href="css/animations.css"/>
   <link rel="stylesheet" href="css/pages/jury.css"/>
 </head>
-<body>
+<body class="jury-2026">
 
-  <div class="bg-blobs">
-    <div class="blob blob-1"></div>
-    <div class="blob blob-2"></div>
-    <div class="blob blob-3"></div>
-  </div>
-
-  <!-- ══ NAVBAR ════════════════════════════════════════════════ -->
-  <nav class="navbar">
-    <div class="brand">
-      <img src="assets/images/logo.jpeg" alt="Logo" class="brand-logo"
-           onerror="this.style.display='none'"/>
+  <!-- ══ BARRE HAUTE ═══════════════════════════════════════════ -->
+  <nav class="j-topbar">
+    <div class="j-brand">
+      <img src="assets/images/logo.jpeg" alt="Logo" class="j-logo" onerror="this.style.display='none'"/>
       <div>
-        <div class="brand-name">PASTO GÉNIE</div>
-        <div class="brand-sub">Interface Jury</div>
+        <div class="j-brand-name">PASTO GÉNIE</div>
+        <div class="j-brand-sub">Pupitre des juges</div>
       </div>
     </div>
-    <div class="nav-actions">
-      <span id="jury-name-chip" class="badge badge-gold">
-        <i class="ri-scales-3-line"></i> Jury
-      </span>
-      <a href="index.html" class="btn btn-ghost btn-sm btn-icon" title="Vue publique">
-        <i class="ri-eye-line"></i>
-      </a>
-      <button id="btn-logout" class="btn btn-ghost btn-sm">
-        <i class="ri-logout-box-r-line"></i> Déconnexion
-      </button>
+    <div class="j-topbar-right">
+      <span id="jury-user-chip" class="j-chip"><i class="ri-user-line"></i> —</span>
+      <button id="btn-logout" class="btn btn-ghost btn-sm"><i class="ri-logout-box-r-line"></i></button>
     </div>
   </nav>
 
-  <!-- ══ CONTROL BAR ═══════════════════════════════════════════ -->
-  <div class="control-bar" id="control-bar">
-    <div class="cat-info-chip">
-      <i id="jury-cat-icon" class="ri-question-line text-gold" style="font-size:1.1rem;"></i>
-      <span id="jury-cat-label" class="text-gold">—</span>
-      <span id="jury-cat-num" class="cat-num">0/6</span>
+  <!-- ══ CHOIX DU MATCH ════════════════════════════════════════ -->
+  <section id="jury-start" class="j-start">
+    <div class="j-start-card">
+      <div class="j-start-trophy"><i class="ri-trophy-fill"></i></div>
+      <h1>Salle des juges</h1>
+      <p class="j-muted">Choisissez le match à arbitrer.</p>
+      <select id="jury-match-select" class="form-select j-select">
+        <option value="">— Sélectionner un match —</option>
+      </select>
+      <button id="btn-join" class="btn btn-gold btn-lg j-join"><i class="ri-play-circle-line"></i> Entrer dans l'arène</button>
     </div>
+  </section>
 
-    <span id="jury-clock" class="clock-display">00:00</span>
-    <span id="jury-bareme-chip" class="bareme-chip">Bonne : ? pts - Replique : ? pts - Penalite replique : ? pts</span>
+  <!-- ══ ARÈNE ═════════════════════════════════════════════════ -->
+  <main id="jury-arena-wrap" class="j-arena hidden">
 
-    <!-- Admin controls -->
-    <div id="admin-controls" class="hidden" style="display:flex;gap:var(--space-2);margin-left:auto;">
-      <button id="btn-prev-cat" class="btn btn-ghost btn-sm">
-        <i class="ri-arrow-left-s-line"></i> Préc.
-      </button>
-      <button id="btn-next-cat" class="btn btn-gold btn-sm">
-        Suiv. <i class="ri-arrow-right-s-line"></i>
-      </button>
-      <button id="btn-pause" class="btn btn-ghost btn-sm">
-        <i class="ri-pause-line"></i>
-      </button>
-      <button id="btn-end-match" class="btn btn-red btn-sm">
-        <i class="ri-stop-line"></i> Fin
-      </button>
-    </div>
+    <!-- Bandeau match : phase, chrono, commandes -->
+    <header class="j-matchbar">
+      <div class="j-phasebox">
+        <div class="j-phase-label"><i id="ph-icon" class="ri-book-3-line"></i> <span id="ph-label">—</span></div>
+        <div class="j-phase-sub"><span id="ph-qnum">Question 1/6</span> · <span id="ph-bareme">—</span></div>
+      </div>
 
-    <!-- Score live -->
-    <div class="flex items-center gap-3" style="margin-left:auto;" id="jury-score-display">
-      <div class="text-center">
-        <div class="jury-score-panel" style="padding:0;">
-          <div class="team-short" id="jury-score-name-a">Éq. A</div>
-          <div class="score-big" id="jury-score-a">0</div>
+      <div class="j-chronobox">
+        <div id="chrono-display" class="j-chrono">--</div>
+        <div id="chrono-controls" class="j-chrono-ctrl hidden">
+          <input id="chrono-secs" type="number" class="form-input j-chrono-input" value="20" min="5" max="180"/>
+          <button id="btn-chrono-go" class="btn btn-gold btn-sm" title="Lancer le compte à rebours"><i class="ri-timer-flash-line"></i></button>
+          <button id="btn-chrono-stop" class="btn btn-ghost btn-sm" title="Arrêter"><i class="ri-stop-mini-fill"></i></button>
         </div>
       </div>
-      <div class="text-muted" style="font-size:1.2rem;">—</div>
-      <div class="text-center">
-        <div class="jury-score-panel" style="padding:0;">
-          <div class="team-short" id="jury-score-name-b">Éq. B</div>
-          <div class="score-big" id="jury-score-b">0</div>
-        </div>
-      </div>
-    </div>
-  </div>
 
-  <!-- ══ START SCREEN ══════════════════════════════════════════ -->
-  <div id="jury-start" class="jury-start-screen">
-    <div class="jury-start-icon"><i class="ri-scales-3-line"></i></div>
-    <h2 class="text-gold">Interface Jury</h2>
-    <p class="text-muted">Sélectionnez le match dont vous êtes responsable</p>
-    <div class="glass glass-md" style="min-width:320px;max-width:420px;width:100%;">
-      <div class="form-group">
-        <label class="form-label"><i class="ri-trophy-line"></i> Match assigné</label>
-        <select id="jury-match-select" class="form-select">
-          <option value="">— Choisir un match —</option>
+      <div id="match-controls" class="j-matchctrl hidden">
+        <button id="btn-prev-q" class="btn btn-ghost btn-sm" title="Question précédente"><i class="ri-arrow-left-s-line"></i></button>
+        <button id="btn-next-q" class="btn btn-gold btn-sm">Question suiv. <i class="ri-arrow-right-s-line"></i></button>
+        <button id="btn-lineup" class="btn btn-outline btn-sm" title="Joueurs en lice et juges"><i class="ri-team-line"></i></button>
+        <button id="btn-pause-match" class="btn btn-ghost btn-sm" title="Pause"><i class="ri-pause-line"></i></button>
+        <button id="btn-end-match" class="btn btn-red btn-sm"><i class="ri-stop-fill"></i> Fin</button>
+      </div>
+    </header>
+
+    <!-- Piste des phases -->
+    <div id="phase-track" class="j-phasetrack"></div>
+
+    <!-- Tableau de score central -->
+    <section class="j-scoreboard">
+      <div class="j-score-side">
+        <div id="sb-name-a" class="j-score-name">ÉQUIPE A</div>
+        <div id="sb-score-a" class="j-score-num">0</div>
+      </div>
+      <div class="j-score-vs">VS</div>
+      <div class="j-score-side">
+        <div id="sb-name-b" class="j-score-name">ÉQUIPE B</div>
+        <div id="sb-score-b" class="j-score-num">0</div>
+      </div>
+    </section>
+
+    <!-- Etat de la validation en cours -->
+    <div id="avis-status" class="j-avis hidden"></div>
+
+    <!-- Panneaux équipes -->
+    <section class="j-teams">
+      <div class="j-team j-team-a">
+        <div id="team-head-a" class="j-team-head">ÉQUIPE A</div>
+        <div id="players-a" class="j-players"></div>
+      </div>
+      <div class="j-team j-team-b">
+        <div id="team-head-b" class="j-team-head">ÉQUIPE B</div>
+        <div id="players-b" class="j-players"></div>
+      </div>
+    </section>
+
+    <!-- Réplique -->
+    <section class="j-replique">
+      <div class="j-replique-head">
+        <i class="ri-sword-line"></i> Réplique
+        <span id="rep-points" class="j-replique-pts">+5 / −5</span>
+      </div>
+      <div class="j-replique-body">
+        <select id="rep-equipe" class="form-select j-rep-select">
+          <option value="A">Équipe A</option>
+          <option value="B">Équipe B</option>
         </select>
+        <button id="btn-rep-bonne" class="btn btn-green btn-sm"><i class="ri-check-line"></i> Réplique réussie</button>
+        <button id="btn-rep-mauvaise" class="btn btn-red btn-sm"><i class="ri-close-line"></i> Réplique manquée</button>
       </div>
-      <div id="jury-start-alert" class="login-error hidden">
-        <i class="ri-error-warning-line"></i><span id="jury-start-msg"></span>
-      </div>
-      <button id="btn-join" class="btn btn-gold btn-xl btn-block">
-        <i class="ri-play-circle-line"></i> Rejoindre ce match
-      </button>
-    </div>
-  </div>
+    </section>
 
-  <!-- ══ ARENA ═════════════════════════════════════════════════ -->
-  <div id="jury-arena-wrap" class="jury-layout hidden">
-
-    <!-- Arena grid -->
-    <div class="jury-arena" id="jury-arena">
-
-      <!-- ÉQUIPE A -->
-      <div id="panel-a">
-        <div class="jury-team-header jury-team-a" id="jury-header-a">ÉQUIPE A</div>
-        <!-- Player cards injected by JS -->
-      </div>
-
-      <!-- Center -->
-      <div class="jury-center">
-        <div class="jury-vs-badge">VS</div>
-        <div class="glass-gold" style="width:100%;border-radius:var(--r-md);">
-          <div class="jury-score-panel">
-            <div class="team-short" id="cp-name-a">A</div>
-            <div class="score-big" id="cp-score-a">0</div>
-            <div class="jury-sep">—</div>
-            <div class="score-big" id="cp-score-b">0</div>
-            <div class="team-short" id="cp-name-b">B</div>
-          </div>
-        </div>
-        <button id="btn-undo" class="btn btn-ghost btn-sm w-full">
-          <i class="ri-arrow-go-back-line"></i> Annuler dernier
-        </button>
-      </div>
-
-      <!-- ÉQUIPE B -->
-      <div id="panel-b">
-        <div class="jury-team-header jury-team-b" id="jury-header-b">ÉQUIPE B</div>
-        <!-- Player cards injected by JS -->
-      </div>
+    <div class="j-underline-actions">
+      <button id="btn-undo" class="btn btn-ghost btn-sm"><i class="ri-arrow-go-back-line"></i> Retirer mon avis sur cette question</button>
     </div>
 
-    <!-- Log -->
-    <div class="glass glass-sm mt-4">
-      <div class="card-label mb-3">
-        <i class="ri-list-ordered-2"></i> Journal des actions
-      </div>
-      <div id="jury-log" class="jury-log">
-        <p class="text-muted text-xs" style="padding:var(--space-3);">Aucune action enregistrée.</p>
-      </div>
-    </div>
-  </div>
+    <!-- Journal -->
+    <section class="j-journal">
+      <div class="j-journal-head"><i class="ri-list-ordered-2"></i> Journal officiel du match</div>
+      <div id="jury-log" class="j-log"><p class="j-muted">Aucune action validée.</p></div>
+    </section>
+  </main>
 
-  <!-- ══ RÉPLIQUE MODAL ════════════════════════════════════════ -->
-  <div id="replique-overlay" class="overlay">
-    <div class="modal replique-modal">
+  <!-- ══ MODALE : JOUEURS EN LICE + JUGES ══════════════════════ -->
+  <div id="lineup-overlay" class="overlay">
+    <div class="modal j-lineup-modal">
       <div class="modal-header">
+        <div class="modal-title"><i class="ri-team-line"></i> Joueurs en lice</div>
+        <button class="modal-close" id="close-lineup"><i class="ri-close-line"></i></button>
+      </div>
+      <p class="j-muted j-lineup-note">Cochez les <strong>3 joueurs en lice</strong> de chaque équipe. Les autres restent sur le banc.</p>
+      <div class="j-lineup-grid">
         <div>
-          <div class="modal-title">
-            <i class="ri-refresh-line"></i> RÉPLIQUE AUTORISÉE
-          </div>
-          <div class="text-sm text-muted mt-1">Mauvaise réponse — l'équipe adverse peut répliquer</div>
+          <div id="lineup-title-a" class="j-lineup-team">Équipe A</div>
+          <div id="lineup-a" class="j-lineup-list"></div>
+        </div>
+        <div>
+          <div id="lineup-title-b" class="j-lineup-team">Équipe B</div>
+          <div id="lineup-b" class="j-lineup-list"></div>
         </div>
       </div>
-
-      <div id="replique-result" class="replique-result hidden"></div>
-
-      <div class="replique-context">
-        <div class="rc-label">Équipe adverse</div>
-        <div class="rc-team" id="replique-team-name">—</div>
+      <div id="judges-block" class="hidden">
+        <div class="divider" style="margin:var(--space-4) 0;"></div>
+        <div class="j-lineup-team"><i class="ri-scales-3-line"></i> Juges du match (2 par équipe)</div>
+        <div id="judges-list" class="j-judges-list"></div>
       </div>
-
-      <div id="replique-countdown-wrap">
-        <div id="replique-countdown" class="replique-countdown">
-          30
-          <span class="cd-label">secondes pour répliquer</span>
-        </div>
-      </div>
-
-      <p id="replique-instruction" class="text-center text-sm text-dim mb-4">
-        Sélectionnez le joueur qui répond :
-      </p>
-
-      <div id="replique-players" class="replique-players-grid"></div>
-
-      <div id="replique-answer-btns" class="hidden" style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-3);margin-bottom:var(--space-4);">
-        <button id="r-btn-bonne" class="btn btn-green btn-lg">
-          <i class="ri-check-double-line"></i> Bonne réplique
-        </button>
-        <button id="r-btn-mauvaise" class="btn btn-red btn-lg">
-          <i class="ri-close-circle-line"></i> Mauvaise réplique
-        </button>
-      </div>
-
-      <button id="btn-no-replique" class="btn btn-ghost btn-block">
-        <i class="ri-skip-forward-line"></i> Personne ne répond — Passer
-      </button>
+      <button id="btn-save-lineup" class="btn btn-gold btn-block mt-4"><i class="ri-check-line"></i> Enregistrer</button>
     </div>
   </div>
 
