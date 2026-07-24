@@ -1444,14 +1444,17 @@ function buildMatchScheduleEditor(m) {
 }
 
 function buildMatchActions(m) {
+  // Le pilotage (chrono, questions, avis des juges) se fait dans le
+  // Pupitre : ce lien ouvre l'arene directement sur ce match.
+  const pupitre = `<a class="btn btn-outline btn-sm" href="jury.html?match=${m.id}" title="Ouvrir le pupitre : chrono, questions, avis des juges"><i class="ri-remote-control-line"></i> Pupitre</a>`;
   if (m.statut === "planifie") {
-    return '<button class="btn btn-green btn-sm btn-start-match"><i class="ri-play-fill"></i> Demarrer</button>';
+    return `${pupitre}<button class="btn btn-green btn-sm btn-start-match"><i class="ri-play-fill"></i> Demarrer</button>`;
   }
   if (m.statut === "en_cours" || m.statut === "pause") {
     const reprendre = m.statut === "pause"
       ? '<button class="btn btn-green btn-sm btn-resume-match"><i class="ri-play-fill"></i> Reprendre</button>'
       : "";
-    return `${reprendre}<button class="btn btn-red btn-sm btn-end-match"><i class="ri-stop-fill"></i> Terminer</button>`;
+    return `${pupitre}${reprendre}<button class="btn btn-red btn-sm btn-end-match"><i class="ri-stop-fill"></i> Terminer</button>`;
   }
   return '<span class="text-muted text-xs">Termine</span>';
 }

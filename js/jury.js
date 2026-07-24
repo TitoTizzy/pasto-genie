@@ -18,6 +18,9 @@ import { toast } from "./utils.js";
 
 const $ = id => document.getElementById(id);
 
+// jury.html?match=<id> : ouverture directe depuis le back-office
+const requestedMatch = new URLSearchParams(location.search).get("match");
+
 let me = null;
 let myRole = null;
 let matchId = null;
@@ -55,6 +58,11 @@ const isAdminRole = () => myRole === ROLES.ADMIN || myRole === ROLES.SUPERADMIN;
 
   wireArena();
   await loadMatchList();
+
+  if (requestedMatch) {
+    $("jury-match-select").value = requestedMatch;
+    joinMatch(requestedMatch);
+  }
 })();
 
 // ----------------------------------------------------------------
