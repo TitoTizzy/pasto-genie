@@ -11,9 +11,6 @@ let allUsers = [];
 let allEquipes = [];
 let allJoueurs = [];
 let tournoisMap = {};
-let teamA = { titulaires: [], remplacants: [] };
-let teamB = { titulaires: [], remplacants: [] };
-let catOrder = CATEGORIES.map(c => c.id);
 let allBlogArticles = [];
 let editingBlogArticle = null;
 let editingTournoi = null;
@@ -115,7 +112,6 @@ function bootstrap() {
   wireJoueurs();
   wireStats();
   wireBlog();
-  buildCatDragList();
   showSection("s-dashboard");
   loadDashboard();
   loadTournoisSelects();
@@ -145,7 +141,15 @@ function wireSidebar() {
   });
 
   document.querySelectorAll("[data-goto]").forEach(btn => {
-    btn.addEventListener("click", () => showSection(btn.dataset.goto));
+    btn.addEventListener("click", () => {
+      showSection(btn.dataset.goto);
+      // Le formulaire de match doit voir les equipes et competitions
+      // ajoutees depuis le chargement de la page.
+      if (btn.dataset.goto === "s-create-match") {
+        loadTournoisSelects();
+        loadEquipes();
+      }
+    });
   });
 }
 
@@ -522,6 +526,7 @@ async function loadJurySelect() {
     const jurys = await fetchRows(T.USERS, { eq: [["role", ROLES.JURY]] });
     const admins = await fetchRows(T.USERS, { eq: [["role", ROLES.SUPERADMIN]] });
     const sel = $("match-jury");
+    if (!sel) return;
     while (sel.options.length > 1) sel.remove(1);
     jurys.forEach(u => sel.appendChild(new Option(u.display_name || u.email, u.id)));
     admins.forEach(u => sel.appendChild(new Option(`${u.display_name || u.email} (admin)`, u.id)));
@@ -841,9 +846,6 @@ async function toggleTournoi(id, actif) {
 function wireEquipes() {
   bind("btn-save-equipe", "click", saveEquipe);
   previewUpload("eq-embleme-file", "eq-embleme-preview");
-  ["ea-equipe-id", "eb-equipe-id"].forEach(id => {
-    bind(id, "change", e => applySelectedEquipe(id.startsWith("ea") ? "A" : "B", e.target.value));
-  });
 }
 
 async function loadEquipes() {
@@ -856,7 +858,6 @@ async function loadEquipes() {
     }
     renderEquipesList();
     populateEquipeSelects();
-    populateMatchPlayerSelects();
   } catch (err) {
     console.error(err);
     const wrap = $("equipes-list");
@@ -908,33 +909,6 @@ function populateEquipeSelects() {
     while (sel.options.length > 1) sel.remove(1);
     allEquipes.forEach(eq => sel.appendChild(new Option(eq.nom, eq.id)));
     sel.value = current;
-  });
-}
-
-function applySelectedEquipe(side, equipeId) {
-  const eq = allEquipes.find(item => item.id === equipeId);
-  const prefix = side === "A" ? "ea" : "eb";
-  if (!eq) return;
-  $(`${prefix}-nom`).value = eq.nom || "";
-  $(`${prefix}-paroisse`).value = eq.paroisse || "";
-  populateMatchPlayerSelects(side);
-}
-
-function populateMatchPlayerSelects(side = null) {
-  const sides = side ? [side] : ["A", "B"];
-  sides.forEach(currentSide => {
-    const prefix = currentSide === "A" ? "ea" : "eb";
-    const equipeId = $(`${prefix}-equipe-id`)?.value;
-    ["t", "r"].forEach(type => {
-      const sel = $(`${prefix}-${type}-existing`);
-      if (!sel) return;
-      const current = sel.value;
-      while (sel.options.length > 1) sel.remove(1);
-      allJoueurs
-        .filter(j => !equipeId || j.equipe_id === equipeId)
-        .forEach(j => sel.appendChild(new Option(`${j.prenom || ""} ${j.nom || ""}`.trim(), j.id)));
-      sel.value = current;
-    });
   });
 }
 
@@ -1101,7 +1075,7 @@ async function openPlayerAdminProfile(joueur) {
       avatar.textContent = (joueur.prenom || joueur.nom || "?")[0].toUpperCase();
     }
     summary.querySelector(".player-admin-name").textContent = fullName;
-    summary.querySelector(".player-admin-meta").textContent = `${eq?.nom || "Sans equipe"}${joueur.date_naissance ? " - Ne le " + joueur.date_naissance : ""}`;
+    summary.querySelector(".player-admin-meta").textContent = `${eq?.nom || "Sans equipe"}${joueur.note ? " - " + joueur.note : ""}`;
     summary.querySelector(".player-admin-note").textContent = joueur.note || "Aucune note.";
   }
   $("player-transfer-form")?.classList.add("hidden");
@@ -1191,7 +1165,6 @@ async function saveJoueur() {
       nom,
       equipe_id: equipeId,
       photo_url: photoUrl,
-      date_naissance: $("j-naissance").value || null,
       note: $("j-role").value.trim(),
       actif: true,
       created_at: nowISO(),
@@ -1199,7 +1172,7 @@ async function saveJoueur() {
     });
     if (error) throw error;
     toast("Joueur enregistre.", "success");
-    ["j-prenom", "j-nom", "j-photo-file", "j-naissance", "j-role"].forEach(id => { $(id).value = ""; });
+    ["j-prenom", "j-nom", "j-photo-file", "j-role"].forEach(id => { $(id).value = ""; });
     $("j-photo-preview").style.backgroundImage = "";
     $("j-photo-preview").innerHTML = '<i class="ri-image-add-line"></i>';
     await loadJoueurs();
@@ -1423,7 +1396,11 @@ function buildMatchCard(id, m, compact) {
       ${!compact ? buildMatchActions(m) : ""}
     </div>`;
   card.querySelector(".item-card-title").textContent = `${m.equipe_a?.nom || "A"} vs ${m.equipe_b?.nom || "B"}`;
-  card.querySelector(".match-meta").textContent = `${m.tournament_name || "-"}${m.scheduled_at ? " - " + new Date(m.scheduled_at).toLocaleDateString("fr-FR") : ""}`;
+  const quand = m.scheduled_at
+    ? new Date(m.scheduled_at).toLocaleString("fr-FR", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })
+    : "date a definir";
+  const type = m.type_match && m.type_match !== "saison" ? ` - ${TYPES_MATCH[m.type_match] || m.type_match}` : "";
+  card.querySelector(".match-meta").textContent = `${m.tournament_name || "-"} - ${quand}${type}`;
 
   if (!compact) {
     card.querySelector(".btn-start-match")?.addEventListener("click", () => startMatch(id));
@@ -1542,221 +1519,98 @@ async function endMatch(id) {
 }
 
 function wireMatchCreate() {
-  document.querySelectorAll("[data-add]").forEach(btn => {
-    btn.addEventListener("click", () => addPlayer(btn.dataset.add));
-  });
-  bind("btn-save-match", "click", () => saveMatch(false));
-  bind("btn-save-start-match", "click", () => saveMatch(true));
-  [$("ea-nom"), $("eb-nom")].forEach(inp => {
-    inp?.addEventListener("input", () => {
-      $("btn-save-start-match").disabled = !($("ea-nom").value.trim() && $("eb-nom").value.trim());
-    });
-  });
+  bind("btn-save-match", "click", saveMatch);
 }
 
-function addPlayer(code) {
-  const [equipe, type] = code.split("-");
-  const team = equipe === "A" ? teamA : teamB;
-  const prefix = equipe.toLowerCase();
-  const shortType = type === "titulaire" ? "t" : "r";
-  const typeProp = type === "titulaire" ? "titulaires" : "remplacants";
-  if (team[typeProp].length >= 3) {
-    toast(`Maximum 3 ${typeProp} par equipe.`, "error");
-    return;
-  }
-  const existingId = `e${prefix}-${shortType}-existing`;
-  const selectedPlayer = allJoueurs.find(j => j.id === $(existingId)?.value);
-  const prenomId = `e${prefix}-${shortType}-prenom`;
-  const nomId = `e${prefix}-${shortType}-nom`;
-  const prenom = $(prenomId).value.trim();
-  const nom = $(nomId).value.trim();
-  if (selectedPlayer) {
-    if (teamA.titulaires.concat(teamA.remplacants, teamB.titulaires, teamB.remplacants).some(p => p.id === selectedPlayer.id)) {
-      toast("Ce joueur est deja ajoute au match.", "error");
-      return;
-    }
-    team[typeProp].push({
-      id: selectedPlayer.id,
-      prenom: selectedPlayer.prenom || "",
-      nom: selectedPlayer.nom || "",
-      photo_url: selectedPlayer.photo_url || "",
-      equipe_id: selectedPlayer.equipe_id || null,
-    });
-    $(existingId).value = "";
-    renderPlayersList(`e${prefix}-${typeProp}`, team[typeProp]);
-    return;
-  }
-  if (!prenom && !nom) {
-    toast("Saisissez au moins un prenom ou nom.", "error");
-    return;
-  }
-  team[typeProp].push({ id: nextPlayerId(), prenom, nom, equipe_id: $(`e${prefix}-equipe-id`)?.value || null });
-  $(prenomId).value = "";
-  $(nomId).value = "";
-  renderPlayersList(`e${prefix}-${typeProp}`, team[typeProp]);
+const TYPES_MATCH = {
+  saison: "Saison reguliere",
+  demi: "Demi-finale",
+  petite_finale: "Petite finale",
+  finale: "Finale",
+};
+
+// Snapshot fige dans le match : l'identite de l'equipe seulement. Les joueurs
+// en lice sont choisis au Pupitre, le jour du match.
+function snapshotEquipe(eq) {
+  return {
+    id: eq.id,
+    nom: eq.nom || "",
+    paroisse: eq.paroisse || "",
+    embleme_url: eq.embleme_url || "",
+    couleur_primaire: eq.couleur_primaire || "#1d4ed8",
+    couleur_secondaire: eq.couleur_secondaire || "#f59e0b",
+    titulaires: [],
+    remplacants: [],
+  };
 }
 
-function renderPlayersList(containerId, players) {
-  const wrap = $(containerId);
-  if (!wrap) return;
-  wrap.innerHTML = "";
-  players.forEach((p, i) => {
-    const row = document.createElement("div");
-    row.className = "player-list-row";
-    row.innerHTML = `
-      <div class="avatar sm"></div>
-      <span class="player-label"></span>
-      <button class="btn btn-ghost btn-sm btn-icon remove-player" title="Supprimer">
-        <i class="ri-delete-bin-line"></i>
-      </button>`;
-    row.querySelector(".avatar").textContent = (p.prenom || p.nom || "?")[0].toUpperCase();
-    row.querySelector(".player-label").textContent = `${p.prenom} ${p.nom}`;
-    row.querySelector(".remove-player").addEventListener("click", () => {
-      players.splice(i, 1);
-      renderPlayersList(containerId, players);
-    });
-    wrap.appendChild(row);
-  });
-}
-
-function buildCatDragList() {
-  const list = $("cat-drag-list");
-  list.innerHTML = "";
-  catOrder = CATEGORIES.map(c => c.id);
-  CATEGORIES.forEach(cat => {
-    const item = document.createElement("div");
-    item.className = "drag-item";
-    item.draggable = true;
-    item.dataset.id = cat.id;
-    item.innerHTML = `<i class="ri-drag-move-2-line drag-handle"></i><i class="${cat.icon}"></i><span></span>`;
-    item.querySelector("span").textContent = cat.label;
-    list.appendChild(item);
-  });
-  enableDragSort(list);
-}
-
-function enableDragSort(list) {
-  let dragged = null;
-  list.addEventListener("dragstart", e => {
-    dragged = e.target.closest(".drag-item");
-    dragged?.classList.add("dragging");
-  });
-  list.addEventListener("dragend", () => {
-    dragged?.classList.remove("dragging");
-    dragged = null;
-    catOrder = [...list.querySelectorAll(".drag-item")].map(el => el.dataset.id);
-  });
-  list.addEventListener("dragover", e => {
-    e.preventDefault();
-    const target = e.target.closest(".drag-item");
-    if (target && target !== dragged) {
-      const rect = target.getBoundingClientRect();
-      list.insertBefore(dragged, e.clientY > rect.top + rect.height / 2 ? target.nextSibling : target);
-    }
-  });
-}
-
-async function saveMatch(autoStart) {
+async function saveMatch() {
   hideAlert("match-alert");
-  showAlert("match-alert-msg", "match-alert", "Les matchs sont generes automatiquement depuis le module Tournoi.");
-  showSection("s-tournois");
-  return;
-  const nomA = $("ea-nom").value.trim();
-  const nomB = $("eb-nom").value.trim();
-  if (!nomA || !nomB) {
-    showAlert("match-alert-msg", "match-alert", "Les noms des deux equipes sont requis.");
-    return;
-  }
-  if (teamA.titulaires.length < 1 || teamB.titulaires.length < 1) {
-    showAlert("match-alert-msg", "match-alert", "Chaque equipe doit avoir au moins 1 titulaire.");
-    return;
-  }
+  const erreur = msg => showAlert("match-alert-msg", "match-alert", msg);
 
-  const tournoiId = $("match-tournoi").value || null;
-  if (!tournoiId) {
-    showAlert("match-alert-msg", "match-alert", "Choisissez un tournoi. Un match ne peut pas etre independant.");
-    return;
-  }
-  const juryId = $("match-jury").value || null;
-  const scheduledAt = $("match-datetime").value ? new Date($("match-datetime").value).toISOString() : null;
-  const tournamentName = tournoiId ? $("match-tournoi").options[$("match-tournoi").selectedIndex]?.text || "" : "";
-  const equipeARef = allEquipes.find(eq => eq.id === $("ea-equipe-id")?.value);
-  const equipeBRef = allEquipes.find(eq => eq.id === $("eb-equipe-id")?.value);
-  const matchData = {
-    equipe_a_id: equipeARef?.id || null,
-    equipe_b_id: equipeBRef?.id || null,
-    equipe_a: {
-      id: equipeARef?.id || null,
-      nom: nomA,
-      paroisse: $("ea-paroisse").value.trim(),
-      embleme_url: equipeARef?.embleme_url || "",
-      couleur_primaire: equipeARef?.couleur_primaire || "#38bdf8",
-      couleur_secondaire: equipeARef?.couleur_secondaire || "#f59e0b",
-      titulaires: teamA.titulaires,
-      remplacants: teamA.remplacants,
-    },
-    equipe_b: {
-      id: equipeBRef?.id || null,
-      nom: nomB,
-      paroisse: $("eb-paroisse").value.trim(),
-      embleme_url: equipeBRef?.embleme_url || "",
-      couleur_primaire: equipeBRef?.couleur_primaire || "#f43f5e",
-      couleur_secondaire: equipeBRef?.couleur_secondaire || "#8b5cf6",
-      titulaires: teamB.titulaires,
-      remplacants: teamB.remplacants,
-    },
-    categories_ordre: catOrder,
-    categorie_actuelle: 0,
-    statut: autoStart ? "en_cours" : "planifie",
+  const tournoiId = $("match-tournoi").value;
+  const equipeAId = $("ea-equipe-id").value;
+  const equipeBId = $("eb-equipe-id").value;
+  const typeMatch = $("match-type").value || "saison";
+  const quand = $("match-datetime").value;
+
+  if (!tournoiId) return erreur("Choisissez la competition.");
+  if (!equipeAId || !equipeBId) return erreur("Choisissez les deux equipes.");
+  if (equipeAId === equipeBId) return erreur("Une equipe ne peut pas jouer contre elle-meme.");
+  if (!quand) return erreur("Indiquez la date et l'heure du match.");
+
+  const eqA = allEquipes.find(e => e.id === equipeAId);
+  const eqB = allEquipes.find(e => e.id === equipeBId);
+  if (!eqA || !eqB) return erreur("Equipe introuvable. Rechargez la page.");
+
+  const payload = {
     tournoi_id: tournoiId,
-    tournament_name: tournamentName,
-    jury_id: juryId,
-    scheduled_at: scheduledAt,
+    tournament_name: tournoisMap[tournoiId]?.nom || "",
+    type_match: typeMatch,
+    equipe_a_id: eqA.id,
+    equipe_b_id: eqB.id,
+    equipe_a: snapshotEquipe(eqA),
+    equipe_b: snapshotEquipe(eqB),
+    categories_ordre: CATEGORIES.map(c => c.id),
+    categorie_actuelle: 0,
+    statut: "planifie",
+    scheduled_at: new Date(quand).toISOString(),
     created_at: nowISO(),
-    ...(autoStart ? { started_at: nowISO() } : {}),
+    updated_at: nowISO(),
   };
 
-  const btn = autoStart ? $("btn-save-start-match") : $("btn-save-match");
+  const btn = $("btn-save-match");
   btn.disabled = true;
   try {
-    const { data, error } = await supabase.from(T.MATCHES).insert(matchData).select("id").single();
+    let { error } = await supabase.from(T.MATCHES).insert(payload);
+    // La colonne type_match arrive avec le script 019 : sans elle, on cree
+    // quand meme le match plutot que de bloquer tout le calendrier.
+    if (error && /type_match/i.test((error.message || "") + " " + (error.details || ""))) {
+      delete payload.type_match;
+      ({ error } = await supabase.from(T.MATCHES).insert(payload));
+    }
     if (error) throw error;
 
-    const { error: scoreError } = await supabase.from(T.MATCH_EN_COURS).insert({
-      id: data.id,
-      score_a: 0,
-      score_b: 0,
-      points_joueurs: {},
-      score_par_categorie: Object.fromEntries(CATEGORIES.map(c => [c.id, { A: 0, B: 0 }])),
-      updated_at: nowISO(),
-    });
-    if (scoreError) throw scoreError;
-
-    toast(`Match ${autoStart ? "cree et demarre" : "cree"} !`, "success");
+    toast(eqA.nom + " vs " + eqB.nom + " ajoute au calendrier.", "success");
     resetMatchForm();
+    setInputValue("matches-tournoi-filter", tournoiId);
     showSection("s-matches");
-    loadMatchesList();
+    await loadMatchesList();
+    await loadDashboard();
   } catch (err) {
     console.error(err);
-    showAlert("match-alert-msg", "match-alert", "Erreur : " + err.message);
+    erreur("Erreur : " + err.message);
   } finally {
     btn.disabled = false;
   }
 }
 
 function resetMatchForm() {
-  ["ea-nom", "ea-paroisse", "eb-nom", "eb-paroisse", "match-datetime"].forEach(id => {
+  ["ea-equipe-id", "eb-equipe-id", "match-datetime"].forEach(id => {
     const el = $(id);
     if (el) el.value = "";
   });
-  teamA = { titulaires: [], remplacants: [] };
-  teamB = { titulaires: [], remplacants: [] };
-  ["ea-titulaires", "ea-remplacants", "eb-titulaires", "eb-remplacants"].forEach(id => {
-    const el = $(id);
-    if (el) el.innerHTML = "";
-  });
-  buildCatDragList();
-  $("btn-save-start-match").disabled = true;
+  setInputValue("match-type", "saison");
 }
 
 function wireBareme() {

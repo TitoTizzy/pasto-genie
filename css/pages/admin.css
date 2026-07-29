@@ -163,6 +163,42 @@
 .statut-badge.pause    { background: rgba(212,175,55,0.16); border: 1px solid var(--border-gold); color: var(--gold); }
 .statut-badge.termine  { background: rgba(139,171,60,0.1); border: 1px solid var(--border-green); color: var(--green); }
 
+/* ── Selecteur d'affiche (Equipe A vs Equipe B) ─────────────────── */
+.versus-picker {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: var(--space-4);
+  margin: var(--space-5) 0;
+}
+.versus-picker .form-group { margin-bottom: 0; }
+.vs-label-a { color: var(--indigo); }
+.vs-label-b { color: var(--red); }
+.form-select-lg {
+  min-height: 62px;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+.vs-badge-form {
+  width: 52px;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-weight: 900;
+  font-style: italic;
+  color: #fff;
+  background: linear-gradient(160deg, #ff5f6d, var(--red));
+  box-shadow: 0 10px 26px rgba(239, 68, 68, 0.36);
+  margin-top: 1.6rem;
+}
+
+@media (max-width: 720px) {
+  .versus-picker { grid-template-columns: 1fr; }
+  .vs-badge-form { margin: 0 auto; }
+}
+
 /* ── Match creation grid ────────────────────────────────────────── */
 .match-create-grid {
   display: grid;
