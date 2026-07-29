@@ -117,6 +117,14 @@ with verif as (
                   where conrelid = 'public.match_evenements'::regclass
                     and pg_get_constraintdef(oid) ilike '%kreyol%'),
     'Bareme officiel /915 avec la categorie KREYOL'
+
+  union all select 17,
+    '021-questions-du-match.sql',
+    to_regclass('public.questions_match') is not null
+      and exists (select 1 from pg_constraint
+                  where conrelid = 'public.match_juges'::regclass
+                    and pg_get_constraintdef(oid) ilike '%TOUS%'),
+    'Questions preparees avant le match, 1 a 4 juges'
 )
 select
   ordre as "#",

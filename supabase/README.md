@@ -1,7 +1,7 @@
 # Scripts SQL — PASTO GENIE
 
 Les scripts sont numérotés dans leur **ordre d'exécution**. Sur une base neuve,
-on les passe de `001` à `020`, dans l'ordre. Sur une base existante, on ne rejoue
+on les passe de `001` à `021`, dans l'ordre. Sur une base existante, on ne rejoue
 que ceux qui manquent.
 
 Tous s'exécutent par copier-coller dans **Supabase → SQL Editor → Run**.
@@ -41,6 +41,7 @@ l'éditeur SQL ne prouve pas qu'elle ait été *exécutée*.
 | 018 | `moteur-juges-et-chrono.sql` | 4 juges (2 par équipe), validation à deux, corrections, chrono |
 | 019 | `type-de-match.sql` | Saison régulière et phases finales, classement de saison |
 | 020 | `feuille-de-match-officielle.sql` | **Barème officiel /915** avec la catégorie KREYOL |
+| 021 | `questions-du-match.sql` | Questions préparées avant le match ; 1 à 4 juges |
 
 ## À savoir
 

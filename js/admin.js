@@ -1,7 +1,7 @@
 // ================================================================
 //  PASTO GENIE - Admin panel Supabase
 // ================================================================
-import { supabase, T, ROLES, MANAGED_ROLES, CATEGORIES, BAREME_DEFAULT, STORAGE_BUCKET, pointsReplique } from "./supabase-config.js";
+import { supabase, T, ROLES, MANAGED_ROLES, CATEGORIES, PHASE_BY_ID, BAREME_DEFAULT, STORAGE_BUCKET, pointsReplique } from "./supabase-config.js";
 import { initAuth, logout } from "./auth.js";
 import { toast, showSection, showAlert, hideAlert, nextPlayerId, openOverlay, closeOverlay } from "./utils.js";
 
@@ -112,6 +112,7 @@ function bootstrap() {
   wireJoueurs();
   wireStats();
   wireBlog();
+  wireQuestions();
   showSection("s-dashboard");
   loadDashboard();
   loadTournoisSelects();
@@ -137,6 +138,7 @@ function wireSidebar() {
       if (btn.dataset.section === "s-regles") loadRegles();
       if (btn.dataset.section === "s-blog") loadBlogArticles();
       if (btn.dataset.section === "s-users") loadUsers();
+      if (btn.dataset.section === "s-questions") { loadQuestionsMatchSelect(); loadQuestionsMatch(); }
     });
   });
 
@@ -1611,6 +1613,368 @@ function resetMatchForm() {
     if (el) el.value = "";
   });
   setInputValue("match-type", "saison");
+}
+
+// ================================================================
+//  Questions du match - preparees et importees avant la rencontre
+// ================================================================
+
+let questionsImportees = [];
+
+function wireQuestions() {
+  bind("q-match", "change", loadQuestionsMatch);
+  bind("q-fichier", "change", lireFichierQuestions);
+  bind("btn-importer-questions", "click", importerQuestions);
+  bind("btn-vider-questions", "click", viderQuestions);
+  bind("btn-modele-questions", "click", telechargerModeleQuestions);
+}
+
+// ---- Lecture CSV -----------------------------------------------
+// Parseur complet : gere les guillemets, les virgules et les retours
+// a la ligne a l'interieur d'un champ, et le point-virgule d'Excel FR.
+function parseCSV(texte) {
+  const sansBom = texte.replace(/^﻿/, "");
+  const premiereLigne = sansBom.split(/\r?\n/)[0] || "";
+  const sep = (premiereLigne.match(/;/g) || []).length > (premiereLigne.match(/,/g) || []).length ? ";" : ",";
+
+  const lignes = [];
+  let champ = "";
+  let ligne = [];
+  let dansGuillemets = false;
+
+  for (let i = 0; i < sansBom.length; i++) {
+    const c = sansBom[i];
+    if (dansGuillemets) {
+      if (c === '"') {
+        if (sansBom[i + 1] === '"') { champ += '"'; i++; }
+        else dansGuillemets = false;
+      } else champ += c;
+      continue;
+    }
+    if (c === '"') { dansGuillemets = true; continue; }
+    if (c === sep) { ligne.push(champ); champ = ""; continue; }
+    if (c === "\n") { ligne.push(champ); lignes.push(ligne); ligne = []; champ = ""; continue; }
+    if (c === "\r") continue;
+    champ += c;
+  }
+  if (champ !== "" || ligne.length) { ligne.push(champ); lignes.push(ligne); }
+
+  return lignes.filter(l => l.some(v => (v || "").trim() !== ""));
+}
+
+const ALIAS_PHASE = {
+  francais: "francais", français: "francais", french: "francais",
+  culture: "culture", "culture gnle": "culture", "culture generale": "culture", "culture générale": "culture", cg: "culture",
+  maths: "maths", math: "maths", mathematiques: "maths", mathématiques: "maths",
+  kreyol: "kreyol", kreyòl: "kreyol", creole: "kreyol", créole: "kreyol",
+  religion: "religion",
+  sport: "sport", sports: "sport",
+  eclair: "eclair", eclairs: "eclair", eclaires: "eclair", éclair: "eclair", éclairs: "eclair", éclaires: "eclair",
+  bonus: "bonus", "question bonus": "bonus",
+};
+
+function normaliserPhase(valeur) {
+  const cle = String(valeur || "").trim().toLowerCase();
+  return ALIAS_PHASE[cle] || null;
+}
+
+function lireFichierQuestions(e) {
+  hideAlert("q-alert");
+  questionsImportees = [];
+  $("btn-importer-questions").disabled = true;
+  $("q-apercu").classList.add("hidden");
+
+  const fichier = e.target.files?.[0];
+  if (!fichier) return;
+
+  const lecteur = new FileReader();
+  lecteur.onload = () => {
+    try {
+      analyserQuestions(String(lecteur.result || ""));
+    } catch (err) {
+      console.error(err);
+      showAlert("q-alert-msg", "q-alert", err.message);
+    }
+  };
+  lecteur.onerror = () => showAlert("q-alert-msg", "q-alert", "Impossible de lire le fichier.");
+  lecteur.readAsText(fichier, "UTF-8");
+}
+
+function analyserQuestions(texte) {
+  const lignes = parseCSV(texte);
+  if (lignes.length < 2) throw new Error("Le fichier est vide ou ne contient que l'en-tete.");
+
+  const entetes = lignes[0].map(h => h.trim().toLowerCase().replace(/[éè]/g, "e"));
+  const col = nom => entetes.findIndex(h => h === nom);
+  const iPhase = col("phase");
+  const iNumero = col("numero");
+  const iEquipe = col("equipe");
+  const iQuestion = col("question");
+  const iReponse = col("reponse");
+
+  if (iPhase < 0 || iNumero < 0 || iQuestion < 0) {
+    throw new Error("Colonnes manquantes. Attendu au minimum : phase, numero, question.");
+  }
+
+  const lues = [];
+  const erreurs = [];
+
+  lignes.slice(1).forEach((ligne, index) => {
+    const numeroLigne = index + 2;
+    const phase = normaliserPhase(ligne[iPhase]);
+    const numero = parseInt((ligne[iNumero] || "").trim(), 10);
+    const question = (ligne[iQuestion] || "").trim();
+    let equipe = iEquipe >= 0 ? (ligne[iEquipe] || "").trim().toUpperCase() : "";
+    if (equipe !== "A" && equipe !== "B") equipe = "TOUS";
+
+    if (!phase) { erreurs.push(`Ligne ${numeroLigne} : phase inconnue "${ligne[iPhase]}"`); return; }
+    if (!numero || numero < 1) { erreurs.push(`Ligne ${numeroLigne} : numero invalide`); return; }
+    if (!question) { erreurs.push(`Ligne ${numeroLigne} : question vide`); return; }
+
+    const attendu = PHASE_BY_ID[phase]?.questions;
+    if (attendu && numero > attendu) {
+      erreurs.push(`Ligne ${numeroLigne} : ${PHASE_BY_ID[phase].label} n'a que ${attendu} question(s), numero ${numero} refuse`);
+      return;
+    }
+
+    lues.push({
+      categorie: phase,
+      numero,
+      equipe,
+      question,
+      reponse: iReponse >= 0 ? (ligne[iReponse] || "").trim() : "",
+    });
+  });
+
+  // Doublons : meme phase, meme numero, meme equipe
+  const vues = new Set();
+  lues.forEach(q => {
+    const cle = `${q.categorie}-${q.numero}-${q.equipe}`;
+    if (vues.has(cle)) erreurs.push(`Doublon : ${PHASE_BY_ID[q.categorie]?.label} question ${q.numero} (${q.equipe})`);
+    vues.add(cle);
+  });
+
+  questionsImportees = lues;
+  afficherApercuQuestions(lues, erreurs);
+}
+
+function afficherApercuQuestions(lues, erreurs) {
+  const wrap = $("q-apercu");
+  wrap.innerHTML = "";
+  wrap.classList.remove("hidden");
+
+  const resume = document.createElement("div");
+  resume.className = "q-resume";
+  CATEGORIES.forEach(phase => {
+    const n = lues.filter(q => q.categorie === phase.id).length;
+    if (!n) return;
+    const chip = document.createElement("span");
+    chip.className = "q-chip";
+    chip.style.borderColor = phase.couleur;
+    chip.textContent = `${phase.label} : ${n}`;
+    resume.appendChild(chip);
+  });
+  wrap.appendChild(resume);
+
+  const total = document.createElement("p");
+  total.className = "text-sm mt-3";
+  total.innerHTML = `<strong>${lues.length}</strong> question(s) prete(s) a l'import.`;
+  wrap.appendChild(total);
+
+  if (erreurs.length) {
+    const bloc = document.createElement("div");
+    bloc.className = "q-erreurs mt-3";
+    const titre = document.createElement("div");
+    titre.className = "q-erreurs-titre";
+    titre.textContent = `${erreurs.length} ligne(s) ignoree(s) :`;
+    bloc.appendChild(titre);
+    erreurs.slice(0, 12).forEach(msg => {
+      const li = document.createElement("div");
+      li.textContent = msg;
+      bloc.appendChild(li);
+    });
+    if (erreurs.length > 12) {
+      const reste = document.createElement("div");
+      reste.textContent = `... et ${erreurs.length - 12} autre(s)`;
+      bloc.appendChild(reste);
+    }
+    wrap.appendChild(bloc);
+  }
+
+  $("btn-importer-questions").disabled = lues.length === 0 || !$("q-match").value;
+}
+
+async function importerQuestions() {
+  hideAlert("q-alert");
+  const matchId = $("q-match").value;
+  if (!matchId) return showAlert("q-alert-msg", "q-alert", "Choisissez d'abord le match.");
+  if (!questionsImportees.length) return showAlert("q-alert-msg", "q-alert", "Aucune question a importer.");
+
+  const btn = $("btn-importer-questions");
+  btn.disabled = true;
+  btn.innerHTML = '<i class="ri-loader-4-line spin"></i> Import...';
+  try {
+    const lignes = questionsImportees.map(q => ({ ...q, match_id: matchId }));
+    const { error } = await supabase
+      .from("questions_match")
+      .upsert(lignes, { onConflict: "match_id,categorie,numero,equipe" });
+    if (error) throw error;
+
+    toast(`${lignes.length} question(s) importee(s).`, "success");
+    questionsImportees = [];
+    $("q-fichier").value = "";
+    $("q-apercu").classList.add("hidden");
+    await loadQuestionsMatch();
+  } catch (err) {
+    console.error(err);
+    const msg = String(err.message || err);
+    if (/questions_match/i.test(msg)) {
+      showAlert("q-alert-msg", "q-alert", "Base non a jour : executez supabase/021-questions-du-match.sql.");
+    } else {
+      showAlert("q-alert-msg", "q-alert", "Erreur : " + msg);
+    }
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="ri-upload-2-line"></i> Importer dans ce match';
+  }
+}
+
+async function loadQuestionsMatch() {
+  const wrap = $("q-liste");
+  const matchId = $("q-match").value;
+  wrap.innerHTML = "";
+  $("q-compteur").textContent = "0 question";
+  $("btn-importer-questions").disabled = !matchId || !questionsImportees.length;
+
+  if (!matchId) {
+    wrap.innerHTML = '<p class="text-muted text-center" style="padding:var(--space-5);">Choisissez un match.</p>';
+    return;
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from("questions_match")
+      .select("*")
+      .eq("match_id", matchId)
+      .order("categorie")
+      .order("numero");
+    if (error) throw error;
+
+    const rows = data || [];
+    $("q-compteur").textContent = `${rows.length} question${rows.length > 1 ? "s" : ""}`;
+    if (!rows.length) {
+      wrap.innerHTML = '<p class="text-muted text-center" style="padding:var(--space-5);">Aucune question pour ce match.</p>';
+      return;
+    }
+
+    CATEGORIES.forEach(phase => {
+      const duGroupe = rows.filter(q => q.categorie === phase.id);
+      if (!duGroupe.length) return;
+
+      const bloc = document.createElement("div");
+      bloc.className = "q-groupe";
+
+      const titre = document.createElement("div");
+      titre.className = "q-groupe-titre";
+      titre.style.background = phase.couleur;
+      const attendu = phase.questions;
+      titre.textContent = `${phase.label} — ${duGroupe.length} / ${attendu} attendue(s)`;
+      bloc.appendChild(titre);
+
+      duGroupe
+        .sort((a, b) => a.numero - b.numero || a.equipe.localeCompare(b.equipe))
+        .forEach(q => {
+          const row = document.createElement("div");
+          row.className = "q-row";
+
+          const num = document.createElement("span");
+          num.className = "q-num";
+          num.textContent = q.equipe === "TOUS" ? `Q${q.numero}` : `Q${q.numero} · ${q.equipe}`;
+
+          const texte = document.createElement("span");
+          texte.className = "q-texte";
+          texte.textContent = q.question;
+
+          const rep = document.createElement("span");
+          rep.className = "q-reponse";
+          rep.textContent = q.reponse || "—";
+
+          row.append(num, texte, rep);
+          bloc.appendChild(row);
+        });
+
+      wrap.appendChild(bloc);
+    });
+  } catch (err) {
+    console.error(err);
+    wrap.innerHTML = '<p class="text-muted text-center" style="padding:var(--space-5);">Executez supabase/021-questions-du-match.sql puis rechargez.</p>';
+  }
+}
+
+async function viderQuestions() {
+  const matchId = $("q-match").value;
+  if (!matchId) return;
+  if (!confirm("Effacer toutes les questions de ce match ?")) return;
+  try {
+    const { error } = await supabase.from("questions_match").delete().eq("match_id", matchId);
+    if (error) throw error;
+    toast("Questions effacees.", "info");
+    await loadQuestionsMatch();
+  } catch (err) {
+    toast("Erreur : " + err.message, "error");
+  }
+}
+
+// Modele CSV pre-rempli avec la structure exacte de la feuille de match.
+function telechargerModeleQuestions() {
+  const lignes = [["phase", "numero", "equipe", "question", "reponse"]];
+  CATEGORIES.forEach(phase => {
+    for (let n = 1; n <= phase.questions; n++) {
+      ["A", "B"].forEach(equipe => {
+        lignes.push([phase.id, n, equipe, "", ""]);
+      });
+    }
+  });
+
+  const csv = lignes
+    .map(l => l.map(v => `"${String(v).replace(/"/g, '""')}"`).join(","))
+    .join("\r\n");
+
+  // BOM UTF-8 : sans lui, Excel affiche mal les accents.
+  const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const lien = document.createElement("a");
+  lien.href = url;
+  lien.download = "modele-questions-pasto-genie.csv";
+  lien.click();
+  URL.revokeObjectURL(url);
+  toast("Modele telecharge. Remplissez la colonne question.", "success");
+}
+
+async function loadQuestionsMatchSelect() {
+  try {
+    const { data, error } = await supabase
+      .from(T.MATCHES)
+      .select("id, equipe_a, equipe_b, scheduled_at, statut")
+      .order("scheduled_at", { ascending: true, nullsFirst: false });
+    if (error) throw error;
+    const sel = $("q-match");
+    if (!sel) return;
+    const courant = sel.value;
+    while (sel.options.length > 1) sel.remove(1);
+    (data || []).forEach(m => {
+      const quand = m.scheduled_at
+        ? new Date(m.scheduled_at).toLocaleDateString("fr-FR", { day: "2-digit", month: "short" })
+        : "date a definir";
+      sel.appendChild(new Option(
+        `${m.equipe_a?.nom || "A"} vs ${m.equipe_b?.nom || "B"} - ${quand}`,
+        m.id
+      ));
+    });
+    sel.value = courant;
+  } catch (err) {
+    console.error(err);
+  }
 }
 
 function wireBareme() {

@@ -30,6 +30,7 @@ let bareme = {};           // configuration_points
 let rosters = { A: [], B: [] };   // tous les joueurs des deux equipes
 let juges = { A: [], B: [] };     // match_juges par equipe
 let juryUsers = [];        // comptes jury (pour l'assignation, superadmin)
+let questions = [];        // questions preparees pour ce match
 let channels = [];
 let chronoTimer = null;
 let lastBeep = null;
@@ -110,7 +111,7 @@ async function joinMatch(id) {
 
   try {
     await loadMatch();
-    await Promise.all([loadBareme(), loadLive(), loadRosters(), loadJuges(), loadJournal()]);
+    await Promise.all([loadBareme(), loadLive(), loadRosters(), loadJuges(), loadJournal(), loadQuestions()]);
   } catch (err) {
     console.error(err);
     toast("Erreur chargement : " + (err.message || err), "error");
@@ -188,6 +189,17 @@ async function loadRosters() {
   if (!rosters.B.length) rosters.B = (match.equipe_b?.titulaires || []).concat(match.equipe_b?.remplacants || []);
 }
 
+// Questions preparees par le superadmin avant la rencontre. Le juge les lit
+// a l'ecran ; la bonne reponse reste sur sa feuille papier.
+async function loadQuestions() {
+  questions = [];
+  const { data, error } = await supabase
+    .from("questions_match")
+    .select("*")
+    .eq("match_id", matchId);
+  if (!error && data) questions = data;
+}
+
 async function loadJuges() {
   juges = { A: [], B: [] };
   const { data, error } = await supabase.from("match_juges").select("*").eq("match_id", matchId);
@@ -221,6 +233,7 @@ function renderAll() {
   if (!match) return;
   renderHead();
   renderPhaseTrack();
+  renderQuestion();
   renderTeams();
   renderReplique();
   renderScores();
@@ -270,6 +283,56 @@ function renderPhaseTrack() {
     chip.textContent = `${meta.emoji} ${meta.label}`;
     wrap.appendChild(chip);
   });
+}
+
+function renderQuestion() {
+  const box = $("question-box");
+  if (!box || !match) return;
+
+  const phase = phaseId();
+  const numero = questionNum();
+  const pourCetteQuestion = questions.filter(q => q.categorie === phase && q.numero === numero);
+
+  if (!pourCetteQuestion.length) {
+    box.classList.add("hidden");
+    return;
+  }
+
+  const meta = phaseMeta();
+  $("question-etiquette").textContent = `${meta.label} — Question ${numero}/${phaseConf().questions}`;
+  $("question-etiquette").style.background = meta.couleur || "";
+
+  const wrap = $("question-texte");
+  wrap.innerHTML = "";
+
+  // Une question commune, ou une question par equipe selon la preparation.
+  const commune = pourCetteQuestion.find(q => q.equipe === "TOUS");
+  if (commune) {
+    const p = document.createElement("p");
+    p.className = "j-question-ligne";
+    p.textContent = commune.question;
+    wrap.appendChild(p);
+  } else {
+    ["A", "B"].forEach(side => {
+      const q = pourCetteQuestion.find(item => item.equipe === side);
+      if (!q) return;
+      const ligne = document.createElement("div");
+      ligne.className = "j-question-equipe";
+
+      const tag = document.createElement("span");
+      tag.className = `j-question-side j-question-side-${side.toLowerCase()}`;
+      tag.textContent = teamName(side);
+
+      const texte = document.createElement("p");
+      texte.className = "j-question-ligne";
+      texte.textContent = q.question;
+
+      ligne.append(tag, texte);
+      wrap.appendChild(ligne);
+    });
+  }
+
+  box.classList.remove("hidden");
 }
 
 // Recapitulatif identique au document papier : une ligne par phase,

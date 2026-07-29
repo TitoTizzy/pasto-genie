@@ -64,6 +64,9 @@
       <button class="sidebar-link" data-section="s-matches">
         <i class="ri-pulse-line"></i> Matchs
       </button>
+      <button class="sidebar-link" data-section="s-questions">
+        <i class="ri-questionnaire-line"></i> Questions
+      </button>
 
       <div class="sidebar-section-label" style="margin-top:var(--space-4);">Paramètres</div>
       <div class="sidebar-section-label" style="margin-top:var(--space-4);">Effectifs</div>
@@ -224,6 +227,62 @@
           </div>
         </div>
         <div id="matches-list" style="display:flex;flex-direction:column;gap:var(--space-3);"></div>
+      </section>
+
+      <!-- ── QUESTIONS ──────────────────────────────────────────── -->
+      <section id="s-questions" class="section">
+        <div class="page-header">
+          <div>
+            <h2 class="section-title">Questions</h2>
+            <p class="section-subtitle">Préparez les questions d'un match avant la rencontre</p>
+          </div>
+          <button id="btn-modele-questions" class="btn btn-ghost">
+            <i class="ri-download-2-line"></i> Télécharger le modèle
+          </button>
+        </div>
+
+        <div class="glass glass-sm mb-4">
+          <div class="form-group" style="margin-bottom:0;">
+            <label class="form-label"><i class="ri-pulse-line"></i> Match à préparer</label>
+            <select id="q-match" class="form-select">
+              <option value="">Choisir un match</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="glass glass-md mb-4">
+          <div class="card-label mb-3"><i class="ri-file-upload-line"></i> Importer un fichier CSV</div>
+          <p class="text-muted text-sm mb-4">
+            Colonnes attendues : <strong>phase, numero, equipe, question, reponse</strong>.
+            La colonne <strong>equipe</strong> vaut <code>A</code>, <code>B</code>, ou reste vide
+            si la même question sert aux deux. Depuis Excel : <em>Fichier → Enregistrer sous → CSV UTF-8</em>.
+          </p>
+          <label class="upload-box" for="q-fichier">
+            <input id="q-fichier" type="file" accept=".csv,text/csv"/>
+            <span class="upload-preview"><i class="ri-file-excel-2-line"></i></span>
+            <span class="upload-text">Choisir le fichier CSV</span>
+          </label>
+          <div id="q-apercu" class="hidden mt-4"></div>
+          <div id="q-alert" class="alert alert-red hidden mt-3">
+            <i class="ri-error-warning-line"></i><span id="q-alert-msg"></span>
+          </div>
+          <button id="btn-importer-questions" class="btn btn-gold btn-block mt-4" disabled>
+            <i class="ri-upload-2-line"></i> Importer dans ce match
+          </button>
+        </div>
+
+        <div class="glass glass-md">
+          <div class="card-header">
+            <div class="card-label"><i class="ri-list-check-2"></i> Questions enregistrées</div>
+            <div style="display:flex;align-items:center;gap:var(--space-3);">
+              <span id="q-compteur" class="text-muted text-sm">0 question</span>
+              <button id="btn-vider-questions" class="btn btn-ghost btn-sm">
+                <i class="ri-delete-bin-line" style="color:var(--red);"></i> Tout effacer
+              </button>
+            </div>
+          </div>
+          <div id="q-liste" class="q-liste"></div>
+        </div>
       </section>
 
       <!-- ── CRÉER MATCH ────────────────────────────────────────── -->
