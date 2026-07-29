@@ -124,6 +124,29 @@
       <button id="btn-undo" class="btn btn-ghost btn-sm"><i class="ri-arrow-go-back-line"></i> Retirer mon avis sur cette question</button>
     </div>
 
+    <!-- Feuille de match : le meme decompte que le document papier -->
+    <section class="j-feuille">
+      <div class="j-feuille-head">
+        <span><i class="ri-file-list-3-line"></i> Feuille de match</span>
+        <span class="j-feuille-max">Grand total <strong id="feuille-max">/ 915</strong></span>
+      </div>
+      <div class="j-feuille-table">
+        <div class="j-feuille-row j-feuille-header">
+          <span>Phase</span>
+          <span id="feuille-team-a">Équipe A</span>
+          <span id="feuille-team-b">Équipe B</span>
+          <span>Barème</span>
+        </div>
+        <div id="feuille-rows"></div>
+        <div class="j-feuille-row j-feuille-total">
+          <span>GRAND TOTAL</span>
+          <span id="feuille-total-a">0</span>
+          <span id="feuille-total-b">0</span>
+          <span id="feuille-total-max">/ 915</span>
+        </div>
+      </div>
+    </section>
+
     <!-- Journal -->
     <section class="j-journal">
       <div class="j-journal-head"><i class="ri-list-ordered-2"></i> Journal officiel du match</div>

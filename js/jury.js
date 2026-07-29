@@ -12,7 +12,7 @@
 //  - Chrono de reponse lance a la main par le superadmin ; son sur
 //    les 5 dernieres secondes.
 // ================================================================
-import { supabase, T, CATEGORIES, PHASE_BY_ID, ROLES, pointsReplique, pointsPourAction, CHRONO_REPONSE_SECONDES } from "./supabase-config.js";
+import { supabase, T, CATEGORIES, PHASE_BY_ID, ROLES, pointsReplique, pointsPourAction, CHRONO_REPONSE_SECONDES, TOTAL_MAX } from "./supabase-config.js";
 import { initAuth, logout } from "./auth.js";
 import { toast } from "./utils.js";
 
@@ -224,6 +224,7 @@ function renderAll() {
   renderTeams();
   renderReplique();
   renderScores();
+  renderFeuilleMatch();
   renderAvisStatus();
   renderChrono();
 }
@@ -232,6 +233,8 @@ function renderHead() {
   const conf = phaseConf();
   $("ph-icon").className = conf.icon;
   $("ph-label").textContent = conf.label;
+  $("ph-label").style.color = conf.couleur || "";
+  $("ph-icon").style.color = conf.couleur || "";
   $("ph-qnum").textContent = `Question ${questionNum()}/${conf.questions}`;
   const demi = pointsReplique(conf.points);
   $("ph-bareme").textContent = `Bonne ${conf.points} · Mauvaise 0 · Replique +${demi}/−${demi}`;
@@ -255,12 +258,71 @@ function renderPhaseTrack() {
   wrap.innerHTML = "";
   const cur = match.categorie_actuelle ?? 0;
   ordre().forEach((id, i) => {
-    const meta = PHASE_BY_ID[id] || { emoji: "?", label: id };
+    const meta = PHASE_BY_ID[id] || { emoji: "?", label: id, couleur: "#1b2f63" };
     const chip = document.createElement("div");
     chip.className = "j-phase-chip" + (i === cur ? " active" : i < cur ? " done" : "");
+    // Couleur de la feuille de match papier : l'ecran se lit comme le document.
+    if (i === cur) {
+      chip.style.background = meta.couleur;
+      chip.style.borderColor = meta.couleur;
+      chip.style.color = "#fff";
+    }
     chip.textContent = `${meta.emoji} ${meta.label}`;
     wrap.appendChild(chip);
   });
+}
+
+// Recapitulatif identique au document papier : une ligne par phase,
+// le total de chaque equipe et le bareme de reference.
+function renderFeuilleMatch() {
+  const wrap = $("feuille-rows");
+  if (!wrap || !match) return;
+
+  $("feuille-team-a").textContent = teamName("A");
+  $("feuille-team-b").textContent = teamName("B");
+  $("feuille-max").textContent = `/ ${TOTAL_MAX}`;
+  $("feuille-total-max").textContent = `/ ${TOTAL_MAX}`;
+
+  const parCategorie = live?.score_par_categorie || {};
+  wrap.innerHTML = "";
+  let totalA = 0;
+  let totalB = 0;
+
+  ordre().forEach(id => {
+    const meta = PHASE_BY_ID[id];
+    if (!meta) return;
+    const conf = bareme[id] || {};
+    const points = Number(conf.points ?? conf.bonne ?? meta.points) || 0;
+    const questions = Number(conf.questions ?? meta.questions) || 0;
+    const a = Number(parCategorie[id]?.A ?? 0);
+    const b = Number(parCategorie[id]?.B ?? 0);
+    totalA += a;
+    totalB += b;
+
+    const row = document.createElement("div");
+    row.className = "j-feuille-row";
+    if (id === phaseId()) row.classList.add("is-active");
+
+    const nom = document.createElement("span");
+    nom.className = "j-feuille-phase";
+    nom.textContent = meta.label;
+    nom.style.borderLeftColor = meta.couleur;
+
+    const cellA = document.createElement("span");
+    cellA.textContent = a;
+    const cellB = document.createElement("span");
+    cellB.textContent = b;
+
+    const ref = document.createElement("span");
+    ref.className = "j-feuille-ref";
+    ref.textContent = `/${questions * points} · rep /${questions * pointsReplique(points)}`;
+
+    row.append(nom, cellA, cellB, ref);
+    wrap.appendChild(row);
+  });
+
+  $("feuille-total-a").textContent = totalA;
+  $("feuille-total-b").textContent = totalB;
 }
 
 function renderTeams() {
@@ -380,6 +442,7 @@ function renderScores() {
   $("sb-score-b").textContent = live?.score_b ?? 0;
   // rafraichit les points des joueurs sans reconstruire les cartes
   renderTeams();
+  renderFeuilleMatch();
 }
 
 async function renderAvisStatus() {

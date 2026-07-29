@@ -374,6 +374,83 @@
   margin-top: var(--space-3);
 }
 
+/* ── Feuille de match (calque du document papier) ───────────────── */
+.j-feuille {
+  margin-top: var(--space-5);
+  border-radius: var(--r-md);
+  border: 1px solid var(--j-line);
+  background: var(--j-card);
+  overflow: hidden;
+}
+.j-feuille-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  color: var(--j-gold-2);
+  border-bottom: 1px solid var(--j-line);
+}
+.j-feuille-max { font-size: 0.86rem; color: var(--j-dim); font-weight: 700; }
+.j-feuille-max strong { color: var(--j-gold-2); }
+
+.j-feuille-table { padding: var(--space-2) var(--space-3) var(--space-3); }
+.j-feuille-row {
+  display: grid;
+  grid-template-columns: minmax(120px, 1.6fr) 72px 72px minmax(110px, 1fr);
+  gap: var(--space-2);
+  align-items: center;
+  padding: 0.42rem 0.3rem;
+  border-bottom: 1px solid rgba(120, 160, 255, 0.10);
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+}
+.j-feuille-row > span:nth-child(2),
+.j-feuille-row > span:nth-child(3) {
+  text-align: center;
+  font-weight: 900;
+}
+.j-feuille-header {
+  color: var(--j-dim);
+  font-size: 0.76rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: 800;
+  border-bottom-color: var(--j-line);
+}
+.j-feuille-header > span:nth-child(2),
+.j-feuille-header > span:nth-child(3) { font-weight: 800; }
+
+.j-feuille-phase {
+  font-weight: 800;
+  border-left: 4px solid transparent;
+  padding-left: 0.55rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.j-feuille-ref { color: var(--j-dim); font-size: 0.8rem; text-align: right; }
+.j-feuille-row.is-active { background: rgba(245, 179, 1, 0.10); border-radius: var(--r-sm); }
+
+.j-feuille-total {
+  margin-top: var(--space-2);
+  border-top: 2px solid var(--j-line);
+  border-bottom: none;
+  font-size: 1.05rem;
+  font-weight: 900;
+  color: var(--j-gold-2);
+  letter-spacing: 0.04em;
+}
+.j-feuille-total > span:last-child { text-align: right; font-size: 0.85rem; color: var(--j-dim); }
+
+@media (max-width: 560px) {
+  .j-feuille-row { grid-template-columns: 1fr 56px 56px; }
+  .j-feuille-ref { display: none; }
+}
+
 /* ── Journal ────────────────────────────────────────────────────── */
 .j-journal {
   margin-top: var(--space-5);
