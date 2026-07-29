@@ -1,7 +1,7 @@
 # Scripts SQL — PASTO GENIE
 
 Les scripts sont numérotés dans leur **ordre d'exécution**. Sur une base neuve,
-on les passe de `001` à `017`, dans l'ordre. Sur une base existante, on ne rejoue
+on les passe de `001` à `020`, dans l'ordre. Sur une base existante, on ne rejoue
 que ceux qui manquent.
 
 Tous s'exécutent par copier-coller dans **Supabase → SQL Editor → Run**.
@@ -38,6 +38,9 @@ l'éditeur SQL ne prouve pas qu'elle ait été *exécutée*.
 | 015 | `repair-match-finalization.sql` | Débloque la fin de match |
 | 016 | `bareme-2026.sql` | **Barème 2026** : 10 / 50 / 100, réplique de moitié, recalcul |
 | 017 | `seed-pasto-genie-2026.sql` | ⚠️ **Efface tout** puis installe les 8 équipes et 12 matchs |
+| 018 | `moteur-juges-et-chrono.sql` | 4 juges (2 par équipe), validation à deux, corrections, chrono |
+| 019 | `type-de-match.sql` | Saison régulière et phases finales, classement de saison |
+| 020 | `feuille-de-match-officielle.sql` | **Barème officiel /915** avec la catégorie KREYOL |
 
 ## À savoir
 

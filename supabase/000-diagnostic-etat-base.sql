@@ -94,6 +94,29 @@ with verif as (
     exists (select 1 from public.equipes where nom = 'PJMM')
       and (select count(*) from public.matches) >= 12,
     'Les 8 equipes reelles et les 12 matchs'
+
+  union all select 14,
+    '018-moteur-juges-et-chrono.sql',
+    to_regclass('public.avis_juges') is not null
+      and to_regclass('public.match_juges') is not null
+      and exists (select 1 from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+                  where n.nspname = 'public' and p.proname = 'soumettre_avis'),
+    '4 juges, validation a deux, corrections, chrono de reponse'
+
+  union all select 15,
+    '019-type-de-match.sql',
+    exists (select 1 from information_schema.columns
+            where table_schema = 'public' and table_name = 'matches' and column_name = 'type_match'),
+    'Saison reguliere et phases finales + classement de saison'
+
+  union all select 16,
+    '020-feuille-de-match-officielle.sql',
+    exists (select 1 from public.configuration_points
+            where id = 'bareme' and bareme ? 'kreyol')
+      and exists (select 1 from pg_constraint
+                  where conrelid = 'public.match_evenements'::regclass
+                    and pg_get_constraintdef(oid) ilike '%kreyol%'),
+    'Bareme officiel /915 avec la categorie KREYOL'
 )
 select
   ordre as "#",
